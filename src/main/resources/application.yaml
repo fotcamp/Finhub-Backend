@@ -1,0 +1,25 @@
+spring:
+  output:
+    ansi:
+      enabled: always
+  profiles:
+    active: local
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/Finhub
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  thymeleaf:
+    prefix: classpath:/static/
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 1000
+logging.level:
+  org.hibernate.SQL: debug
+# org.hibernate.type: trace
