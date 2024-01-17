@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 class AdminLoginTest {
 
     @Autowired
-    private AdminRepository adminRepository;
+    private ManagerRepository managerRepository;
 
     @BeforeEach
     public void beforeEach() {
@@ -24,12 +24,12 @@ class AdminLoginTest {
                 .password("0000")
                 .build();
 
-        adminRepository.save(adminUser);
+        managerRepository.save(adminUser);
     }
 
     @AfterEach
     public void afterEach() {
-        adminRepository.deleteAll();
+        managerRepository.deleteAll();
     }
 
     @Test
@@ -43,7 +43,7 @@ class AdminLoginTest {
                 .build();
 
         // when
-        Manager manager = adminRepository.findByUserId("admin").get();
+        Manager manager = managerRepository.findByUserId("admin").get();
 
         // then
         assertThat(adminUser.getUserId()).isEqualTo(manager.getUserId());
