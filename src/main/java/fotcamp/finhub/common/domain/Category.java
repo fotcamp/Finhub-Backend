@@ -2,7 +2,9 @@ package fotcamp.finhub.common.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,7 +23,14 @@ public class Category {
     @Builder.Default
     private String useYN = "N";
 
+    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
+    private List<Topic> topics = new ArrayList<>();
+
     public void changeUserYN(String flag) {
         this.useYN = flag;
+    }
+
+    public void addTopic(Topic topic) {
+        topics.add(topic);
     }
 }

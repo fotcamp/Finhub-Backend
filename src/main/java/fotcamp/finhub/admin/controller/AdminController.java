@@ -1,19 +1,17 @@
 package fotcamp.finhub.admin.controller;
 
 import fotcamp.finhub.admin.dto.CreateCategoryDto;
+import fotcamp.finhub.admin.dto.CreateTopicDto;
 import fotcamp.finhub.admin.dto.LoginDto;
 import fotcamp.finhub.admin.dto.ModifyCategoryDto;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.domain.Category;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 //@Tag(name = "admin", description = "admin api")
 @RestController
@@ -50,5 +48,11 @@ public class AdminController {
     @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> modifyCategory(@RequestBody ModifyCategoryDto modifyCategoryDto) {
         return adminService.modifyCategory(modifyCategoryDto);
+    }
+
+    @PostMapping("/topic")
+    @Operation(summary = "토픽 생성", description = "topic 등록", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createTopic(@RequestBody CreateTopicDto createTopicDto) {
+        return adminService.createTopic(createTopicDto);
     }
 }

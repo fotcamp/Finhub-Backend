@@ -1,14 +1,13 @@
 package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.domain.Manager;
-import fotcamp.finhub.admin.dto.CreateCategoryDto;
-import fotcamp.finhub.admin.dto.LoginDto;
-import fotcamp.finhub.admin.dto.ModifyCategoryDto;
+import fotcamp.finhub.admin.dto.*;
 import fotcamp.finhub.admin.repository.CategoryRepository;
 import fotcamp.finhub.admin.repository.ManagerRepository;
+import fotcamp.finhub.admin.repository.TopicRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.api.ApiStatus;
 import fotcamp.finhub.common.domain.Category;
+import fotcamp.finhub.common.domain.Topic;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class AdminService {
 
     private final ManagerRepository managerRepository;
     private final CategoryRepository categoryRepository;
+    private final TopicRepository topicRepository;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -47,7 +48,9 @@ public class AdminService {
     // 카테고리 전체 조회
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllCategory() {
-        return ResponseEntity.ok(ApiResponseWrapper.success(categoryRepository.findAll()));
+        List<Category> categories = categoryRepository.findAll();
+        List<AllCategoryResponseDto> allCategoryResponseDtos = categories.stream().map(AllCategoryResponseDto::new).toList();
+        return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDtos));
     }
 
     // 카테고리 생성
@@ -89,6 +92,28 @@ public class AdminService {
         } catch (IllegalArgumentException e) {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
+        }
+    }
+
+    // 토픽 생성
+    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicDto createTopicDto) {
+        try {
+            Category topicCategory = categoryRepository.findById(createTopicDto.getCategoryId()).orElseThrow(EntityNotFoundException::new);
+
+            Topic topic = Topic.builder()
+                    .title(createTopicDto.getTitle())
+                    .definition(createTopicDto.getDefinition())
+                    .shortDefinition(createTopicDto.getShortDefinition())
+                    .thumbnailImgPath(createTopicDto.getThumbnail())
+                    .createdBy(createTopicDto.getCreatedBy())
+                    .build();
+
+            topic.setCategory(topicCategory);
+            topicRepository.save(topic);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
         }
     }
 }
