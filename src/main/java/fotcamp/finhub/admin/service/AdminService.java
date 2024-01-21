@@ -84,13 +84,15 @@ public class AdminService {
             Category category = categoryRepository.findById(modifyCategoryDto.getId()).orElseThrow(EntityNotFoundException::new);
             // 수정할 카테고리명 중복 검사
             categoryRepository.findByName(modifyCategoryDto.getName()).ifPresent(e -> {
-                throw new DuplicateKeyException("이미 존재하는 카테고리");
+                if (!(e.getId().equals(modifyCategoryDto.getId()))) {
+                    throw new DuplicateKeyException("이미 존재하는 카테고리");
+                }
             });
-            // userYN값 Y, N인지 판단
+            // useYN값 Y, N인지 판단
             if (!("Y".equals(modifyCategoryDto.getUseYN()) || "N".equals(modifyCategoryDto.getUseYN()))) {
                 throw new IllegalArgumentException();
             }
-            category.modifyCategory(modifyCategoryDto.getName(), modifyCategoryDto.getUseYN());
+            category.modifyCategory(modifyCategoryDto);
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -146,6 +148,36 @@ public class AdminService {
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 유저 타입입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 유저타입"));
+        }
+    }
+
+    // 유저타입 수정
+    public ResponseEntity<ApiResponseWrapper> modifyUserType(ModifyUserTypeDto modifyUserTypeDto) {
+        try {
+            // 없는 유저타입이면 예외
+            UserType userType = userTypeRepository.findById(modifyUserTypeDto.getId()).orElseThrow(EntityNotFoundException::new);
+            // 수정할 유저타입명이 이미 존재하는지 판단
+            userTypeRepository.findByName(modifyUserTypeDto.getName()).ifPresent(e -> {
+                if (!(e.getId().equals(modifyUserTypeDto.getId()))) {
+                    throw new DuplicateKeyException("이미 존재하는 유저타입");
+                }
+            });
+            // useYN값 Y, N인지 판단
+            if (!("Y".equals(modifyUserTypeDto.getUseYN()) || "N".equals(modifyUserTypeDto.getUseYN()))) {
+                throw new IllegalArgumentException();
+            }
+            userType.modifyUserType(modifyUserTypeDto);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 유저타입 입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 유저타입"));
+        } catch (DuplicateKeyException e) {
+            log.error("이미 존재하는 카테고리명입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 유저타입명"));
+        } catch (IllegalArgumentException e) {
+            log.error("useYN에 다른 값이 들어왔습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
     }
 }

@@ -1,5 +1,6 @@
 package fotcamp.finhub.common.domain;
 
+import fotcamp.finhub.admin.dto.ModifyCategoryDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,9 +27,9 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private List<Topic> topics = new ArrayList<>();
 
-    public void modifyCategory(String name, String flag) {
-        this.name = name;
-        this.useYN = flag;
+    public void modifyCategory(ModifyCategoryDto modifyCategoryDto) {
+        this.name = modifyCategoryDto.getName();
+        this.useYN = modifyCategoryDto.getUseYN();
     }
 
     public void addTopic(Topic topic) {

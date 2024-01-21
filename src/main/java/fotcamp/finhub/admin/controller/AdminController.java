@@ -59,5 +59,9 @@ public class AdminController {
         return adminService.createUserType(createUserTypeDto);
     }
 
-
+    @PutMapping("/usertype")
+    @Operation(summary = "유저 타입 수정", description = "usertype 수정", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> modifyUserType(@RequestBody ModifyUserTypeDto modifyUserTypeDto) {
+        return adminService.modifyUserType(modifyUserTypeDto);
+    }
 }
