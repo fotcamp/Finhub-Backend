@@ -64,4 +64,10 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> modifyUserType(@RequestBody ModifyUserTypeDto modifyUserTypeDto) {
         return adminService.modifyUserType(modifyUserTypeDto);
     }
+
+    @GetMapping("/usertype")
+    @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
+        return adminService.getAllUserType();
+    }
 }
