@@ -21,7 +21,7 @@ class AdminLoginTest {
     public void beforeEach() {
         Manager adminUser = Manager.builder()
                 .userId("admin")
-                .password("0000")
+                .password("20000")
                 .build();
 
         managerRepository.save(adminUser);

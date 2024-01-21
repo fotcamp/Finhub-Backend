@@ -26,7 +26,8 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private List<Topic> topics = new ArrayList<>();
 
-    public void changeUserYN(String flag) {
+    public void modifyCategory(String name, String flag) {
+        this.name = name;
         this.useYN = flag;
     }
 

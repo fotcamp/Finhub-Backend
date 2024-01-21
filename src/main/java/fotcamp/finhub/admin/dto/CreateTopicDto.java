@@ -1,8 +1,9 @@
 package fotcamp.finhub.admin.dto;
 
 import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class CreateTopicDto {
     private Long categoryId;
     private String title;

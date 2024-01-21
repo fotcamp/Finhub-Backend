@@ -18,4 +18,7 @@ public class UserType {
     private String name;
 
     private String avatarImgPath;
+
+    @Builder.Default
+    private String useYN = "N";
 }

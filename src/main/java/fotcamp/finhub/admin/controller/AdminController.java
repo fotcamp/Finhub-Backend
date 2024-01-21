@@ -1,9 +1,6 @@
 package fotcamp.finhub.admin.controller;
 
-import fotcamp.finhub.admin.dto.CreateCategoryDto;
-import fotcamp.finhub.admin.dto.CreateTopicDto;
-import fotcamp.finhub.admin.dto.LoginDto;
-import fotcamp.finhub.admin.dto.ModifyCategoryDto;
+import fotcamp.finhub.admin.dto.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +41,7 @@ public class AdminController {
         return adminService.createCategory(createCategoryDto);
     }
 
-    @PatchMapping("/category")
+    @PutMapping("/category")
     @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> modifyCategory(@RequestBody ModifyCategoryDto modifyCategoryDto) {
         return adminService.modifyCategory(modifyCategoryDto);
@@ -55,4 +52,12 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> createTopic(@RequestBody CreateTopicDto createTopicDto) {
         return adminService.createTopic(createTopicDto);
     }
+
+    @PostMapping("/usertype")
+    @Operation(summary = "유저 타입 생성", description = "usertype 등록", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createUserType(@RequestBody CreateUserTypeDto createUserTypeDto) {
+        return adminService.createUserType(createUserTypeDto);
+    }
+
+
 }
