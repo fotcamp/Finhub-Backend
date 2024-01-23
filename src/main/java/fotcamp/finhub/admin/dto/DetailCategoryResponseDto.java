@@ -1,17 +1,14 @@
 package fotcamp.finhub.admin.dto;
 
-import fotcamp.finhub.common.domain.Topic;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Data
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@AllArgsConstructor
 public class DetailCategoryResponseDto {
-    private Long id;
-    private String title;
-    private String useYN;
-
-    public DetailCategoryResponseDto(Topic topic) {
-        this.id = topic.getId();
-        this.title = topic.getTitle();
-        this.useYN = topic.getUseYN();
-    }
+    private Long categoryId;
+    private List<DetailCategoryTopicResponseDto> topicList = new ArrayList<>();
 }
