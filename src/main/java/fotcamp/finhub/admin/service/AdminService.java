@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +56,22 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDtos));
     }
 
+    // 카테고리 상세 조회
+    public ResponseEntity<ApiResponseWrapper> getDetailCategory(Long categoryId) {
+        try {
+            Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
+            List<Topic> topicList = findCategory.getTopics();
+            List<DetailCategoryResponseDto> detailCategoryResponseDtos = topicList.stream().map(DetailCategoryResponseDto::new).toList();
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDtos));
+
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 카테고리입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
+        }
+
+
+    }
+
     // 카테고리 생성
     public ResponseEntity<ApiResponseWrapper> createCategory(CreateCategoryDto createCategoryDto) {
         try {
@@ -67,9 +84,9 @@ public class AdminService {
                     .name(createCategoryDto.getName())
                     .build();
 
-            categoryRepository.save(category);
+            Category saveCategory = categoryRepository.save(category);
 
-            return ResponseEntity.ok(ApiResponseWrapper.success());
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateCategoryResponseDto(saveCategory.getId())));
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 카테고리입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리"));
@@ -187,4 +204,5 @@ public class AdminService {
         List<AllUserTypeResponseDto> allUserTypeResponseDtos = userTypeList.stream().map(AllUserTypeResponseDto::new).toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDtos));
     }
+
 }

@@ -35,6 +35,12 @@ public class AdminController {
         return adminService.getAllCategory();
     }
 
+    @GetMapping("/category/{categoryId}")
+    @Operation(summary = "카테고리 상세 조회", description = "category 상세 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getDetailCategory(@PathVariable("categoryId") Long categoryId) {
+        return adminService.getDetailCategory(categoryId);
+    }
+
     @PostMapping("/category")
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createCategory(@RequestBody CreateCategoryDto createCategoryDto) {
