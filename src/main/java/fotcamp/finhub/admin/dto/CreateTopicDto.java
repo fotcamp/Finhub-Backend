@@ -1,6 +1,5 @@
 package fotcamp.finhub.admin.dto;
 
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

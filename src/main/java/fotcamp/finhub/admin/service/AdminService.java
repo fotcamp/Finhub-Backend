@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,9 +59,12 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getDetailCategory(Long categoryId) {
         try {
             Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
+
             List<Topic> topicList = findCategory.getTopics();
-            List<DetailCategoryResponseDto> detailCategoryResponseDtos = topicList.stream().map(DetailCategoryResponseDto::new).toList();
-            return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDtos));
+            List<DetailCategoryTopicResponseDto> detailCategoryTopicResponseDtos = topicList.stream().map(DetailCategoryTopicResponseDto::new).toList();
+
+            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(categoryId, detailCategoryTopicResponseDtos);
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDto));
 
         } catch (EntityNotFoundException e) {
             log.error("존재하지 않는 카테고리입니다.");
@@ -109,7 +111,17 @@ public class AdminService {
             if (!("Y".equals(modifyCategoryDto.getUseYN()) || "N".equals(modifyCategoryDto.getUseYN()))) {
                 throw new IllegalArgumentException();
             }
-            category.modifyCategory(modifyCategoryDto);
+
+            // 토픽 이름, useYN 수정
+            category.modifyCategoryNameUseYN(modifyCategoryDto);
+
+            // 토픽 카테고리 수정
+            List<ModifyTopicCategoryDto> topicList = modifyCategoryDto.getTopicList();
+            for (ModifyTopicCategoryDto topicDto : topicList) {
+                topicRepository.findById(topicDto.getTopicId()).ifPresent(topic -> {
+                    categoryRepository.findById(topicDto.getCategoryId()).ifPresent(topic::changeCategory);
+                });
+            }
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
