@@ -63,7 +63,7 @@ public class AdminService {
             List<Topic> topicList = findCategory.getTopics();
             List<DetailCategoryTopicResponseDto> detailCategoryTopicResponseDtos = topicList.stream().map(DetailCategoryTopicResponseDto::new).toList();
 
-            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(categoryId, detailCategoryTopicResponseDtos);
+            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(findCategory, detailCategoryTopicResponseDtos);
             return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDto));
 
         } catch (EntityNotFoundException e) {
