@@ -152,9 +152,9 @@ public class AdminService {
                     .build();
 
             topic.setCategory(topicCategory);
-            topicRepository.save(topic);
+            Long topicId = topicRepository.save(topic).getId();
 
-            return ResponseEntity.ok(ApiResponseWrapper.success());
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateTopicResponseDto(topicId)));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
         }

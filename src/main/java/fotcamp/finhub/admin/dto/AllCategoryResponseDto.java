@@ -1,13 +1,13 @@
 package fotcamp.finhub.admin.dto;
 
-import fotcamp.finhub.common.domain.Category;
 import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 
-@Data
+@Getter
 public class AllCategoryResponseDto {
-    private List<CategoryResponseDto> categoryList;
+    private final List<CategoryResponseDto> categoryList;
 
     public AllCategoryResponseDto(List<CategoryResponseDto> categoryList) {
         this.categoryList = categoryList;
