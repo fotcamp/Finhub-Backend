@@ -51,8 +51,10 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllCategory() {
         List<Category> categories = categoryRepository.findAll();
-        List<AllCategoryResponseDto> allCategoryResponseDtos = categories.stream().map(AllCategoryResponseDto::new).toList();
-        return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDtos));
+        List<CategoryResponseDto> categoryResponseDtoList = categories.stream().map(CategoryResponseDto::new).toList();
+        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(categoryResponseDtoList);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
     }
 
     // 카테고리 상세 조회

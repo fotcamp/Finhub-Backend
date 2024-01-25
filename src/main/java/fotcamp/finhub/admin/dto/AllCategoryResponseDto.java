@@ -3,15 +3,13 @@ package fotcamp.finhub.admin.dto;
 import fotcamp.finhub.common.domain.Category;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class AllCategoryResponseDto {
-    private Long id;
-    private String name;
-    private String useYN;
+    private List<CategoryResponseDto> categoryList;
 
-    public AllCategoryResponseDto(Category category) {
-        this.id = category.getId();
-        this.name = category.getName();
-        this.useYN = category.getUseYN();
+    public AllCategoryResponseDto(List<CategoryResponseDto> categoryList) {
+        this.categoryList = categoryList;
     }
 }
