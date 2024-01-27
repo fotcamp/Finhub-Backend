@@ -2,10 +2,7 @@ package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.domain.Manager;
 import fotcamp.finhub.admin.dto.*;
-import fotcamp.finhub.admin.repository.CategoryRepository;
-import fotcamp.finhub.admin.repository.ManagerRepository;
-import fotcamp.finhub.admin.repository.TopicRepository;
-import fotcamp.finhub.admin.repository.UserTypeRepository;
+import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
@@ -31,6 +28,7 @@ public class AdminService {
     private final CategoryRepository categoryRepository;
     private final TopicRepository topicRepository;
     private final UserTypeRepository userTypeRepository;
+    private final TopicRepositoryCustom topicRepositoryCustom;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -58,6 +56,7 @@ public class AdminService {
     }
 
     // 카테고리 상세 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getDetailCategory(Long categoryId) {
         try {
             Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
@@ -138,6 +137,16 @@ public class AdminService {
         }
     }
 
+    // 토픽 전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getAllTopic(Long categoryId, String useYN) {
+        List<Topic> topicList = topicRepositoryCustom.searchAllTopicFilterList(categoryId, useYN);
+        List<TopicResponseDto> topicResponseDtos = topicList.stream().map(TopicResponseDto::new).toList();
+        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicResponseDtos);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
     // 토픽 생성
     public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicDto createTopicDto) {
         try {
@@ -213,10 +222,12 @@ public class AdminService {
     }
 
     // 유저타입 전체 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllUserType() {
         List<UserType> userTypeList = userTypeRepository.findAll();
         List<AllUserTypeResponseDto> allUserTypeResponseDtos = userTypeList.stream().map(AllUserTypeResponseDto::new).toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDtos));
     }
+
 
 }

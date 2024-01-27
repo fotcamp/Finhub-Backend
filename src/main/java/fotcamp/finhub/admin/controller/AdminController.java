@@ -53,6 +53,15 @@ public class AdminController {
         return adminService.modifyCategory(modifyCategoryDto);
     }
 
+    @GetMapping("/topic")
+    @Operation(summary = "토픽 전체 조회", description = "topic 전체 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getAllTopic(
+            @RequestParam(name = "categoryId", required = false) Long id,
+            @RequestParam(name = "useYN", required = false) String useYN
+    ) {
+        return adminService.getAllTopic(id, useYN);
+    }
+
     @PostMapping("/topic")
     @Operation(summary = "토픽 생성", description = "topic 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createTopic(@RequestBody CreateTopicDto createTopicDto) {

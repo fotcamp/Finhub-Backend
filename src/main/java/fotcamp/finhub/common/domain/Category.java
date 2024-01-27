@@ -25,7 +25,7 @@ public class Category {
     private String useYN = "N";
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
-    private List<Topic> topics = new ArrayList<>();
+    private final List<Topic> topics = new ArrayList<>();
 
     public void modifyCategoryNameUseYN(ModifyCategoryDto modifyCategoryDto) {
         this.name = modifyCategoryDto.getName();
