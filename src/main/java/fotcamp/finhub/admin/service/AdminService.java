@@ -208,9 +208,11 @@ public class AdminService {
                     .avatarImgPath(createUserTypeDto.getAvatar())
                     .build();
 
-            userTypeRepository.save(userType);
+            Long usertypeId = userTypeRepository.save(userType).getId();
 
-            return ResponseEntity.ok(ApiResponseWrapper.success());
+            CreateUserTypeResponseDto createUserTypeResponseDto = new CreateUserTypeResponseDto(usertypeId);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(createUserTypeResponseDto));
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 유저 타입입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 유저타입"));
