@@ -169,6 +169,15 @@ public class AdminService {
         }
     }
 
+    // 유저타입 전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
+        List<UserType> userTypeList = userTypeRepository.findAll();
+        List<UserTypeResponseDto> userTypeResponseDtos = userTypeList.stream().map(UserTypeResponseDto::new).toList();
+        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeResponseDtos);
+        return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDto));
+    }
+
     // 유저 타입 생성
     public ResponseEntity<ApiResponseWrapper> createUserType(CreateUserTypeDto createUserTypeDto) {
         try {
@@ -220,14 +229,5 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
     }
-
-    // 유저타입 전체 조회
-    @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
-        List<UserType> userTypeList = userTypeRepository.findAll();
-        List<AllUserTypeResponseDto> allUserTypeResponseDtos = userTypeList.stream().map(AllUserTypeResponseDto::new).toList();
-        return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDtos));
-    }
-
 
 }

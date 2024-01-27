@@ -1,19 +1,14 @@
 package fotcamp.finhub.admin.dto;
 
-import fotcamp.finhub.common.domain.UserType;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+import java.util.List;
+
+@Getter
 public class AllUserTypeResponseDto {
-    private final Long id;
-    private String name;
-    private String avatar;
-    private String useYN;
+    private final List<UserTypeResponseDto> usertypeList;
 
-    public AllUserTypeResponseDto(UserType userType) {
-        this.id = userType.getId();
-        this.name = userType.getName();
-        this.avatar = userType.getAvatarImgPath();
-        this.useYN = userType.getUseYN();
+    public AllUserTypeResponseDto(List<UserTypeResponseDto> usertypeList) {
+        this.usertypeList = usertypeList;
     }
 }
