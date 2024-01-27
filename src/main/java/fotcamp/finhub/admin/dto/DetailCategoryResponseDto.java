@@ -1,7 +1,6 @@
 package fotcamp.finhub.admin.dto;
 
 import fotcamp.finhub.common.domain.Category;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.ArrayList;

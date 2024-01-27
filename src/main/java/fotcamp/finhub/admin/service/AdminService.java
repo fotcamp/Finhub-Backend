@@ -175,10 +175,27 @@ public class AdminService {
         List<UserType> userTypeList = userTypeRepository.findAll();
         List<UserTypeResponseDto> userTypeResponseDtos = userTypeList.stream().map(UserTypeResponseDto::new).toList();
         AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeResponseDtos);
+
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDto));
     }
 
-    // 유저 타입 생성
+    // 유저타입 상세 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getDetailUserType(Long typeId) {
+        try {
+            UserType findUserType = userTypeRepository.findById(typeId).orElseThrow(EntityNotFoundException::new);
+            DetailUserTypeResponseDto detailUserTypeResponseDto = new DetailUserTypeResponseDto(findUserType);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailUserTypeResponseDto));
+
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 유저타입입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 유저타입"));
+        }
+
+    }
+
+    // 유저타입 생성
     public ResponseEntity<ApiResponseWrapper> createUserType(CreateUserTypeDto createUserTypeDto) {
         try {
             // 중복 검사
@@ -229,5 +246,6 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
     }
+
 
 }

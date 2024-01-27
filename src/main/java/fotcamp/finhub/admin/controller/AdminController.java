@@ -68,6 +68,18 @@ public class AdminController {
         return adminService.createTopic(createTopicDto);
     }
 
+    @GetMapping("/usertype")
+    @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
+        return adminService.getAllUserType();
+    }
+
+    @GetMapping("/usertype/{typeId}")
+    @Operation(summary = "유저 타입 상세조회", description = "usertype 상세 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getDetailUserType(@PathVariable(name = "typeId") Long typeId) {
+        return adminService.getDetailUserType(typeId);
+    }
+
     @PostMapping("/usertype")
     @Operation(summary = "유저 타입 생성", description = "usertype 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createUserType(@RequestBody CreateUserTypeDto createUserTypeDto) {
@@ -80,9 +92,4 @@ public class AdminController {
         return adminService.modifyUserType(modifyUserTypeDto);
     }
 
-    @GetMapping("/usertype")
-    @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
-        return adminService.getAllUserType();
-    }
 }
