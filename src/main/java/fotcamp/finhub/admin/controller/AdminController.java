@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,6 +91,12 @@ public class AdminController {
     @Operation(summary = "유저 타입 수정", description = "usertype 수정", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> modifyUserType(@RequestBody ModifyUserTypeDto modifyUserTypeDto) {
         return adminService.modifyUserType(modifyUserTypeDto);
+    }
+
+    @PostMapping("/gpt")
+    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 로그 저장 및 답변 반환", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentDto createGptContentDto) {
+        return adminService.createGptContent(createGptContentDto);
     }
 
 }

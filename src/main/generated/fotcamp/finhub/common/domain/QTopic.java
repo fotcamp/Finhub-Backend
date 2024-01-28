@@ -33,6 +33,8 @@ public class QTopic extends EntityPathBase<Topic> {
 
     public final StringPath definition = createString("definition");
 
+    public final ListPath<Gpt, QGpt> gptList = this.<Gpt, QGpt>createList("gptList", Gpt.class, QGpt.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     //inherited

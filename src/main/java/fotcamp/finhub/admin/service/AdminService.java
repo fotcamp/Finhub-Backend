@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.service;
 
+import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.Manager;
 import fotcamp.finhub.admin.dto.*;
 import fotcamp.finhub.admin.repository.*;
@@ -29,6 +30,9 @@ public class AdminService {
     private final TopicRepository topicRepository;
     private final UserTypeRepository userTypeRepository;
     private final TopicRepositoryCustom topicRepositoryCustom;
+    private final GptService gptService;
+    private final GptLogRepository gptLogRepository;
+    private final GptRepository gptRepository;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -252,5 +256,63 @@ public class AdminService {
         }
     }
 
+    // GPT 답변 로그 저장 및 반환
+    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentDto createGptContentDto) {
+        try {
+            Topic topic = topicRepository.findById(createGptContentDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            UserType userType = userTypeRepository.findById(createGptContentDto.getUsertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
+            Category category = topic.getCategory();
 
+            String categoryName = category.getName();
+            String topicTitle = topic.getTitle();
+            String usertypeName = userType.getName();
+
+            // 프롬프트 생성
+            StringBuilder sb = new StringBuilder();
+            sb.append(categoryName);
+            sb.append("라는 금융카테고리 중 ");
+            sb.append("\"");
+            sb.append(topicTitle);
+            sb.append("\"");
+            sb.append("라는 질문에 대한 답변을 ");
+            sb.append("\"");
+            sb.append(usertypeName);
+            sb.append("\"");
+            sb.append("에게 알기 쉽게 설명해주고 싶어.");
+            sb.append("\"");
+            sb.append(usertypeName);
+            sb.append("\"");
+            sb.append("이 이해하기 쉽게 비유를 들어 설명해줘.");
+
+            // GPT 답변 받기
+            log.info("--gpt 실행 중---");
+            log.info("prompt : " + sb.toString());
+            String answer = gptService.saveLogAndReturnAnswer(sb.toString());
+            log.info("---gpt 답변 완료---");
+            log.info("answer : " + answer);
+
+            // 로그 DB 저장
+            log.info("---gpt log 저장 중---");
+            GptLog gptLog = GptLog.builder()
+                    .categoryId(category.getId())
+                    .topicId(topic.getId())
+                    .usertypeId(userType.getId())
+                    .question(sb.toString())
+                    .answer(answer)
+                    .createdBy(createGptContentDto.getCreatedBy())
+                    .build();
+
+            gptLogRepository.save(gptLog);
+
+            // GPT 답변 리턴
+            return ResponseEntity.ok(ApiResponseWrapper.success(answer));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+
+    }
 }

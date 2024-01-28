@@ -40,7 +40,7 @@ public class QGpt extends EntityPathBase<Gpt> {
 
     public final QTopic topic;
 
-    public final NumberPath<Long> userTypeId = createNumber("userTypeId", Long.class);
+    public final QUserType userType;
 
     public final StringPath useYN = createString("useYN");
 
@@ -63,6 +63,7 @@ public class QGpt extends EntityPathBase<Gpt> {
     public QGpt(Class<? extends Gpt> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.topic = inits.isInitialized("topic") ? new QTopic(forProperty("topic"), inits.get("topic")) : null;
+        this.userType = inits.isInitialized("userType") ? new QUserType(forProperty("userType")) : null;
     }
 
 }
