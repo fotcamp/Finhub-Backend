@@ -1,8 +1,9 @@
 package fotcamp.finhub.admin.dto;
 
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class CreateCategoryDto {
     private String name;
+    private String thumbnailImgPath;
 }

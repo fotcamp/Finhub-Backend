@@ -21,6 +21,8 @@ public class Category {
     @Column(nullable = false)
     private String name;
 
+    private String thumbnailImgPath;
+
     @Builder.Default
     private String useYN = "N";
 

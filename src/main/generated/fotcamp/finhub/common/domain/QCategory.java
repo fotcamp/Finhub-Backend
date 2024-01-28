@@ -24,6 +24,8 @@ public class QCategory extends EntityPathBase<Category> {
 
     public final StringPath name = createString("name");
 
+    public final StringPath thumbnailImgPath = createString("thumbnailImgPath");
+
     public final ListPath<Topic, QTopic> topics = this.<Topic, QTopic>createList("topics", Topic.class, QTopic.class, PathInits.DIRECT2);
 
     public final StringPath useYN = createString("useYN");

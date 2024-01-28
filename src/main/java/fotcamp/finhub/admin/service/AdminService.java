@@ -85,6 +85,7 @@ public class AdminService {
 
             Category category = Category.builder()
                     .name(createCategoryDto.getName())
+                    .thumbnailImgPath(createCategoryDto.getThumbnailImgPath())
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
