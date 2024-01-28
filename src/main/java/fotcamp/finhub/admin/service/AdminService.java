@@ -6,6 +6,7 @@ import fotcamp.finhub.admin.dto.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
+import fotcamp.finhub.common.domain.Gpt;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
 import jakarta.persistence.EntityNotFoundException;
@@ -152,6 +153,23 @@ public class AdminService {
         AllTopicResponseDto resultDto = new AllTopicResponseDto(topicResponseDtos);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // 토픽 상세 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getDetailTopic(Long topicId) {
+        try {
+            Topic findTopic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
+            List<DetailTopicGptResponseDto> detailTopicGptResponseDtos = findTopic.getGptList().stream().map(DetailTopicGptResponseDto::new).toList();
+            DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic, detailTopicGptResponseDtos);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailTopicResponseDto));
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 토픽입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 토픽"));
+        }
+
+
     }
 
     // 토픽 생성
@@ -315,4 +333,5 @@ public class AdminService {
         }
 
     }
+
 }

@@ -63,6 +63,12 @@ public class AdminController {
         return adminService.getAllTopic(id, useYN);
     }
 
+    @GetMapping("/topic/{topicId}")
+    @Operation(summary = "토픽 상세조회", description = "topic 상세 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getDetailTopic(@PathVariable(name = "topicId") Long topicId) {
+        return adminService.getDetailTopic(topicId);
+    }
+
     @PostMapping("/topic")
     @Operation(summary = "토픽 생성", description = "topic 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createTopic(@RequestBody CreateTopicDto createTopicDto) {

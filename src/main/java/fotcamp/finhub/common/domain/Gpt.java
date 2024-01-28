@@ -37,4 +37,8 @@ public class Gpt extends BaseEntity {
         this.topic = topic;
         topic.addGpt(this);
     }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
 }
