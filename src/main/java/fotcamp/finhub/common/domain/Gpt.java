@@ -1,6 +1,5 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,14 +17,23 @@ public class Gpt extends BaseEntity {
     @Column(nullable = false)
     private Long categoryId;
 
-    @Column(nullable = false)
-    private Long topicId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "topic_id")
+    private Topic topic;
 
     @Column(nullable = false)
     private Long userTypeId;
 
-    @Column(nullable = false)
     private String content;
 
+    @Builder.Default
+    private String useYN = "N";
+
     private String createdBy;
+
+    // 연관관계 편의 메서드
+    public void setTopic(Topic topic) {
+        this.topic = topic;
+        topic.addGpt(this);
+    }
 }

@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -16,6 +17,8 @@ import com.querydsl.core.types.Path;
 public class QGpt extends EntityPathBase<Gpt> {
 
     private static final long serialVersionUID = 495926850L;
+
+    private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QGpt gpt = new QGpt("gpt");
 
@@ -35,20 +38,31 @@ public class QGpt extends EntityPathBase<Gpt> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
-    public final NumberPath<Long> topicId = createNumber("topicId", Long.class);
+    public final QTopic topic;
 
     public final NumberPath<Long> userTypeId = createNumber("userTypeId", Long.class);
 
+    public final StringPath useYN = createString("useYN");
+
     public QGpt(String variable) {
-        super(Gpt.class, forVariable(variable));
+        this(Gpt.class, forVariable(variable), INITS);
     }
 
     public QGpt(Path<? extends Gpt> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QGpt(PathMetadata metadata) {
-        super(Gpt.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QGpt(PathMetadata metadata, PathInits inits) {
+        this(Gpt.class, metadata, inits);
+    }
+
+    public QGpt(Class<? extends Gpt> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.topic = inits.isInitialized("topic") ? new QTopic(forProperty("topic"), inits.get("topic")) : null;
     }
 
 }

@@ -3,6 +3,9 @@ package fotcamp.finhub.common.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -33,8 +36,15 @@ public class Topic extends BaseEntity {
 
     private String createdBy;
 
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
+    private final List<Gpt> gptList = new ArrayList<>();
+
     public void changeCategory(Category newCategory) {
         setCategory(newCategory);
+    }
+
+    public void addGpt(Gpt gpt) {
+        gptList.add(gpt);
     }
 
     // 연관관계 편의 메서드
