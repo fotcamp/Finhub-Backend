@@ -103,19 +103,21 @@ public class AdminService {
         try {
             // 없는 카테고리면 예외
             Category category = categoryRepository.findById(modifyCategoryDto.getId()).orElseThrow(EntityNotFoundException::new);
+
             // 수정할 카테고리명 중복 검사
             categoryRepository.findByName(modifyCategoryDto.getName()).ifPresent(e -> {
                 if (!(e.getId().equals(modifyCategoryDto.getId()))) {
                     throw new DuplicateKeyException("이미 존재하는 카테고리");
                 }
             });
+
             // useYN값 Y, N인지 판단
             if (!("Y".equals(modifyCategoryDto.getUseYN()) || "N".equals(modifyCategoryDto.getUseYN()))) {
                 throw new IllegalArgumentException();
             }
 
-            // 토픽 이름, useYN 수정
-            category.modifyCategoryNameUseYN(modifyCategoryDto);
+            // 토픽 이름, 썸네일, useYN 수정
+            category.modifyNameThumbnailUseYN(modifyCategoryDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryDto> topicList = modifyCategoryDto.getTopicList();

@@ -1,14 +1,15 @@
 package fotcamp.finhub.admin.dto;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
 public class ModifyCategoryDto {
     private Long id;
     private String name;
+    private String thumbnailImgPath;
     private String useYN;
     private List<ModifyTopicCategoryDto> topicList = new ArrayList<>();
 }
