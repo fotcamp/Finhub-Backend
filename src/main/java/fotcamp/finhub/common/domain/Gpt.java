@@ -1,5 +1,6 @@
 package fotcamp.finhub.common.domain;
 
+import fotcamp.finhub.admin.dto.GptDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,11 @@ public class Gpt extends BaseEntity {
     private String useYN = "N";
 
     private String createdBy;
+
+    public void modifyContentUseYN(GptDto gptDto) {
+        this.content = gptDto.getContent();
+        this.useYN = gptDto.getUseYN();
+    }
 
     // 연관관계 편의 메서드
     public void setTopic(Topic topic) {

@@ -75,6 +75,12 @@ public class AdminController {
         return adminService.createTopic(createTopicDto);
     }
 
+    @PutMapping("/topic")
+    @Operation(summary = "토픽 수정", description = "topic 수정", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(@RequestBody ModifyTopicDto modifyTopicDto) {
+        return adminService.modifyTopic(modifyTopicDto);
+    }
+
     @GetMapping("/usertype")
     @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getAllUserType() {

@@ -1,5 +1,7 @@
 package fotcamp.finhub.common.domain;
 
+import fotcamp.finhub.admin.dto.CategoryResponseDto;
+import fotcamp.finhub.admin.dto.ModifyTopicDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,12 +41,26 @@ public class Topic extends BaseEntity {
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private final List<Gpt> gptList = new ArrayList<>();
 
+    // 토픽 카테고리 변경
     public void changeCategory(Category newCategory) {
+        // 변경이 없는 경우에는 그냥 return
+        if (this.category == newCategory) {
+            return;
+        }
         setCategory(newCategory);
     }
 
     public void addGpt(Gpt gpt) {
         gptList.add(gpt);
+    }
+
+    // 토픽 수정
+    public void modifyTopic(ModifyTopicDto modifyTopicDto, Category category) {
+        changeCategory(category);
+        this.title = modifyTopicDto.getTitle();
+        this.definition = modifyTopicDto.getDefinition();
+        this.shortDefinition = modifyTopicDto.getShortDefinition();
+        this.thumbnailImgPath = modifyTopicDto.getThumbnailImgPath();
     }
 
     // 연관관계 편의 메서드

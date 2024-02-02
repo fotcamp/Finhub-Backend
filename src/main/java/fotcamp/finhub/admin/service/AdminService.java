@@ -168,8 +168,6 @@ public class AdminService {
             log.error("존재하지 않는 토픽입니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 토픽"));
         }
-
-
     }
 
     // 토픽 생성
@@ -192,6 +190,33 @@ public class AdminService {
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
         }
+    }
+
+    // 토픽 수정
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicDto modifyTopicDto) {
+        try {
+            Topic topic = topicRepository.findById(modifyTopicDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            Category category = categoryRepository.findById(modifyTopicDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
+            // 토픽 내용 수정
+            topic.modifyTopic(modifyTopicDto, category);
+            List<GptDto> gptDtoList = modifyTopicDto.getGptList();
+            for (GptDto gptDto : gptDtoList) {
+                if (!("Y".equals(gptDto.getUseYN()) || "N".equals(gptDto.getUseYN()))) {
+                    throw new IllegalArgumentException();
+                }
+                gptRepository.findById(gptDto.getGptId()).ifPresent(gpt -> {gpt.modifyContentUseYN(gptDto);});
+            }
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.error("useYN에 다른 값이 들어왔습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
+        }
+
+
+
     }
 
     // 유저타입 전체 조회
@@ -333,5 +358,4 @@ public class AdminService {
         }
 
     }
-
 }
