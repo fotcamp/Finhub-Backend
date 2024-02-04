@@ -1,10 +1,10 @@
-package fotcamp.finhub.admin.dto;
+package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.common.domain.Gpt;
 import lombok.Getter;
 
 @Getter
-public class DetailTopicGptResponseDto {
+public class DetailTopicProcessDto {
     private final Long usertypeId;
     private final String usertypeName;
     private final String avatarImgPath;
@@ -12,7 +12,7 @@ public class DetailTopicGptResponseDto {
     private final String content;
     private final String useYN;
 
-    public DetailTopicGptResponseDto(Gpt gpt) {
+    public DetailTopicProcessDto(Gpt gpt) {
         this.usertypeId = gpt.getUserType().getId();
         this.usertypeName = gpt.getUserType().getName();
         this.avatarImgPath = gpt.getUserType().getAvatarImgPath();

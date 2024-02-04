@@ -1,7 +1,6 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.CategoryResponseDto;
-import fotcamp.finhub.admin.dto.ModifyTopicDto;
+import fotcamp.finhub.admin.dto.request.ModifyTopicRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -55,12 +54,12 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(ModifyTopicDto modifyTopicDto, Category category) {
+    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category) {
         changeCategory(category);
-        this.title = modifyTopicDto.getTitle();
-        this.definition = modifyTopicDto.getDefinition();
-        this.shortDefinition = modifyTopicDto.getShortDefinition();
-        this.thumbnailImgPath = modifyTopicDto.getThumbnailImgPath();
+        this.title = modifyTopicRequestDto.getTitle();
+        this.definition = modifyTopicRequestDto.getDefinition();
+        this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
+        this.thumbnailImgPath = modifyTopicRequestDto.getThumbnailImgPath();
     }
 
     // 연관관계 편의 메서드

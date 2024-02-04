@@ -1,6 +1,6 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.GptDto;
+import fotcamp.finhub.admin.dto.process.GptProcessDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,9 +33,9 @@ public class Gpt extends BaseEntity {
 
     private String createdBy;
 
-    public void modifyContentUseYN(GptDto gptDto) {
-        this.content = gptDto.getContent();
-        this.useYN = gptDto.getUseYN();
+    public void modifyContentUseYN(GptProcessDto gptProcessDto) {
+        this.content = gptProcessDto.getContent();
+        this.useYN = gptProcessDto.getUseYN();
     }
 
     // 연관관계 편의 메서드

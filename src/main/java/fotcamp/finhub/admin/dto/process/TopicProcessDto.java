@@ -1,16 +1,16 @@
-package fotcamp.finhub.admin.dto;
+package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.common.domain.Topic;
 import lombok.Getter;
 
 @Getter
-public class TopicResponseDto {
-    private Long topicId;
-    private String categoryName;
-    private String topicTitle;
-    private String useYN;
+public class TopicProcessDto {
+    private final Long topicId;
+    private final String categoryName;
+    private final String topicTitle;
+    private final String useYN;
 
-    public TopicResponseDto(Topic topic) {
+    public TopicProcessDto(Topic topic) {
         this.topicId = topic.getId();
         this.categoryName = topic.getCategory().getName();
         this.topicTitle = topic.getTitle();

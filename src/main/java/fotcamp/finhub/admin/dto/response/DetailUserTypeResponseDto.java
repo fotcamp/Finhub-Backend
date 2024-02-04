@@ -1,4 +1,4 @@
-package fotcamp.finhub.admin.dto;
+package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.common.domain.UserType;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.ModifyUserTypeDto;
+import fotcamp.finhub.admin.dto.request.ModifyUserTypeRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,9 +23,9 @@ public class UserType {
     @Builder.Default
     private String useYN = "N";
 
-    public void modifyUserType(ModifyUserTypeDto modifyUserTypeDto) {
-        this.name = modifyUserTypeDto.getName();
-        this.avatarImgPath = modifyUserTypeDto.getAvatar();
-        this.useYN = modifyUserTypeDto.getUseYN();
+    public void modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
+        this.name = modifyUserTypeRequestDto.name();
+        this.avatarImgPath = modifyUserTypeRequestDto.avatar();
+        this.useYN = modifyUserTypeRequestDto.useYN();
     }
 }

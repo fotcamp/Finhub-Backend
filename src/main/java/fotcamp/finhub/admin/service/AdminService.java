@@ -2,17 +2,17 @@ package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.Manager;
-import fotcamp.finhub.admin.dto.*;
+import fotcamp.finhub.admin.dto.process.*;
+import fotcamp.finhub.admin.dto.request.*;
+import fotcamp.finhub.admin.dto.response.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
-import fotcamp.finhub.common.domain.Gpt;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static fotcamp.finhub.common.domain.QTopic.topic;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +40,10 @@ public class AdminService {
 
     // 로그인
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> login(LoginDto loginDto) {
+    public ResponseEntity<ApiResponseWrapper> login(LoginRequestDto loginRequestDto) {
         try {
-            Manager manager = managerRepository.findByUserId(loginDto.getId()).orElseThrow(EntityNotFoundException::new);
-            if (manager.getPassword().equals(loginDto.getPassword())) {
+            Manager manager = managerRepository.findByUserId(loginRequestDto.id()).orElseThrow(EntityNotFoundException::new);
+            if (manager.getPassword().equals(loginRequestDto.password())) {
                 return ResponseEntity.ok(ApiResponseWrapper.success()); // 200
             }
             // 비밀번호 틀렸을 경우
@@ -55,8 +57,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllCategory() {
         List<Category> categories = categoryRepository.findAll();
-        List<CategoryResponseDto> categoryResponseDtoList = categories.stream().map(CategoryResponseDto::new).toList();
-        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(categoryResponseDtoList);
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.stream().map(AllCategoryProcessDto::new).toList();
+        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
     }
@@ -68,9 +70,9 @@ public class AdminService {
             Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
 
             List<Topic> topicList = findCategory.getTopics();
-            List<DetailCategoryTopicResponseDto> detailCategoryTopicResponseDtos = topicList.stream().map(DetailCategoryTopicResponseDto::new).toList();
+            List<DetailCategoryTopicProcessDto> detailCategoryTopicProcessDtos = topicList.stream().map(DetailCategoryTopicProcessDto::new).toList();
 
-            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(findCategory, detailCategoryTopicResponseDtos);
+            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(findCategory, detailCategoryTopicProcessDtos);
             return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDto));
 
         } catch (EntityNotFoundException e) {
@@ -82,16 +84,16 @@ public class AdminService {
     }
 
     // 카테고리 생성
-    public ResponseEntity<ApiResponseWrapper> createCategory(CreateCategoryDto createCategoryDto) {
+    public ResponseEntity<ApiResponseWrapper> createCategory(CreateCategoryRequestDto createCategoryRequestDto) {
         try {
             // 중복 검사
-            categoryRepository.findByName(createCategoryDto.getName()).ifPresent(e -> {
+            categoryRepository.findByName(createCategoryRequestDto.name()).ifPresent(e -> {
                 throw new DuplicateKeyException("이미 존재하는 카테고리");
             });
 
             Category category = Category.builder()
-                    .name(createCategoryDto.getName())
-                    .thumbnailImgPath(createCategoryDto.getThumbnailImgPath())
+                    .name(createCategoryRequestDto.name())
+                    .thumbnailImgPath(createCategoryRequestDto.thumbnailImgPath())
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -105,38 +107,38 @@ public class AdminService {
     }
 
     // 카테고리 수정 (보이기 / 숨기기)
-    public ResponseEntity<ApiResponseWrapper> modifyCategory(ModifyCategoryDto modifyCategoryDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyCategory(ModifyCategoryRequestDto modifyCategoryRequestDto) {
         try {
             // 없는 카테고리면 예외
-            Category category = categoryRepository.findById(modifyCategoryDto.getId()).orElseThrow(EntityNotFoundException::new);
+            Category category = categoryRepository.findById(modifyCategoryRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
 
             // 수정할 카테고리명 중복 검사
-            categoryRepository.findByName(modifyCategoryDto.getName()).ifPresent(e -> {
-                if (!(e.getId().equals(modifyCategoryDto.getId()))) {
+            categoryRepository.findByName(modifyCategoryRequestDto.name()).ifPresent(e -> {
+                if (!(e.getId().equals(modifyCategoryRequestDto.id()))) {
                     throw new DuplicateKeyException("이미 존재하는 카테고리");
                 }
             });
 
             // useYN값 Y, N인지 판단
-            if (!("Y".equals(modifyCategoryDto.getUseYN()) || "N".equals(modifyCategoryDto.getUseYN()))) {
+            if (!("Y".equals(modifyCategoryRequestDto.useYN()) || "N".equals(modifyCategoryRequestDto.useYN()))) {
                 throw new IllegalArgumentException();
             }
 
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameThumbnailUseYN(modifyCategoryDto);
+            category.modifyNameThumbnailUseYN(modifyCategoryRequestDto);
 
             // 토픽 카테고리 수정
-            List<ModifyTopicCategoryDto> topicList = modifyCategoryDto.getTopicList();
-            for (ModifyTopicCategoryDto topicDto : topicList) {
-                topicRepository.findById(topicDto.getTopicId()).ifPresent(topic -> {
-                    categoryRepository.findById(topicDto.getCategoryId()).ifPresent(topic::changeCategory);
-                });
+            List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
+            for (ModifyTopicCategoryProcessDto topicDto : topicList) {
+                Topic topic = topicRepository.findById(topicDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽입니다."));
+                Category afterCategory = categoryRepository.findById(topicDto.categoryId()).orElseThrow(() -> new EntityNotFoundException("변경하려는 카테고리가 존재하지 않습니다."));
+                topic.changeCategory(afterCategory);
             }
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
-            log.error("존재하지 않는 카테고리입니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 카테고리명입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리명"));
@@ -150,8 +152,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllTopic(Long categoryId, String useYN) {
         List<Topic> topicList = topicRepositoryCustom.searchAllTopicFilterList(categoryId, useYN);
-        List<TopicResponseDto> topicResponseDtos = topicList.stream().map(TopicResponseDto::new).toList();
-        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicResponseDtos);
+        List<TopicProcessDto> topicProcessDtos = topicList.stream().map(TopicProcessDto::new).toList();
+        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
     }
@@ -161,8 +163,8 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getDetailTopic(Long topicId) {
         try {
             Topic findTopic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
-            List<DetailTopicGptResponseDto> detailTopicGptResponseDtos = findTopic.getGptList().stream().map(DetailTopicGptResponseDto::new).toList();
-            DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic, detailTopicGptResponseDtos);
+            List<DetailTopicProcessDto> detailTopicProcessDtos = findTopic.getGptList().stream().map(DetailTopicProcessDto::new).toList();
+            DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic, detailTopicProcessDtos);
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailTopicResponseDto));
         } catch (EntityNotFoundException e) {
@@ -172,16 +174,16 @@ public class AdminService {
     }
 
     // 토픽 생성
-    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicDto createTopicDto) {
+    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicRequestDto createTopicRequestDto) {
         try {
-            Category topicCategory = categoryRepository.findById(createTopicDto.getCategoryId()).orElseThrow(EntityNotFoundException::new);
+            Category topicCategory = categoryRepository.findById(createTopicRequestDto.categoryId()).orElseThrow(EntityNotFoundException::new);
 
             Topic topic = Topic.builder()
-                    .title(createTopicDto.getTitle())
-                    .definition(createTopicDto.getDefinition())
-                    .shortDefinition(createTopicDto.getShortDefinition())
-                    .thumbnailImgPath(createTopicDto.getThumbnail())
-                    .createdBy(createTopicDto.getCreatedBy())
+                    .title(createTopicRequestDto.title())
+                    .definition(createTopicRequestDto.definition())
+                    .shortDefinition(createTopicRequestDto.shortDefinition())
+                    .thumbnailImgPath(createTopicRequestDto.thumbnail())
+                    .createdBy(createTopicRequestDto.createdBy())
                     .build();
 
             topic.setCategory(topicCategory);
@@ -194,18 +196,18 @@ public class AdminService {
     }
 
     // 토픽 수정
-    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicDto modifyTopicDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto) {
         try {
-            Topic topic = topicRepository.findById(modifyTopicDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
-            Category category = categoryRepository.findById(modifyTopicDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
+            Topic topic = topicRepository.findById(modifyTopicRequestDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            Category category = categoryRepository.findById(modifyTopicRequestDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
             // 토픽 내용 수정
-            topic.modifyTopic(modifyTopicDto, category);
-            List<GptDto> gptDtoList = modifyTopicDto.getGptList();
-            for (GptDto gptDto : gptDtoList) {
-                if (!("Y".equals(gptDto.getUseYN()) || "N".equals(gptDto.getUseYN()))) {
+            topic.modifyTopic(modifyTopicRequestDto, category);
+            List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
+            for (GptProcessDto gptProcessDto : gptProcessDtoList) {
+                if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
-                gptRepository.findById(gptDto.getGptId()).ifPresent(gpt -> {gpt.modifyContentUseYN(gptDto);});
+                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {gpt.modifyContentUseYN(gptProcessDto);});
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -224,8 +226,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllUserType() {
         List<UserType> userTypeList = userTypeRepository.findAll();
-        List<UserTypeResponseDto> userTypeResponseDtos = userTypeList.stream().map(UserTypeResponseDto::new).toList();
-        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeResponseDtos);
+        List<UserTypeProcessDto> userTypeProcessDtos = userTypeList.stream().map(UserTypeProcessDto::new).toList();
+        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDto));
     }
@@ -247,16 +249,16 @@ public class AdminService {
     }
 
     // 유저타입 생성
-    public ResponseEntity<ApiResponseWrapper> createUserType(CreateUserTypeDto createUserTypeDto) {
+    public ResponseEntity<ApiResponseWrapper> createUserType(CreateUserTypeRequestDto createUserTypeRequestDto) {
         try {
             // 중복 검사
-            userTypeRepository.findByName(createUserTypeDto.getName()).ifPresent(e -> {
+            userTypeRepository.findByName(createUserTypeRequestDto.name()).ifPresent(e -> {
                 throw new DuplicateKeyException("중복된 유저 타입");
             });
 
             UserType userType = UserType.builder()
-                    .name(createUserTypeDto.getName())
-                    .avatarImgPath(createUserTypeDto.getAvatar())
+                    .name(createUserTypeRequestDto.name())
+                    .avatarImgPath(createUserTypeRequestDto.avatar())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
@@ -271,21 +273,21 @@ public class AdminService {
     }
 
     // 유저타입 수정
-    public ResponseEntity<ApiResponseWrapper> modifyUserType(ModifyUserTypeDto modifyUserTypeDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
         try {
             // 없는 유저타입이면 예외
-            UserType userType = userTypeRepository.findById(modifyUserTypeDto.getId()).orElseThrow(EntityNotFoundException::new);
+            UserType userType = userTypeRepository.findById(modifyUserTypeRequestDto.id()).orElseThrow(EntityNotFoundException::new);
             // 수정할 유저타입명이 이미 존재하는지 판단
-            userTypeRepository.findByName(modifyUserTypeDto.getName()).ifPresent(e -> {
-                if (!(e.getId().equals(modifyUserTypeDto.getId()))) {
+            userTypeRepository.findByName(modifyUserTypeRequestDto.name()).ifPresent(e -> {
+                if (!(e.getId().equals(modifyUserTypeRequestDto.id()))) {
                     throw new DuplicateKeyException("이미 존재하는 유저타입");
                 }
             });
             // useYN값 Y, N인지 판단
-            if (!("Y".equals(modifyUserTypeDto.getUseYN()) || "N".equals(modifyUserTypeDto.getUseYN()))) {
+            if (!("Y".equals(modifyUserTypeRequestDto.useYN()) || "N".equals(modifyUserTypeRequestDto.useYN()))) {
                 throw new IllegalArgumentException();
             }
-            userType.modifyUserType(modifyUserTypeDto);
+            userType.modifyUserType(modifyUserTypeRequestDto);
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -301,10 +303,10 @@ public class AdminService {
     }
 
     // GPT 답변 로그 저장 및 반환
-    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentDto createGptContentDto) {
+    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto) {
         try {
-            Topic topic = topicRepository.findById(createGptContentDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
-            UserType userType = userTypeRepository.findById(createGptContentDto.getUsertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
+            Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            UserType userType = userTypeRepository.findById(createGptContentRequestDto.usertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
             Category category = topic.getCategory();
 
             String categoryName = category.getName();
@@ -343,7 +345,7 @@ public class AdminService {
                     .usertypeId(userType.getId())
                     .question(sb.toString())
                     .answer(answer)
-                    .createdBy(createGptContentDto.getCreatedBy())
+                    .createdBy(createGptContentRequestDto.createdBy())
                     .build();
 
             gptLogRepository.save(gptLog);

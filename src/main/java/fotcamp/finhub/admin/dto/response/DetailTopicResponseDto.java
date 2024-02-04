@@ -1,5 +1,6 @@
-package fotcamp.finhub.admin.dto;
+package fotcamp.finhub.admin.dto.response;
 
+import fotcamp.finhub.admin.dto.process.DetailTopicProcessDto;
 import fotcamp.finhub.common.domain.Topic;
 import lombok.Getter;
 
@@ -13,9 +14,9 @@ public class DetailTopicResponseDto {
     private final String shortDefinition;
     private final String thumbnailImgPath;
     private final String useYN;
-    private final List<DetailTopicGptResponseDto> gptList;
+    private final List<DetailTopicProcessDto> gptList;
 
-    public DetailTopicResponseDto(Topic topic, List<DetailTopicGptResponseDto> gptList) {
+    public DetailTopicResponseDto(Topic topic, List<DetailTopicProcessDto> gptList) {
         this.categoryId = topic.getCategory().getId();
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();

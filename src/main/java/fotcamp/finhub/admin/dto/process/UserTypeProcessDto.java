@@ -1,16 +1,16 @@
-package fotcamp.finhub.admin.dto;
+package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.common.domain.UserType;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
-public class UserTypeResponseDto {
+@Getter
+public class UserTypeProcessDto {
     private final Long id;
-    private String name;
-    private String avatar;
-    private String useYN;
+    private final String name;
+    private final String avatar;
+    private final String useYN;
 
-    public UserTypeResponseDto(UserType userType) {
+    public UserTypeProcessDto(UserType userType) {
         this.id = userType.getId();
         this.name = userType.getName();
         this.avatar = userType.getAvatarImgPath();

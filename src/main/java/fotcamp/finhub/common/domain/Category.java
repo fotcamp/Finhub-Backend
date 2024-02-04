@@ -1,8 +1,7 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.ModifyCategoryDto;
+import fotcamp.finhub.admin.dto.request.ModifyCategoryRequestDto;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -30,10 +29,10 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private final List<Topic> topics = new ArrayList<>();
 
-    public void modifyNameThumbnailUseYN(ModifyCategoryDto modifyCategoryDto) {
-        this.name = modifyCategoryDto.getName();
-        this.thumbnailImgPath = modifyCategoryDto.getThumbnailImgPath();
-        this.useYN = modifyCategoryDto.getUseYN();
+    public void modifyNameThumbnailUseYN(ModifyCategoryRequestDto modifyCategoryRequestDto) {
+        this.name = modifyCategoryRequestDto.name();
+        this.thumbnailImgPath = modifyCategoryRequestDto.thumbnailImgPath();
+        this.useYN = modifyCategoryRequestDto.useYN();
     }
 
     public void addTopic(Topic topic) {
