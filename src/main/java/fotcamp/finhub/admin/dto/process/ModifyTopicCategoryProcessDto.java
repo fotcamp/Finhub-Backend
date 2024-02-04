@@ -1,5 +1,7 @@
 package fotcamp.finhub.admin.dto.process;
 
 
-public record ModifyTopicCategoryProcessDto(Long topicId, String title, Long categoryId) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ModifyTopicCategoryProcessDto(Long topicId, @NotBlank String title, Long categoryId) {
 }

@@ -7,13 +7,13 @@ import lombok.Getter;
 public class UserTypeProcessDto {
     private final Long id;
     private final String name;
-    private final String avatar;
+    private final String avatarImgPath;
     private final String useYN;
 
     public UserTypeProcessDto(UserType userType) {
         this.id = userType.getId();
         this.name = userType.getName();
-        this.avatar = userType.getAvatarImgPath();
+        this.avatarImgPath = userType.getAvatarImgPath();
         this.useYN = userType.getUseYN();
     }
 }

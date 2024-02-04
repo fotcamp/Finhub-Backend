@@ -1,13 +1,16 @@
 package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.common.domain.Gpt;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GptProcessDto {
-    private final Long gptId;
-    private final String content;
-    private final String useYN;
+    private Long gptId;
+    private String content;
+    private String useYN;
 
     public GptProcessDto(Gpt gpt) {
         this.gptId = gpt.getId();

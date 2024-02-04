@@ -32,8 +32,8 @@ public class AdminController {
 
     @GetMapping("/category")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllCategory() {
-        return adminService.getAllCategory();
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(@RequestParam(name = "useYN", required = false) String useYN) {
+        return adminService.getAllCategory(useYN);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -50,7 +50,7 @@ public class AdminController {
 
     @PutMapping("/category")
     @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyCategory(@RequestBody ModifyCategoryRequestDto modifyCategoryRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @RequestBody ModifyCategoryRequestDto modifyCategoryRequestDto) {
         return adminService.modifyCategory(modifyCategoryRequestDto);
     }
 
@@ -71,13 +71,13 @@ public class AdminController {
 
     @PostMapping("/topic")
     @Operation(summary = "토픽 생성", description = "topic 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createTopic(@RequestBody CreateTopicRequestDto createTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createTopic(@Valid @RequestBody CreateTopicRequestDto createTopicRequestDto) {
         return adminService.createTopic(createTopicRequestDto);
     }
 
     @PutMapping("/topic")
     @Operation(summary = "토픽 수정", description = "topic 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyTopic(@RequestBody ModifyTopicRequestDto modifyTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(@Valid @RequestBody ModifyTopicRequestDto modifyTopicRequestDto) {
         return adminService.modifyTopic(modifyTopicRequestDto);
     }
 
@@ -95,13 +95,13 @@ public class AdminController {
 
     @PostMapping("/usertype")
     @Operation(summary = "유저 타입 생성", description = "usertype 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createUserType(@RequestBody CreateUserTypeRequestDto createUserTypeRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createUserType(@Valid @RequestBody CreateUserTypeRequestDto createUserTypeRequestDto) {
         return adminService.createUserType(createUserTypeRequestDto);
     }
 
     @PutMapping("/usertype")
     @Operation(summary = "유저 타입 수정", description = "usertype 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyUserType(@RequestBody ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyUserType(@Valid @RequestBody ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
         return adminService.modifyUserType(modifyUserTypeRequestDto);
     }
 

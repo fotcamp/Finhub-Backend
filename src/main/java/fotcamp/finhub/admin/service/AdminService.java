@@ -31,6 +31,7 @@ public class AdminService {
 
     private final ManagerRepository managerRepository;
     private final CategoryRepository categoryRepository;
+    private final CategoryRepositoryCustom categoryRepositoryCustom;
     private final TopicRepository topicRepository;
     private final UserTypeRepository userTypeRepository;
     private final TopicRepositoryCustom topicRepositoryCustom;
@@ -55,8 +56,8 @@ public class AdminService {
 
     // 카테고리 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllCategory() {
-        List<Category> categories = categoryRepository.findAll();
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(String useYN) {
+        List<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(useYN);
         List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.stream().map(AllCategoryProcessDto::new).toList();
         AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList);
 
@@ -183,7 +184,6 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
                     .thumbnailImgPath(createTopicRequestDto.thumbnail())
-                    .createdBy(createTopicRequestDto.createdBy())
                     .build();
 
             topic.setCategory(topicCategory);
@@ -258,7 +258,7 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
-                    .avatarImgPath(createUserTypeRequestDto.avatar())
+                    .avatarImgPath(createUserTypeRequestDto.avatarImgPath())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();

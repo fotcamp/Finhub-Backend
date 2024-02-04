@@ -1,6 +1,9 @@
 package fotcamp.finhub.admin.dto.request;
 
 
-public record CreateTopicRequestDto(Long categoryId, String title, String definition, String shortDefinition,
-                                    String thumbnail, String useYN, String createdBy) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record CreateTopicRequestDto(@NotNull Long categoryId, @NotBlank String title, @NotBlank String definition, @NotBlank String shortDefinition,
+                                    @NotBlank String thumbnail) {
 }

@@ -1,5 +1,7 @@
 package fotcamp.finhub.admin.dto.request;
 
 
-public record CreateUserTypeRequestDto(String name, String avatar) {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateUserTypeRequestDto(@NotBlank String name, String avatarImgPath) {
 }

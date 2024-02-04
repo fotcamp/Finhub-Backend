@@ -25,7 +25,7 @@ public class UserType {
 
     public void modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
         this.name = modifyUserTypeRequestDto.name();
-        this.avatarImgPath = modifyUserTypeRequestDto.avatar();
+        this.avatarImgPath = modifyUserTypeRequestDto.avatarImgPath();
         this.useYN = modifyUserTypeRequestDto.useYN();
     }
 }
