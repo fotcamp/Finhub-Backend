@@ -6,6 +6,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,7 @@ public class AdminController {
 
     @PostMapping("/category")
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createCategory(@RequestBody CreateCategoryDto createCategoryDto) {
+    public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @RequestBody CreateCategoryDto createCategoryDto) {
         return adminService.createCategory(createCategoryDto);
     }
 

@@ -2,6 +2,7 @@ package fotcamp.finhub.common.domain;
 
 import fotcamp.finhub.admin.dto.ModifyCategoryDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.ArrayList;
