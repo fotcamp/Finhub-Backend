@@ -34,6 +34,7 @@ public class AdminService {
     private final CategoryRepositoryCustom categoryRepositoryCustom;
     private final TopicRepository topicRepository;
     private final UserTypeRepository userTypeRepository;
+    private final UserTypeRepositoryCustom userTypeRepositoryCustom;
     private final TopicRepositoryCustom topicRepositoryCustom;
     private final GptService gptService;
     private final GptLogRepository gptLogRepository;
@@ -224,8 +225,8 @@ public class AdminService {
 
     // 유저타입 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllUserType() {
-        List<UserType> userTypeList = userTypeRepository.findAll();
+    public ResponseEntity<ApiResponseWrapper> getAllUserType(String useYN) {
+        List<UserType> userTypeList = userTypeRepositoryCustom.searchAllUserTypeFilterList(useYN);
         List<UserTypeProcessDto> userTypeProcessDtos = userTypeList.stream().map(UserTypeProcessDto::new).toList();
         AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos);
 
