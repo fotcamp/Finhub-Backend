@@ -345,13 +345,12 @@ public class AdminService {
                     .usertypeId(userType.getId())
                     .question(sb.toString())
                     .answer(answer)
-                    .createdBy(createGptContentRequestDto.createdBy())
                     .build();
 
             gptLogRepository.save(gptLog);
 
             // GPT 답변 리턴
-            return ResponseEntity.ok(ApiResponseWrapper.success(answer));
+            return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(answer)));
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
