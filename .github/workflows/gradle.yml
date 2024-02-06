@@ -24,10 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - run: echo $PWD
-      - run: touch "${{ github.action_path }}"/src/main/resources/application.yaml
-      - run: echo "${{ secrets.APPLICATION }}" > "${{ github.action_path }}"/src/main/resources/application.yaml
-      - run: cat "${{ github.action_path }}"/src/main/resources/application.yaml
+      - run: mkdie ./src/main/resources
+      - run: touch ./src/main/resources/application.yaml
+      - run: echo "${{ secrets.PROPERTIES }}" > ./src/main/resources/application.yaml
+      - run: cat ./src/main/resources/application.yaml
 
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
@@ -35,14 +35,13 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build with Gradle
         uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
         with:
           arguments: clean build -x test
-
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
