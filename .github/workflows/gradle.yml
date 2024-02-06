@@ -24,6 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - run: touch ./src/main/resources/application.yaml
+      - run: echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
+      - run: cat ./src/main/resources/application.yaml
+
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
 
