@@ -184,7 +184,7 @@ public class AdminService {
                     .title(createTopicRequestDto.title())
                     .definition(createTopicRequestDto.definition())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
-                    .thumbnailImgPath(createTopicRequestDto.thumbnail())
+                    .thumbnailImgPath(createTopicRequestDto.thumbnailImgPath())
                     .build();
 
             topic.setCategory(topicCategory);
