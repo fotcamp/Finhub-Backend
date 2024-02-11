@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateTopicRequestDto(@NotNull Long categoryId, @NotBlank String title, @NotBlank String definition, @NotBlank String shortDefinition,
-                                    @NotBlank String thumbnail) {
+                                    @NotBlank String thumbnailImgPath) {
 }
