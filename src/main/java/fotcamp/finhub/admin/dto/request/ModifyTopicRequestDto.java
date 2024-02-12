@@ -23,7 +23,6 @@ public class ModifyTopicRequestDto {
     private String definition;
     @NotBlank
     private String shortDefinition;
-    private String thumbnailImgPath;
     private List<GptProcessDto> gptList;
 
     public ModifyTopicRequestDto(Topic topic, List<GptProcessDto> gptList) {
@@ -32,7 +31,6 @@ public class ModifyTopicRequestDto {
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();
         this.shortDefinition = topic.getShortDefinition();
-        this.thumbnailImgPath = topic.getThumbnailImgPath();
         this.gptList = gptList;
     }
 }

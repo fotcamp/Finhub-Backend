@@ -59,7 +59,6 @@ public class Topic extends BaseEntity {
         this.title = modifyTopicRequestDto.getTitle();
         this.definition = modifyTopicRequestDto.getDefinition();
         this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
-        this.thumbnailImgPath = modifyTopicRequestDto.getThumbnailImgPath();
     }
 
     // 이미지 url 생성 및 변경
