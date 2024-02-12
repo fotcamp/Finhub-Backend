@@ -266,7 +266,6 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
-                    .avatarImgPath(createUserTypeRequestDto.avatarImgPath())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
