@@ -8,11 +8,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 //@Tag(name = "admin", description = "admin api")
 @RestController
@@ -117,7 +115,7 @@ public class AdminController {
 
     @PostMapping("/img")
     @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> saveImgToS3(@ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
+    public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
         return adminService.saveImgToS3(saveImgToS3RequestDto);
     }
 
