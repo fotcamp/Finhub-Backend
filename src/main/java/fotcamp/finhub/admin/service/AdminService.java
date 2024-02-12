@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -220,7 +221,9 @@ public class AdminService {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
-                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {gpt.modifyContentUseYN(gptProcessDto);});
+                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
+                    gpt.modifyContentUseYN(gptProcessDto);
+                });
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -230,7 +233,6 @@ public class AdminService {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
-
 
 
     }
@@ -373,4 +375,36 @@ public class AdminService {
         }
     }
 
+    // 타입 분류에 따른 이미지 저장
+    public ResponseEntity<ApiResponseWrapper> saveImgToS3(SaveImgToS3RequestDto saveImgToS3RequestDto) {
+        try {
+            switch (saveImgToS3RequestDto.getType()) {
+                case "category" -> {
+                    Category category = categoryRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    category.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                case "topic" -> {
+                    Topic topic = topicRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    topic.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                case "usertype" -> {
+                    UserType userType = userTypeRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    userType.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                default -> throw new IllegalArgumentException("Unsupported entity type: " + saveImgToS3RequestDto.getType());
+            }
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (EntityNotFoundException e) {
+            log.error("유형의 id가 존재하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("유형의 id가 존재하지 않습니다"));
+        } catch (NoSuchFileException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
 }

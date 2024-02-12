@@ -28,4 +28,9 @@ public class UserType {
         this.avatarImgPath = modifyUserTypeRequestDto.avatarImgPath();
         this.useYN = modifyUserTypeRequestDto.useYN();
     }
+
+    // 이미지 url 생성 및 변경
+    public void changeImgPath(String url) {
+        this.avatarImgPath = url;
+    }
 }

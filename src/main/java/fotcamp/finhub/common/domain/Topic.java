@@ -62,6 +62,11 @@ public class Topic extends BaseEntity {
         this.thumbnailImgPath = modifyTopicRequestDto.getThumbnailImgPath();
     }
 
+    // 이미지 url 생성 및 변경
+    public void changeImgPath(String url) {
+        this.thumbnailImgPath = url;
+    }
+
     // 연관관계 편의 메서드
     public void setCategory(Category category) {
         // 기존 카테고리 있을 시 제거

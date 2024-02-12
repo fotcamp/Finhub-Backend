@@ -54,7 +54,7 @@ public class AdminController {
 
     @PutMapping("/category")
     @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @RequestBody ModifyCategoryRequestDto modifyCategoryRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @ModelAttribute ModifyCategoryRequestDto modifyCategoryRequestDto) {
         return adminService.modifyCategory(modifyCategoryRequestDto);
     }
 
@@ -113,6 +113,12 @@ public class AdminController {
     @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 로그 저장 및 답변 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
         return adminService.createGptContent(createGptContentRequestDto);
+    }
+
+    @PostMapping("/img")
+    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> saveImgToS3(@ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
+        return adminService.saveImgToS3(saveImgToS3RequestDto);
     }
 
 }
