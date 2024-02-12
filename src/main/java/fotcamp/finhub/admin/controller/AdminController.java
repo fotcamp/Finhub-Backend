@@ -46,7 +46,7 @@ public class AdminController {
         return adminService.getDetailCategory(categoryId);
     }
 
-    @PostMapping("/category")
+    @PostMapping(value = "/category", consumes = { "multipart/form-data"})
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @ModelAttribute CreateCategoryRequestDto createCategoryRequestDto) {
         return adminService.createCategory(createCategoryRequestDto);
