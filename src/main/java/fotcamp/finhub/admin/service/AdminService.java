@@ -99,12 +99,8 @@ public class AdminService {
                 throw new DuplicateKeyException("이미 존재하는 카테고리");
             });
 
-            // 이미지 S3 저장
-            String s3ImgPath = awsS3Service.uploadFile(createCategoryRequestDto.file());
-
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
-                    .thumbnailImgPath(s3ImgPath)
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -113,8 +109,6 @@ public class AdminService {
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 카테고리입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리"));
-        } catch (NoSuchFileException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
         }

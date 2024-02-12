@@ -44,9 +44,9 @@ public class AdminController {
         return adminService.getDetailCategory(categoryId);
     }
 
-    @PostMapping(value = "/category", consumes = { "multipart/form-data"})
+    @PostMapping(value = "/category")
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @ModelAttribute CreateCategoryRequestDto createCategoryRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @RequestBody CreateCategoryRequestDto createCategoryRequestDto) {
         return adminService.createCategory(createCategoryRequestDto);
     }
 
@@ -113,7 +113,7 @@ public class AdminController {
         return adminService.createGptContent(createGptContentRequestDto);
     }
 
-    @PostMapping("/img")
+    @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
         return adminService.saveImgToS3(saveImgToS3RequestDto);

@@ -12,6 +12,6 @@ public class SaveImgToS3RequestDto {
     private String type;
     @NotNull
     private Long id;
-    @NotNull
+    @NotNull(message = "file key null")
     private MultipartFile file;
 }
