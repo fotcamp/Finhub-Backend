@@ -22,7 +22,7 @@ public class ExceptionController {
                 .getAllErrors()
                 .get(0)
                 .getDefaultMessage();
-        log.error("Invalid Exception from Exception Controller");
+        log.error("값에 \"\", \" \"등이 들어왔을 때", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
@@ -30,7 +30,7 @@ public class ExceptionController {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponseWrapper> handlingInvalidException(HttpMessageNotReadableException e) {
         String errorMessage = "값 부분이 공란입니다";  // 예외 메시지를 새로 정의
-        log.error("Invalid Exception from Exception Controller", e);
+        log.error("값 부분이 공란", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
     

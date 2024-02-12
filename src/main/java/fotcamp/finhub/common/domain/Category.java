@@ -29,7 +29,7 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private final List<Topic> topics = new ArrayList<>();
 
-    public void modifyNameThumbnailUseYN(ModifyCategoryRequestDto modifyCategoryRequestDto) {
+    public void modifyNameUseYN(ModifyCategoryRequestDto modifyCategoryRequestDto) {
         this.name = modifyCategoryRequestDto.name();
         this.useYN = modifyCategoryRequestDto.useYN();
     }

@@ -51,8 +51,8 @@ public class AdminController {
     }
 
     @PutMapping("/category")
-    @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @ModelAttribute ModifyCategoryRequestDto modifyCategoryRequestDto) {
+    @Operation(summary = "카테고리 수정", description = "category 수정", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @RequestBody ModifyCategoryRequestDto modifyCategoryRequestDto) {
         return adminService.modifyCategory(modifyCategoryRequestDto);
     }
 

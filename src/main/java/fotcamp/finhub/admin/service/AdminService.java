@@ -115,7 +115,7 @@ public class AdminService {
 
     }
 
-    // 카테고리 수정 (보이기 / 숨기기)
+    // 카테고리 수정
     public ResponseEntity<ApiResponseWrapper> modifyCategory(ModifyCategoryRequestDto modifyCategoryRequestDto) {
         try {
             // 없는 카테고리면 예외
@@ -134,7 +134,7 @@ public class AdminService {
             }
 
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameThumbnailUseYN(modifyCategoryRequestDto);
+            category.modifyNameUseYN(modifyCategoryRequestDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
