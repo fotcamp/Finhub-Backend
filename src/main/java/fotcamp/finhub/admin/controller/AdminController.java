@@ -3,13 +3,16 @@ package fotcamp.finhub.admin.controller;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.service.AwsS3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 //@Tag(name = "admin", description = "admin api")
 @RestController
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AwsS3Service awsS3Service;
 
     @PostMapping("/login")
     @Operation(summary = "관리자 로그인 요청", description = "관리자 여부 판단", tags = {"AdminController"})
@@ -44,7 +48,7 @@ public class AdminController {
 
     @PostMapping("/category")
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @RequestBody CreateCategoryRequestDto createCategoryRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @ModelAttribute CreateCategoryRequestDto createCategoryRequestDto) {
         return adminService.createCategory(createCategoryRequestDto);
     }
 

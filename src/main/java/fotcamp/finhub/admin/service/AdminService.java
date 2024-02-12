@@ -10,6 +10,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.service.AwsS3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 
 import static fotcamp.finhub.common.domain.QTopic.topic;
@@ -39,6 +43,7 @@ public class AdminService {
     private final GptService gptService;
     private final GptLogRepository gptLogRepository;
     private final GptRepository gptRepository;
+    private final AwsS3Service awsS3Service;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -93,9 +98,12 @@ public class AdminService {
                 throw new DuplicateKeyException("이미 존재하는 카테고리");
             });
 
+            // 이미지 S3 저장
+            String s3ImgPath = awsS3Service.uploadFile(createCategoryRequestDto.file());
+
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
-                    .thumbnailImgPath(createCategoryRequestDto.thumbnailImgPath())
+                    .thumbnailImgPath(s3ImgPath)
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -104,6 +112,10 @@ public class AdminService {
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 카테고리입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리"));
+        } catch (NoSuchFileException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
         }
 
     }
