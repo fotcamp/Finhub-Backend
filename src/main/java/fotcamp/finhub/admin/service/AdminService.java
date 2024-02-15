@@ -1,6 +1,7 @@
 package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.domain.GptLog;
+import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
 import fotcamp.finhub.admin.dto.process.*;
 import fotcamp.finhub.admin.dto.request.*;
@@ -14,19 +15,16 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 
-import static fotcamp.finhub.common.domain.QTopic.topic;
 
 @Service
 @RequiredArgsConstructor
@@ -43,8 +41,13 @@ public class AdminService {
     private final TopicRepositoryCustom topicRepositoryCustom;
     private final GptService gptService;
     private final GptLogRepository gptLogRepository;
+    private final GptPromptRepository gptPromptRepository;
     private final GptRepository gptRepository;
     private final AwsS3Service awsS3Service;
+
+    @Value("${promise.category}") String promiseCategory;
+    @Value("${promise.topic}") String promiseTopic;
+    @Value("${promise.usertype}") String promiseUsertype;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -309,38 +312,29 @@ public class AdminService {
         }
     }
 
-    // GPT 답변 로그 저장 및 반환
+    // GPT 질문 답변 로그 저장 및 답변 반환
     public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto) {
         try {
             Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             UserType userType = userTypeRepository.findById(createGptContentRequestDto.usertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
-            Category category = topic.getCategory();
+            Category category = categoryRepository.findById(createGptContentRequestDto.categoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
 
             String categoryName = category.getName();
             String topicTitle = topic.getTitle();
             String usertypeName = userType.getName();
 
-            // 프롬프트 생성
-            StringBuilder sb = new StringBuilder();
-            sb.append(categoryName);
-            sb.append("라는 금융카테고리 중 ");
-            sb.append("\"");
-            sb.append(topicTitle);
-            sb.append("\"");
-            sb.append("라는 질문에 대한 답변을 ");
-            sb.append("\"");
-            sb.append(usertypeName);
-            sb.append("\"");
-            sb.append("에게 알기 쉽게 설명해주고 싶어.");
-            sb.append("\"");
-            sb.append(usertypeName);
-            sb.append("\"");
-            sb.append("이 이해하기 쉽게 비유를 들어 설명해줘.");
+            // 최신 프롬프트 가져오기 from DB
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            String prompt = gptPrompt.getPrompt();
 
+            // 프롬프트 약속 단어 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
+            String resultPrompt = prompt.replaceAll(promiseCategory, categoryName)
+                                        .replaceAll(promiseTopic, topicTitle)
+                                        .replaceAll(promiseUsertype, usertypeName);
             // GPT 답변 받기
             log.info("--gpt 실행 중---");
-            log.info("prompt : " + sb.toString());
-            String answer = gptService.saveLogAndReturnAnswer(sb.toString());
+            log.info("prompt : " + resultPrompt);
+            String answer = gptService.saveLogAndReturnAnswer(resultPrompt);
             log.info("---gpt 답변 완료---");
             log.info("answer : " + answer);
 
@@ -350,7 +344,7 @@ public class AdminService {
                     .categoryId(category.getId())
                     .topicId(topic.getId())
                     .usertypeId(userType.getId())
-                    .question(sb.toString())
+                    .question(resultPrompt)
                     .answer(answer)
                     .build();
 
@@ -399,4 +393,33 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         }
     }
+
+    // gpt 프롬프트 저장
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto) {
+        try {
+            GptPrompt prompt = GptPrompt.builder()
+                    .prompt(saveGptPromptRequestDto.prompt())
+                    .build();
+            gptPromptRepository.save(prompt);
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+
+    }
+
+    // gpt 프롬프트 최신 조회
+    public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
+        try {
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            RecentPromptResponseDto recentPromptResponseDto = new RecentPromptResponseDto(gptPrompt, promiseCategory, promiseTopic, promiseUsertype);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(recentPromptResponseDto));
+        } catch (EntityNotFoundException e) {
+            log.error("프롬프트가 db에 존재하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("no prompt"));
+        }
+    }
+
 }
