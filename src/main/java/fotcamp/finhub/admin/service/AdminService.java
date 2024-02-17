@@ -41,6 +41,7 @@ public class AdminService {
     private final TopicRepositoryCustom topicRepositoryCustom;
     private final GptService gptService;
     private final GptLogRepository gptLogRepository;
+    private final GptLogRepositoryCustom gptLogRepositoryCustom;
     private final GptPromptRepository gptPromptRepository;
     private final GptRepository gptRepository;
     private final AwsS3Service awsS3Service;
@@ -421,4 +422,35 @@ public class AdminService {
         }
     }
 
+    // gpt 질문 답변 로그 조회
+    public ResponseEntity<ApiResponseWrapper> getGptLog(Long topicId, Long usertypeId) {
+        try {
+            if (topicId != null) {
+                topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            }
+            if (usertypeId != null) {
+                userTypeRepository.findById(usertypeId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
+            }
+            List<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(topicId, usertypeId);
+            List<GptLogResponseDto> gptLogResponseDtos = gptLogs.stream()
+                    .filter(gptLog -> {
+                        // 필터링 조건을 여기에 추가
+                        return categoryRepository.existsById(gptLog.getCategoryId()) &&
+                                topicRepository.existsById(gptLog.getTopicId()) &&
+                                userTypeRepository.existsById(gptLog.getUsertypeId());
+                    })
+                    .map(gptLog -> {
+                        String categoryName = categoryRepository.findById(gptLog.getCategoryId()).get().getName();
+                        String topicTitle = topicRepository.findById(gptLog.getTopicId()).get().getTitle();
+                        String usertypeName = userTypeRepository.findById(gptLog.getUsertypeId()).get().getName();
+
+                        return new GptLogResponseDto(gptLog, categoryName, topicTitle, usertypeName);
+                    }).toList();
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(gptLogResponseDtos));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
 }

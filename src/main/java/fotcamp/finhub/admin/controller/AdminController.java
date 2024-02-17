@@ -107,12 +107,6 @@ public class AdminController {
         return adminService.modifyUserType(modifyUserTypeRequestDto);
     }
 
-    @PostMapping("/gpt")
-    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
-        return adminService.createGptContent(createGptContentRequestDto);
-    }
-
     @GetMapping("/prompt")
     @Operation(summary = "gpt 프롬프트 최신 조회", description = "gpt 프롬프트 최신 조회", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
@@ -124,6 +118,21 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> saveGptPrompt(@Valid @RequestBody SaveGptPromptRequestDto saveGptPromptRequestDto) {
         return adminService.saveGptPrompt(saveGptPromptRequestDto);
     }
+
+    @PostMapping("/gpt")
+    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
+        return adminService.createGptContent(createGptContentRequestDto);
+    }
+    @GetMapping("/gpt-log")
+    @Operation(summary = "gpt 질문 답변 로그 확인", description = "gpt 질문 답변 로그 확인 / 필터 존재", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getGptLog(
+            @RequestParam(name = "topicId", required = false) Long topicId,
+            @RequestParam(name = "usertypeId", required = false) Long usertypeId
+    ) {
+        return adminService.getGptLog(topicId, usertypeId);
+    }
+
 
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
