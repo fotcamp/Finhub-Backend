@@ -22,6 +22,8 @@ public class ModifyTopicRequestDto {
     @NotBlank
     private String definition;
     @NotBlank
+    private String summary;
+    @NotBlank
     private String shortDefinition;
     private List<GptProcessDto> gptList;
 
@@ -30,6 +32,7 @@ public class ModifyTopicRequestDto {
         this.categoryId = topic.getCategory().getId();
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();
+        this.summary = topic.getSummary();
         this.shortDefinition = topic.getShortDefinition();
         this.gptList = gptList;
     }

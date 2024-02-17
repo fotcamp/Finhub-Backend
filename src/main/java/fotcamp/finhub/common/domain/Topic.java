@@ -25,8 +25,13 @@ public class Topic extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    // 용도 변경 요약내용 -> 원본내용
     @Column(nullable = false)
     private String definition;
+
+    // 새로 생성 ( 요약 내용 칼럼 추가)
+    @Column(nullable = false)
+    private String summary;
 
     private String shortDefinition;
 
@@ -58,6 +63,7 @@ public class Topic extends BaseEntity {
         changeCategory(category);
         this.title = modifyTopicRequestDto.getTitle();
         this.definition = modifyTopicRequestDto.getDefinition();
+        this.summary = modifyTopicRequestDto.getSummary();
         this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
     }
 
