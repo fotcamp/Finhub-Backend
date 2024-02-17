@@ -193,6 +193,7 @@ public class AdminService {
             Topic topic = Topic.builder()
                     .title(createTopicRequestDto.title())
                     .definition(createTopicRequestDto.definition())
+                    .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
                     .build();
 
@@ -229,8 +230,6 @@ public class AdminService {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
-
-
     }
 
     // 유저타입 전체 조회

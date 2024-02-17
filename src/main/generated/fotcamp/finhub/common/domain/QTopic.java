@@ -42,6 +42,8 @@ public class QTopic extends EntityPathBase<Topic> {
 
     public final StringPath shortDefinition = createString("shortDefinition");
 
+    public final StringPath summary = createString("summary");
+
     public final StringPath thumbnailImgPath = createString("thumbnailImgPath");
 
     public final StringPath title = createString("title");
