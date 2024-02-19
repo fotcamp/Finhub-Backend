@@ -3,6 +3,7 @@ package fotcamp.finhub.admin.controller;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.service.AwsS3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AwsS3Service awsS3Service;
 
     @PostMapping("/login")
     @Operation(summary = "관리자 로그인 요청", description = "관리자 여부 판단", tags = {"AdminController"})
@@ -42,14 +44,14 @@ public class AdminController {
         return adminService.getDetailCategory(categoryId);
     }
 
-    @PostMapping("/category")
+    @PostMapping(value = "/category")
     @Operation(summary = "카테고리 생성", description = "category 등록", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createCategory(@Valid @RequestBody CreateCategoryRequestDto createCategoryRequestDto) {
         return adminService.createCategory(createCategoryRequestDto);
     }
 
     @PutMapping("/category")
-    @Operation(summary = "카테고리 수정", description = "category 보이기/숨기기 수정", tags = {"AdminController"})
+    @Operation(summary = "카테고리 수정", description = "category 수정", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> modifyCategory(@Valid @RequestBody ModifyCategoryRequestDto modifyCategoryRequestDto) {
         return adminService.modifyCategory(modifyCategoryRequestDto);
     }
@@ -105,10 +107,37 @@ public class AdminController {
         return adminService.modifyUserType(modifyUserTypeRequestDto);
     }
 
+    @GetMapping("/prompt")
+    @Operation(summary = "gpt 프롬프트 최신 조회", description = "gpt 프롬프트 최신 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
+        return adminService.getGptPrompt();
+    }
+
+    @PostMapping("/prompt")
+    @Operation(summary = "gpt 프롬프트 저장", description = "gpt 프롬프트 저장", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(@Valid @RequestBody SaveGptPromptRequestDto saveGptPromptRequestDto) {
+        return adminService.saveGptPrompt(saveGptPromptRequestDto);
+    }
+
     @PostMapping("/gpt")
-    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 로그 저장 및 답변 반환", tags = {"AdminController"})
+    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
         return adminService.createGptContent(createGptContentRequestDto);
+    }
+    @GetMapping("/gpt-log")
+    @Operation(summary = "gpt 질문 답변 로그 확인", description = "gpt 질문 답변 로그 확인 / 필터 존재", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getGptLog(
+            @RequestParam(name = "topicId", required = false) Long topicId,
+            @RequestParam(name = "usertypeId", required = false) Long usertypeId
+    ) {
+        return adminService.getGptLog(topicId, usertypeId);
+    }
+
+
+    @PostMapping(value ="/img", consumes = { "multipart/form-data" })
+    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
+        return adminService.saveImgToS3(saveImgToS3RequestDto);
     }
 
 }

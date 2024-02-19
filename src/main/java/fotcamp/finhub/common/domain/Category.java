@@ -29,13 +29,17 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private final List<Topic> topics = new ArrayList<>();
 
-    public void modifyNameThumbnailUseYN(ModifyCategoryRequestDto modifyCategoryRequestDto) {
+    public void modifyNameUseYN(ModifyCategoryRequestDto modifyCategoryRequestDto) {
         this.name = modifyCategoryRequestDto.name();
-        this.thumbnailImgPath = modifyCategoryRequestDto.thumbnailImgPath();
         this.useYN = modifyCategoryRequestDto.useYN();
     }
 
     public void addTopic(Topic topic) {
         topics.add(topic);
+    }
+
+    // 이미지 url 생성 및 변경
+    public void changeImgPath(String url) {
+        this.thumbnailImgPath = url;
     }
 }

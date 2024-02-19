@@ -1,5 +1,5 @@
 package fotcamp.finhub.admin.dto.request;
 
 
-public record CreateGptContentRequestDto(Long topicId, Long usertypeId) {
+public record CreateGptContentRequestDto(Long categoryId, Long topicId, Long usertypeId) {
 }

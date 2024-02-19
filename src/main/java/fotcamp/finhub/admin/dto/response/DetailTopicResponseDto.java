@@ -9,8 +9,10 @@ import java.util.List;
 @Getter
 public class DetailTopicResponseDto {
     private final Long categoryId;
+    private final Long topicId;
     private final String title;
     private final String definition;
+    private final String summary;
     private final String shortDefinition;
     private final String thumbnailImgPath;
     private final String useYN;
@@ -18,12 +20,13 @@ public class DetailTopicResponseDto {
 
     public DetailTopicResponseDto(Topic topic, List<DetailTopicProcessDto> gptList) {
         this.categoryId = topic.getCategory().getId();
+        this.topicId = topic.getId();
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();
+        this.summary = topic.getSummary();
         this.shortDefinition = topic.getShortDefinition();
         this.thumbnailImgPath = topic.getThumbnailImgPath();
         this.useYN = topic.getUseYN();
         this.gptList = gptList;
     }
-
 }

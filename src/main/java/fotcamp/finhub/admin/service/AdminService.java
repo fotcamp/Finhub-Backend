@@ -1,6 +1,7 @@
 package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.domain.GptLog;
+import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
 import fotcamp.finhub.admin.dto.process.*;
 import fotcamp.finhub.admin.dto.request.*;
@@ -10,18 +11,20 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.service.AwsS3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 
-import static fotcamp.finhub.common.domain.QTopic.topic;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +41,14 @@ public class AdminService {
     private final TopicRepositoryCustom topicRepositoryCustom;
     private final GptService gptService;
     private final GptLogRepository gptLogRepository;
+    private final GptLogRepositoryCustom gptLogRepositoryCustom;
+    private final GptPromptRepository gptPromptRepository;
     private final GptRepository gptRepository;
+    private final AwsS3Service awsS3Service;
+
+    @Value("${promise.category}") String promiseCategory;
+    @Value("${promise.topic}") String promiseTopic;
+    @Value("${promise.usertype}") String promiseUsertype;
 
     // 로그인
     @Transactional(readOnly = true)
@@ -95,7 +105,6 @@ public class AdminService {
 
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
-                    .thumbnailImgPath(createCategoryRequestDto.thumbnailImgPath())
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -104,11 +113,13 @@ public class AdminService {
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 카테고리입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
         }
 
     }
 
-    // 카테고리 수정 (보이기 / 숨기기)
+    // 카테고리 수정
     public ResponseEntity<ApiResponseWrapper> modifyCategory(ModifyCategoryRequestDto modifyCategoryRequestDto) {
         try {
             // 없는 카테고리면 예외
@@ -127,7 +138,7 @@ public class AdminService {
             }
 
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameThumbnailUseYN(modifyCategoryRequestDto);
+            category.modifyNameUseYN(modifyCategoryRequestDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
@@ -183,8 +194,8 @@ public class AdminService {
             Topic topic = Topic.builder()
                     .title(createTopicRequestDto.title())
                     .definition(createTopicRequestDto.definition())
+                    .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
-                    .thumbnailImgPath(createTopicRequestDto.thumbnail())
                     .build();
 
             topic.setCategory(topicCategory);
@@ -208,7 +219,9 @@ public class AdminService {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
-                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {gpt.modifyContentUseYN(gptProcessDto);});
+                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
+                    gpt.modifyContentUseYN(gptProcessDto);
+                });
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -218,9 +231,6 @@ public class AdminService {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         }
-
-
-
     }
 
     // 유저타입 전체 조회
@@ -259,7 +269,6 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
-                    .avatarImgPath(createUserTypeRequestDto.avatarImgPath())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
@@ -303,38 +312,29 @@ public class AdminService {
         }
     }
 
-    // GPT 답변 로그 저장 및 반환
+    // GPT 질문 답변 로그 저장 및 답변 반환
     public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto) {
         try {
             Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             UserType userType = userTypeRepository.findById(createGptContentRequestDto.usertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
-            Category category = topic.getCategory();
+            Category category = categoryRepository.findById(createGptContentRequestDto.categoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
 
             String categoryName = category.getName();
             String topicTitle = topic.getTitle();
             String usertypeName = userType.getName();
 
-            // 프롬프트 생성
-            StringBuilder sb = new StringBuilder();
-            sb.append(categoryName);
-            sb.append("라는 금융카테고리 중 ");
-            sb.append("\"");
-            sb.append(topicTitle);
-            sb.append("\"");
-            sb.append("라는 질문에 대한 답변을 ");
-            sb.append("\"");
-            sb.append(usertypeName);
-            sb.append("\"");
-            sb.append("에게 알기 쉽게 설명해주고 싶어.");
-            sb.append("\"");
-            sb.append(usertypeName);
-            sb.append("\"");
-            sb.append("이 이해하기 쉽게 비유를 들어 설명해줘.");
+            // 최신 프롬프트 가져오기 from DB
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            String prompt = gptPrompt.getPrompt();
 
+            // 프롬프트 약속 단어 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
+            String resultPrompt = prompt.replaceAll(promiseCategory, categoryName)
+                                        .replaceAll(promiseTopic, topicTitle)
+                                        .replaceAll(promiseUsertype, usertypeName);
             // GPT 답변 받기
             log.info("--gpt 실행 중---");
-            log.info("prompt : " + sb.toString());
-            String answer = gptService.saveLogAndReturnAnswer(sb.toString());
+            log.info("prompt : " + resultPrompt);
+            String answer = gptService.saveLogAndReturnAnswer(resultPrompt);
             log.info("---gpt 답변 완료---");
             log.info("answer : " + answer);
 
@@ -344,7 +344,7 @@ public class AdminService {
                     .categoryId(category.getId())
                     .topicId(topic.getId())
                     .usertypeId(userType.getId())
-                    .question(sb.toString())
+                    .question(resultPrompt)
                     .answer(answer)
                     .build();
 
@@ -361,4 +361,96 @@ public class AdminService {
         }
     }
 
+    // 타입 분류에 따른 이미지 저장
+    public ResponseEntity<ApiResponseWrapper> saveImgToS3(SaveImgToS3RequestDto saveImgToS3RequestDto) {
+        try {
+            switch (saveImgToS3RequestDto.getType()) {
+                case "category" -> {
+                    Category category = categoryRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    category.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                case "topic" -> {
+                    Topic topic = topicRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    topic.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                case "usertype" -> {
+                    UserType userType = userTypeRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    userType.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
+                default -> throw new IllegalArgumentException("Unsupported entity type: " + saveImgToS3RequestDto.getType());
+            }
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (EntityNotFoundException e) {
+            log.error("유형의 id가 존재하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("유형의 id가 존재하지 않습니다"));
+        } catch (NoSuchFileException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
+
+    // gpt 프롬프트 저장
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto) {
+        try {
+            GptPrompt prompt = GptPrompt.builder()
+                    .prompt(saveGptPromptRequestDto.prompt())
+                    .build();
+            gptPromptRepository.save(prompt);
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+
+    }
+
+    // gpt 프롬프트 최신 조회
+    public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
+        try {
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            RecentPromptResponseDto recentPromptResponseDto = new RecentPromptResponseDto(gptPrompt, promiseCategory, promiseTopic, promiseUsertype);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(recentPromptResponseDto));
+        } catch (EntityNotFoundException e) {
+            log.error("프롬프트가 db에 존재하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("no prompt"));
+        }
+    }
+
+    // gpt 질문 답변 로그 조회
+    public ResponseEntity<ApiResponseWrapper> getGptLog(Long topicId, Long usertypeId) {
+        try {
+            if (topicId != null) {
+                topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            }
+            if (usertypeId != null) {
+                userTypeRepository.findById(usertypeId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
+            }
+            List<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(topicId, usertypeId);
+            List<GptLogResponseDto> gptLogResponseDtos = gptLogs.stream()
+                    .filter(gptLog -> {
+                        // 필터링 조건을 여기에 추가
+                        return categoryRepository.existsById(gptLog.getCategoryId()) &&
+                                topicRepository.existsById(gptLog.getTopicId()) &&
+                                userTypeRepository.existsById(gptLog.getUsertypeId());
+                    })
+                    .map(gptLog -> {
+                        String categoryName = categoryRepository.findById(gptLog.getCategoryId()).get().getName();
+                        String topicTitle = topicRepository.findById(gptLog.getTopicId()).get().getTitle();
+                        String usertypeName = userTypeRepository.findById(gptLog.getUsertypeId()).get().getName();
+
+                        return new GptLogResponseDto(gptLog, categoryName, topicTitle, usertypeName);
+                    }).toList();
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(gptLogResponseDtos));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
 }
