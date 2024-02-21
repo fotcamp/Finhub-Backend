@@ -4,6 +4,7 @@ import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.dto.CustomUserInfoDto;
 import fotcamp.finhub.common.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CustomUserDetailService implements UserDetailsService {
 
-    private final MemberRepository memberRepository;
     private final ModelMapper modelMapper;
+    private final MemberRepository memberRepository;
+
 
     @Override
     public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException{

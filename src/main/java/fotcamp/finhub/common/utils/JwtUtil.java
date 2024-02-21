@@ -2,6 +2,7 @@ package fotcamp.finhub.common.utils;
 
 
 import fotcamp.finhub.common.dto.CustomUserInfoDto;
+import fotcamp.finhub.common.exception.TokenNotValidateException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.sql.Date;
 import java.time.ZonedDateTime;
-import java.util.Base64;
 
 /** JWT 생성, 유효성 검증, 클레임 추출 메소드 */
 @Component
@@ -24,7 +24,7 @@ public class JwtUtil {
     private final long accessTokenExpTime;
 
     public JwtUtil(
-            @Value("${jwt.key}") String secretKey, @Value("${jwt.tokenExpirationTime") long accessTokenExpTime) {
+            @Value("${jwt.key}") String secretKey, @Value("${jwt.tokenExpirationTime}") long accessTokenExpTime) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpTime = accessTokenExpTime;
@@ -46,6 +46,8 @@ public class JwtUtil {
      */
     public String createToken(CustomUserInfoDto member, long expireTime){
         Claims claims = Jwts.claims();
+        System.out.println("custom member id"+ member.getMemberId());
+        System.out.println(member.getRole());
         claims.put("memberId", member.getMemberId());
         claims.put("role", member.getRole());
 
@@ -93,13 +95,16 @@ public class JwtUtil {
             return true;
         } catch (SecurityException | MalformedJwtException e){
             log.info("Invalid JWT Token", e);
+            throw new TokenNotValidateException("잘못된 JWT 서명입니다.", e);
         } catch (ExpiredJwtException e){
             log.info("Expired JWT Token", e);
+            throw new TokenNotValidateException("만료된 토큰입니다.", e);
         } catch (UnsupportedJwtException e){
             log.info("Unsupported JWT Token", e);
+            throw new TokenNotValidateException("지원되지 않는 JWT 토큰입니다.", e);
         } catch (IllegalStateException e){
             log.info("JWT claims string is empty", e);
+            throw new TokenNotValidateException("잘못된 JWT 토큰입니다.", e);
         }
-        return false;
     }
 }

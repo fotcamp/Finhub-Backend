@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 //@Tag(name = "admin", description = "admin api")
@@ -32,6 +33,7 @@ public class AdminController {
         return adminService.login(loginRequestDto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/category")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getAllCategory(@RequestParam(name = "useYN", required = false) String useYN) {

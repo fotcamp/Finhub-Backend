@@ -51,12 +51,14 @@ public class SecurityConfig {
         http.formLogin((form)->form.disable());
         http.httpBasic(AbstractHttpConfigurer::disable);
 
-        // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
-        http.addFilterBefore(new JwtAuthFilter(customUserDetailService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
-
         http.exceptionHandling( (exceptionHandling) -> exceptionHandling
                 .authenticationEntryPoint(customAuthenticationEntryPoint)
                 .accessDeniedHandler(customAccessDeniedHandler));
+
+        // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
+        http.addFilterBefore(new JwtAuthFilter(customUserDetailService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
+
 
         // 권한 규칙 생성
         http.authorizeHttpRequests(authorize -> authorize
@@ -66,5 +68,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 }

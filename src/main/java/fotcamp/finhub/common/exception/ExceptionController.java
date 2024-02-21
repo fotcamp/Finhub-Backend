@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @ControllerAdvice
@@ -33,7 +33,7 @@ public class ExceptionController {
         log.error("값 부분이 공란", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
-    
+
     // 파일 업로드 용량 초과시 발생
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     protected ResponseEntity<ApiResponseWrapper> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
@@ -41,4 +41,13 @@ public class ExceptionController {
         String errorMessage = "업로드 할 수 있는 파일의 최대 크기는 10MB 입니다.";
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
+
+
+    @ExceptionHandler(TokenNotValidateException.class)
+    @ResponseBody
+    public ResponseEntity<ApiResponseWrapper> ExpiredTokenExceptionHandler(TokenNotValidateException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
+    }
 }
+
+
