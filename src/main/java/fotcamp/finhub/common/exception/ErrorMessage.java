@@ -1,0 +1,26 @@
+package fotcamp.finhub.common.exception;
+
+public enum ErrorMessage {
+    UNKNOWN_ERROR("알 수 없는 오류가 발생했습니다.", 500),
+    WRONG_TYPE_TOKEN("잘못된 타입의 토큰입니다.", 400),
+    EXPIRED_TOKEN("토큰이 만료되었습니다.", 401),
+    UNSUPPORTED_TOKEN("지원되지 않는 토큰입니다.", 400),
+    ACCESS_DENIED("접근이 거부되었습니다.", 403);
+
+    private final String msg;
+    private final int code;
+
+    ErrorMessage(String msg, int code) {
+        this.msg = msg;
+        this.code = code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public int getCode() {
+        return code;
+    }
+}
+

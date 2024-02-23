@@ -1,12 +1,9 @@
 package fotcamp.finhub.jwtTest;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.dto.LoginRequestDto;
+import fotcamp.finhub.common.dto.request.LoginRequestDto;
 import fotcamp.finhub.common.service.AuthService;
-import fotcamp.finhub.common.service.MemberService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package fotcamp.finhub.common.security;
 
-import fotcamp.finhub.common.dto.CustomUserInfoDto;
+import fotcamp.finhub.common.dto.common.CustomUserInfoDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

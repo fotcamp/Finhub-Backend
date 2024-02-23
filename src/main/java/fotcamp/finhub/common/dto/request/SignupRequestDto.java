@@ -1,9 +1,8 @@
-package fotcamp.finhub.common.dto;
+package fotcamp.finhub.common.dto.request;
 
 
 import fotcamp.finhub.common.domain.Member;
 import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 @Builder

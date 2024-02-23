@@ -2,7 +2,7 @@ package fotcamp.finhub.common.service;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Member;
-import fotcamp.finhub.common.dto.SignupRequestDto;
+import fotcamp.finhub.common.dto.request.SignupRequestDto;
 import fotcamp.finhub.common.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

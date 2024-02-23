@@ -1,7 +1,7 @@
 package fotcamp.finhub.common.security;
 
 import fotcamp.finhub.common.domain.Member;
-import fotcamp.finhub.common.dto.CustomUserInfoDto;
+import fotcamp.finhub.common.dto.common.CustomUserInfoDto;
 import fotcamp.finhub.common.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 

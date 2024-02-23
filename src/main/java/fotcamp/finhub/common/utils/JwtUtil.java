@@ -1,55 +1,61 @@
 package fotcamp.finhub.common.utils;
 
 
-import fotcamp.finhub.common.dto.CustomUserInfoDto;
-import fotcamp.finhub.common.exception.TokenNotValidateException;
+import fotcamp.finhub.common.dto.common.TokenDto;
+import fotcamp.finhub.common.exception.ErrorMessage;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SecurityException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.sql.Date;
 import java.time.ZonedDateTime;
+import java.util.Date;
 
 /** JWT 생성, 유효성 검증, 클레임 추출 메소드 */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtUtil {
 
     private final Key key;
     private final long accessTokenExpTime;
+    private final long refreshTokenExpTime;
 
+    @Autowired
     public JwtUtil(
-            @Value("${jwt.key}") String secretKey, @Value("${jwt.tokenExpirationTime}") long accessTokenExpTime) {
+            @Value("${jwt.key}") String secretKey, @Value("${jwt.accessTokenExpirationTime}") long accessTokenExpTime, @Value("${jwt.refreshTokenExpirationTime}") long refreshTokenExpTime) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpTime = accessTokenExpTime;
+        this.refreshTokenExpTime = refreshTokenExpTime;
     }
 
     /**
      * Access Token 생성
-     * @param member
-     * @return Access Token String
+     * @param memberId
+     * @return TokenDto
      */
-    public String createAccessToken(CustomUserInfoDto member){
-        return createToken(member,accessTokenExpTime);
+    public TokenDto createAllTokens(Long memberId){
+        return new TokenDto(createToken(memberId, "Access"), createToken(memberId, "Refresh"));
     }
 
     /**
      * JWT 생성
-     * @param member
+     * @param memberId, type
      * @return JWT String
      */
-    public String createToken(CustomUserInfoDto member, long expireTime){
+    public String createToken(Long memberId, String type){
+        long expireTime = type.equals("Access") ? accessTokenExpTime : refreshTokenExpTime;
+
         Claims claims = Jwts.claims();
-        System.out.println("custom member id"+ member.getMemberId());
-        System.out.println(member.getRole());
-        claims.put("memberId", member.getMemberId());
-        claims.put("role", member.getRole());
+        claims.put("memberId", memberId);
 
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
@@ -73,15 +79,11 @@ public class JwtUtil {
 
     /**
      * JWT Claims 추출
-     * @param accessToken
+     * @param token
      * @return JWT Claims
      * */
-    public Claims parseClaims(String accessToken){
-        try{
-            return  Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
-        } catch (ExpiredJwtException e){
-            return e.getClaims();
-        }
+    public Claims parseClaims(String token){
+        return  Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
     /**
@@ -95,16 +97,29 @@ public class JwtUtil {
             return true;
         } catch (SecurityException | MalformedJwtException e){
             log.info("Invalid JWT Token", e);
-            throw new TokenNotValidateException("잘못된 JWT 서명입니다.", e);
+            throw new JwtException(ErrorMessage.WRONG_TYPE_TOKEN.getMsg()); //잘못된 토큰
         } catch (ExpiredJwtException e){
             log.info("Expired JWT Token", e);
-            throw new TokenNotValidateException("만료된 토큰입니다.", e);
+            throw new JwtException(ErrorMessage.EXPIRED_TOKEN.getMsg()); // 만료된 토큰
         } catch (UnsupportedJwtException e){
             log.info("Unsupported JWT Token", e);
-            throw new TokenNotValidateException("지원되지 않는 JWT 토큰입니다.", e);
+            throw new JwtException(ErrorMessage.UNSUPPORTED_TOKEN.getMsg()); //지원되지 않는 토큰
         } catch (IllegalStateException e){
             log.info("JWT claims string is empty", e);
-            throw new TokenNotValidateException("잘못된 JWT 토큰입니다.", e);
+            throw new JwtException(ErrorMessage.UNKNOWN_ERROR.getMsg()); // 빈 토큰
         }
+    }
+
+    /**
+     * 헤더 정보 추출
+     * @param request
+     * @return token
+     * */
+    public String resolveToken(HttpServletRequest request){
+        String bearerToken = request.getHeader("Authorization");
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")){
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

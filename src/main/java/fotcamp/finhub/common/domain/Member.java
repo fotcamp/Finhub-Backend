@@ -1,8 +1,6 @@
 package fotcamp.finhub.common.domain;
 
 
-import fotcamp.finhub.common.dto.SignupRequestDto;
-import io.swagger.v3.oas.annotations.info.Contact;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

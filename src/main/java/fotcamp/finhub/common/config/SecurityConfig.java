@@ -1,9 +1,7 @@
 package fotcamp.finhub.common.config;
 
-import fotcamp.finhub.common.security.CustomAccessDeniedHandler;
-import fotcamp.finhub.common.security.CustomAuthenticationEntryPoint;
-import fotcamp.finhub.common.security.CustomUserDetailService;
-import fotcamp.finhub.common.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fotcamp.finhub.common.security.*;
 import fotcamp.finhub.common.utils.JwtUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,10 +30,10 @@ public class SecurityConfig {
     private final CustomUserDetailService customUserDetailService;
     private final JwtUtil jwtUtil;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final ObjectMapper objectMapper;
 
     private static final String[] AUTH_WHITELIST = {
-            "/api/v1/**"
+            "/api/v1/auth/**", "/api/v1/member/signup"
     };
 
     @Bean
@@ -51,18 +49,18 @@ public class SecurityConfig {
         http.formLogin((form)->form.disable());
         http.httpBasic(AbstractHttpConfigurer::disable);
 
-        http.exceptionHandling( (exceptionHandling) -> exceptionHandling
-                .authenticationEntryPoint(customAuthenticationEntryPoint)
-                .accessDeniedHandler(customAccessDeniedHandler));
-
         // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
+        // JwtExceptionFilter를 JwtAuthFilter를 앞에 추가
         http.addFilterBefore(new JwtAuthFilter(customUserDetailService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
-
-
+        http.addFilterBefore(new JwtExceptionFilter(objectMapper), JwtAuthFilter.class);
+        http.exceptionHandling( (exceptionHandling) -> exceptionHandling
+//                .authenticationEntryPoint(new CustomAuthenticationEntryPoint(customAuthenticationEntryPoint))
+                .accessDeniedHandler(customAccessDeniedHandler));
 
         // 권한 규칙 생성
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(AUTH_WHITELIST).permitAll() // @PreAuthorization을 사용하기 때문에 모든 경로에 대한 인증처리는 여기서 안함
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN") //admin api는 관리자 계정만
                 .anyRequest().permitAll()
         );
 

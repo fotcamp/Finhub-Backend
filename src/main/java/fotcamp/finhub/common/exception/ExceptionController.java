@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,13 +41,6 @@ public class ExceptionController {
         log.error("handleMaxUploadSizeExceededException", e);
         String errorMessage = "업로드 할 수 있는 파일의 최대 크기는 10MB 입니다.";
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
-    }
-
-
-    @ExceptionHandler(TokenNotValidateException.class)
-    @ResponseBody
-    public ResponseEntity<ApiResponseWrapper> ExpiredTokenExceptionHandler(TokenNotValidateException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
     }
 }
 
