@@ -11,12 +11,15 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -67,10 +70,11 @@ public class AdminService {
 
     // 카테고리 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(String useYN) {
-        List<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(useYN);
-        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.stream().map(AllCategoryProcessDto::new).toList();
-        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList);
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
+        Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = new PageInfoProcessDto(categories.getNumber(), categories.getTotalPages(), categories.getSize(), categories.getTotalElements());
+        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
     }

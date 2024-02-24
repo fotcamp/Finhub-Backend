@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,8 +37,9 @@ public class AdminController {
 
     @GetMapping("/category")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(@RequestParam(name = "useYN", required = false) String useYN) {
-        return adminService.getAllCategory(useYN);
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+                                                             @RequestParam(name = "useYN", required = false) String useYN) {
+        return adminService.getAllCategory(pageable, useYN);
     }
 
     @GetMapping("/category/{categoryId}")
