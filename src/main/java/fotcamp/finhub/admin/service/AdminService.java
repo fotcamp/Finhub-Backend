@@ -7,6 +7,7 @@ import fotcamp.finhub.admin.dto.process.*;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.dto.response.*;
 import fotcamp.finhub.admin.repository.*;
+import fotcamp.finhub.admin.service.gpt.GptService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
@@ -243,10 +244,11 @@ public class AdminService {
 
     // 유저타입 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllUserType(String useYN) {
-        List<UserType> userTypeList = userTypeRepositoryCustom.searchAllUserTypeFilterList(useYN);
-        List<UserTypeProcessDto> userTypeProcessDtos = userTypeList.stream().map(UserTypeProcessDto::new).toList();
-        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos);
+    public ResponseEntity<ApiResponseWrapper> getAllUserType(Pageable pageable, String useYN) {
+        Page<UserType> userTypes = userTypeRepositoryCustom.searchAllUserTypeFilterList(pageable, useYN);
+        List<UserTypeProcessDto> userTypeProcessDtos = userTypes.getContent().stream().map(UserTypeProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(userTypes);
+        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos, pageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDto));
     }

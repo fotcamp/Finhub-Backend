@@ -98,8 +98,13 @@ public class AdminController {
 
     @GetMapping("/usertype")
     @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllUserType(@RequestParam(name = "useYN", required = false) String useYN) {
-        return adminService.getAllUserType(useYN);
+    public ResponseEntity<ApiResponseWrapper> getAllUserType(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllUserType(pageable, useYN);
     }
 
     @GetMapping("/usertype/{typeId}")
