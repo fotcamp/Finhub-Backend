@@ -334,7 +334,7 @@ public class AdminService {
             String usertypeName = userType.getName();
 
             // 최신 프롬프트 가져오기 from DB
-            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(() -> new EntityNotFoundException("프롬프트가 존재하지 않음"));
             String prompt = gptPrompt.getPrompt();
 
             // 프롬프트 약속 단어 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
@@ -433,7 +433,7 @@ public class AdminService {
     }
 
     // gpt 질문 답변 로그 조회
-    public ResponseEntity<ApiResponseWrapper> getGptLog(Long topicId, Long usertypeId) {
+    public ResponseEntity<ApiResponseWrapper> getGptLog(Pageable pageable, Long topicId, Long usertypeId) {
         try {
             if (topicId != null) {
                 topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
@@ -441,8 +441,8 @@ public class AdminService {
             if (usertypeId != null) {
                 userTypeRepository.findById(usertypeId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
             }
-            List<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(topicId, usertypeId);
-            List<GptLogResponseDto> gptLogResponseDtos = gptLogs.stream()
+            Page<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(pageable, topicId, usertypeId);
+            List<GptLogProcessDto> gptLogProcessDtos = gptLogs.getContent().stream()
                     .filter(gptLog -> {
                         // 필터링 조건을 여기에 추가
                         return categoryRepository.existsById(gptLog.getCategoryId()) &&
@@ -454,10 +454,12 @@ public class AdminService {
                         String topicTitle = topicRepository.findById(gptLog.getTopicId()).get().getTitle();
                         String usertypeName = userTypeRepository.findById(gptLog.getUsertypeId()).get().getName();
 
-                        return new GptLogResponseDto(gptLog, categoryName, topicTitle, usertypeName);
+                        return new GptLogProcessDto(gptLog, categoryName, topicTitle, usertypeName);
                     }).toList();
+            PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(gptLogs);
+            AllGptLogResponseDto allGptLogResponseDto = new AllGptLogResponseDto(gptLogProcessDtos, pageInfoProcessDto);
 
-            return ResponseEntity.ok(ApiResponseWrapper.success(gptLogResponseDtos));
+            return ResponseEntity.ok(ApiResponseWrapper.success(allGptLogResponseDto));
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));

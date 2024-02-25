@@ -145,10 +145,13 @@ public class AdminController {
     @GetMapping("/gpt-log")
     @Operation(summary = "gpt 질문 답변 로그 확인", description = "gpt 질문 답변 로그 확인 / 필터 존재", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getGptLog(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "topicId", required = false) Long topicId,
             @RequestParam(name = "usertypeId", required = false) Long usertypeId
     ) {
-        return adminService.getGptLog(topicId, usertypeId);
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getGptLog(pageable, topicId, usertypeId);
     }
 
 
