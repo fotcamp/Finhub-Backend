@@ -4,11 +4,13 @@ import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.service.AwsS3Service;
+import fotcamp.finhub.common.utils.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -37,8 +39,12 @@ public class AdminController {
 
     @GetMapping("/category")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
-                                                             @RequestParam(name = "useYN", required = false) String useYN) {
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN) {
+
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllCategory(pageable, useYN);
     }
 
@@ -63,10 +69,13 @@ public class AdminController {
     @GetMapping("/topic")
     @Operation(summary = "토픽 전체 조회", description = "topic 전체 조회", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getAllTopic(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "categoryId", required = false) Long id,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
-        return adminService.getAllTopic(id, useYN);
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllTopic(pageable, id, useYN);
     }
 
     @GetMapping("/topic/{topicId}")

@@ -1,6 +1,5 @@
 package fotcamp.finhub.admin.repository;
 
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;

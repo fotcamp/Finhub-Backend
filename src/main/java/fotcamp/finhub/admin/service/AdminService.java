@@ -13,6 +13,7 @@ import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
 import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 import fotcamp.finhub.common.service.AwsS3Service;
+import fotcamp.finhub.common.service.CommonService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class AdminService {
     private final GptPromptRepository gptPromptRepository;
     private final GptRepository gptRepository;
     private final AwsS3Service awsS3Service;
+    private final CommonService commonService;
 
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
@@ -73,7 +75,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
         Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
         List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
-        PageInfoProcessDto PageInfoProcessDto = new PageInfoProcessDto(categories.getNumber(), categories.getTotalPages(), categories.getSize(), categories.getTotalElements());
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(categories);
         AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
@@ -167,12 +169,14 @@ public class AdminService {
 
     // 토픽 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllTopic(Long categoryId, String useYN) {
-        List<Topic> topicList = topicRepositoryCustom.searchAllTopicFilterList(categoryId, useYN);
-        List<TopicProcessDto> topicProcessDtos = topicList.stream().map(TopicProcessDto::new).toList();
-        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos);
+    public ResponseEntity<ApiResponseWrapper> getAllTopic(Pageable pageable, Long categoryId, String useYN) {
+        Page<Topic> topics = topicRepositoryCustom.searchAllTopicFilterList(pageable, categoryId, useYN);
+        List<TopicProcessDto> topicProcessDtos = topics.getContent().stream().map(TopicProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(topics);
+        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos, pageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+
     }
 
     // 토픽 상세 조회
@@ -456,5 +460,7 @@ public class AdminService {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         }
+
+
     }
 }
