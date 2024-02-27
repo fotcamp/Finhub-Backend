@@ -4,11 +4,13 @@ import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.service.AwsS3Service;
+import fotcamp.finhub.common.utils.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +38,13 @@ public class AdminController {
     @GetMapping("/category")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(@RequestParam(name = "useYN", required = false) String useYN) {
-        return adminService.getAllCategory(useYN);
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN) {
+
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllCategory(pageable, useYN);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -65,10 +72,13 @@ public class AdminController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "토픽 전체 조회", description = "topic 전체 조회", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getAllTopic(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "categoryId", required = false) Long id,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
-        return adminService.getAllTopic(id, useYN);
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllTopic(pageable, id, useYN);
     }
 
     @GetMapping("/topic/{topicId}")
@@ -95,8 +105,13 @@ public class AdminController {
     @GetMapping("/usertype")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "유저 타입 전체조회", description = "usertype 전체 조회", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> getAllUserType(@RequestParam(name = "useYN", required = false) String useYN) {
-        return adminService.getAllUserType(useYN);
+    public ResponseEntity<ApiResponseWrapper> getAllUserType(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllUserType(pageable, useYN);
     }
 
     @GetMapping("/usertype/{typeId}")
@@ -120,13 +135,6 @@ public class AdminController {
         return adminService.modifyUserType(modifyUserTypeRequestDto);
     }
 
-    @PostMapping("/gpt")
-    @PreAuthorize("hasRole('SUPER')")
-    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
-        return adminService.createGptContent(createGptContentRequestDto);
-    }
-
     @GetMapping("/prompt")
     @PreAuthorize("hasRole('SUPER')")
     @Operation(summary = "gpt 프롬프트 최신 조회", description = "gpt 프롬프트 최신 조회", tags = {"AdminController"})
@@ -140,6 +148,25 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> saveGptPrompt(@Valid @RequestBody SaveGptPromptRequestDto saveGptPromptRequestDto) {
         return adminService.saveGptPrompt(saveGptPromptRequestDto);
     }
+
+    @PostMapping("/gpt")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
+        return adminService.createGptContent(createGptContentRequestDto);
+    }
+    @GetMapping("/gpt-log")
+    @Operation(summary = "gpt 질문 답변 로그 확인", description = "gpt 질문 답변 로그 확인 / 필터 존재", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getGptLog(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "topicId", required = false) Long topicId,
+            @RequestParam(name = "usertypeId", required = false) Long usertypeId
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getGptLog(pageable, topicId, usertypeId);
+    }
+
 
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @PreAuthorize("hasRole('SUPER')")

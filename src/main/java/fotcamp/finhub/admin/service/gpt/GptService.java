@@ -1,4 +1,4 @@
-package fotcamp.finhub.admin.service;
+package fotcamp.finhub.admin.service.gpt;
 
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;

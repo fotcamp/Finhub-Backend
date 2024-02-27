@@ -1,8 +1,6 @@
 package fotcamp.finhub.common.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -22,4 +20,11 @@ public class BaseEntity {
     @LastModifiedDate
     @Column(name = "modified_time")
     private LocalDateTime modifiedTime;
+
+    @PrePersist
+    @PreUpdate
+    private void prePersistOrUpdate() {
+        this.createdTime = this.createdTime.withNano(0);
+        this.modifiedTime = this.modifiedTime.withNano(0);
+    }
 }
