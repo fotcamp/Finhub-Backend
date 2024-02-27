@@ -1,4 +1,4 @@
-package fotcamp.finhub.common.dto.request;
+package fotcamp.finhub.main.dto.request;
 
 
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package fotcamp.finhub.common.domain;
+package fotcamp.finhub.main.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -15,7 +15,7 @@ import com.querydsl.core.types.Path;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QMember extends EntityPathBase<Member> {
 
-    private static final long serialVersionUID = -369204829L;
+    private static final long serialVersionUID = 1696458097L;
 
     public static final QMember member = new QMember("member1");
 

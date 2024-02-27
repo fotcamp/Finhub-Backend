@@ -42,6 +42,13 @@ public class ExceptionController {
         String errorMessage = "업로드 할 수 있는 파일의 최대 크기는 10MB 입니다.";
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
+        log.error("중복되는 이메일",e);
+        String msg = "중복되는 이메일입니다.";
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(msg));
+    }
 }
 
 

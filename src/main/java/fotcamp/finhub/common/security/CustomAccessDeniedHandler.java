@@ -1,6 +1,8 @@
 package fotcamp.finhub.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.api.ApiStatus;
 import fotcamp.finhub.common.dto.response.ErrorMessageResponseDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
 import jakarta.servlet.ServletException;
@@ -9,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -19,7 +22,7 @@ import java.io.IOException;
 @Component
 @Slf4j(topic = "FORBIDDEN_EXCEPTION_HANDLER")
 @RequiredArgsConstructor
-public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+public class CustomAccessDeniedHandler implements AccessDeniedHandler{
 
     private final ObjectMapper objectMapper;
 
@@ -29,8 +32,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws ServletException, IOException{
         log.error(accessDeniedException.getMessage());
 
-        ErrorMessageResponseDto responseMsg = new ErrorMessageResponseDto(ErrorMessage.ACCESS_DENIED.getCode(), ErrorMessage.ACCESS_DENIED.toString(), ErrorMessage.ACCESS_DENIED.getMsg());
+        //ErrorMessageResponseDto responseMsg = new ErrorMessageResponseDto(ErrorMessage.ACCESS_DENIED.getCode(), ErrorMessage.ACCESS_DENIED.toString(), ErrorMessage.ACCESS_DENIED.getMsg());
+        ErrorMessageResponseDto responseMsg = new ErrorMessageResponseDto(ApiStatus.FAIL, "접근이 거부되었습니다.","ACCESS_DENIED");
         String responseBody = objectMapper.writeValueAsString(responseMsg);
+
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(ErrorMessage.ACCESS_DENIED.getCode());
         response.getWriter().write(responseBody);

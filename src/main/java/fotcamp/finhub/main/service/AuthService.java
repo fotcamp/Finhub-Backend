@@ -1,14 +1,14 @@
-package fotcamp.finhub.common.service;
+package fotcamp.finhub.main.service;
 
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.domain.Member;
+import fotcamp.finhub.main.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
-import fotcamp.finhub.common.dto.common.CustomUserInfoDto;
-import fotcamp.finhub.common.dto.request.LoginRequestDto;
-import fotcamp.finhub.common.dto.common.TokenDto;
-import fotcamp.finhub.common.repository.MemberRepository;
-import fotcamp.finhub.common.repository.TokenRepository;
+import fotcamp.finhub.common.security.CustomUserInfo;
+import fotcamp.finhub.main.dto.request.LoginRequestDto;
+import fotcamp.finhub.common.security.TokenDto;
+import fotcamp.finhub.main.repository.MemberRepository;
+import fotcamp.finhub.main.repository.TokenRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,10 @@ public class AuthService {
             if(!passwordEncoder.matches(password,member.getPassword())){
                 throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
             }
-            CustomUserInfoDto info = modelMapper.map(member, CustomUserInfoDto.class);
+            CustomUserInfo info = modelMapper.map(member, CustomUserInfo.class);
+            // 액토가 유효하면 곧장 리턴
+            // 액토가 만료되면 리프레시 토큰 달라는 메시지를 다시 반환
+
             // 3. 로그인 성공으로 간주하고 access,refreshToken 생성
             TokenDto allTokens = jwtUtil.createAllTokens(info.getMemberId());
 

@@ -1,7 +1,7 @@
 package fotcamp.finhub.common.utils;
 
 
-import fotcamp.finhub.common.dto.common.TokenDto;
+import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -120,6 +120,8 @@ public class JwtUtil {
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")){
             return bearerToken.substring(7);
         }
-        return null;
+        else {
+            return null;
+        }
     }
 }

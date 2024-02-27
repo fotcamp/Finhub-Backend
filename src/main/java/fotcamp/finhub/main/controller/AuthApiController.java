@@ -1,9 +1,10 @@
-package fotcamp.finhub.common.controller;
+package fotcamp.finhub.main.controller;
 
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.dto.request.LoginRequestDto;
-import fotcamp.finhub.common.service.AuthService;
+import fotcamp.finhub.main.dto.request.LoginRequestDto;
+import fotcamp.finhub.main.service.AuthService;
+import io.lettuce.core.ScriptOutputType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,11 @@ public class AuthApiController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponseWrapper> login(
             @Valid @RequestBody LoginRequestDto loginRequestDto){
+        System.out.println("login controllllllllllllll");
         return authService.login(loginRequestDto);
     }
 
-    @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
+    @PostMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
             HttpServletRequest request){
         return authService.validRefreshToken(request);

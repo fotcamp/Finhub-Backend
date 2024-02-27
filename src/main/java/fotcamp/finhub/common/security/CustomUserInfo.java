@@ -1,7 +1,7 @@
-package fotcamp.finhub.common.dto.common;
+package fotcamp.finhub.common.security;
 
-import fotcamp.finhub.common.domain.Member;
-import fotcamp.finhub.common.domain.RoleType;
+import fotcamp.finhub.main.domain.Member;
+import fotcamp.finhub.main.domain.RoleType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class CustomUserInfoDto {
+public class CustomUserInfo {
 
     private Long memberId;
     private String email;
@@ -21,7 +21,7 @@ public class CustomUserInfoDto {
     private RoleType role;
 
 
-    public CustomUserInfoDto(Long memberId, String email, String name, String password, RoleType role) {
+    public CustomUserInfo(Long memberId, String email, String name, String password, RoleType role) {
         this.memberId = memberId;
         this.email = email;
         this.name = name;
@@ -29,8 +29,8 @@ public class CustomUserInfoDto {
         this.role = role;
     }
 
-    public static CustomUserInfoDto fromEntity(Member member){
-        return CustomUserInfoDto.builder()
+    public static CustomUserInfo fromEntity(Member member){
+        return CustomUserInfo.builder()
                 .email(member.getEmail())
                 .name(member.getName())
                 .password(member.getPassword())

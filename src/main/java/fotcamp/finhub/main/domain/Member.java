@@ -1,4 +1,4 @@
-package fotcamp.finhub.common.domain;
+package fotcamp.finhub.main.domain;
 
 
 import jakarta.persistence.*;

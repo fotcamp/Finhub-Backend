@@ -1,6 +1,5 @@
 package fotcamp.finhub.common.security;
 
-import fotcamp.finhub.common.dto.common.CustomUserInfoDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,13 +16,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final CustomUserInfoDto member;
+    private final CustomUserInfo member;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<String> roles =  new ArrayList<>();
-        roles.add("ROLE" + member.getRole().toString());
-
+        roles.add(member.getRole().toString());
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());

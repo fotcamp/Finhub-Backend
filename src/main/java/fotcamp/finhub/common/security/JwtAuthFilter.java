@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.security;
 
 
+import fotcamp.finhub.common.exception.ErrorMessage;
 import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.jar.JarException;
 
 @RequiredArgsConstructor
 public class JwtAuthFilter extends GenericFilter {
@@ -27,8 +29,7 @@ public class JwtAuthFilter extends GenericFilter {
         if(token != null && jwtUtil.validateToken(token)){
             Long userId = jwtUtil.getUserId(token);
             System.out.println(userId);
-            //
-            UserDetails userDetails = customUserDetailService.loadUserByUsername(userId.toString());
+            CustomUserDetails userDetails = customUserDetailService.loadUserByUsername(userId.toString());
             if(userDetails != null){
                 //UserDetails, Password, Role -> 접근권한 인증 Token 생성
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =

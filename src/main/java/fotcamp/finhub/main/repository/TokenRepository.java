@@ -1,4 +1,4 @@
-package fotcamp.finhub.common.repository;
+package fotcamp.finhub.main.repository;
 
 import fotcamp.finhub.common.domain.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -5,7 +5,9 @@ public enum ErrorMessage {
     WRONG_TYPE_TOKEN("잘못된 타입의 토큰입니다.", 400),
     EXPIRED_TOKEN("토큰이 만료되었습니다.", 401),
     UNSUPPORTED_TOKEN("지원되지 않는 토큰입니다.", 400),
-    ACCESS_DENIED("접근이 거부되었습니다.", 403);
+    ACCESS_DENIED("접근이 거부되었습니다.", 403),
+    DUPLICATED_EMAIL("중복되는 이메일입니다.", 400),
+    EMPTY_TOKEN("토큰이 비어있습니다.", 500);
 
     private final String msg;
     private final int code;
