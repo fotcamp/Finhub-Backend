@@ -22,7 +22,6 @@ public class AuthApiController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponseWrapper> login(
             @Valid @RequestBody LoginRequestDto loginRequestDto){
-        System.out.println("login controllllllllllllll");
         return authService.login(loginRequestDto);
     }
 

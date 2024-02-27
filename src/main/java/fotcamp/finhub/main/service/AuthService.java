@@ -8,8 +8,8 @@ import fotcamp.finhub.common.security.CustomUserInfo;
 import fotcamp.finhub.main.dto.request.LoginRequestDto;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.repository.MemberRepository;
-import fotcamp.finhub.main.repository.TokenRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,8 +20,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,21 +45,12 @@ public class AuthService {
                 throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
             }
             CustomUserInfo info = modelMapper.map(member, CustomUserInfo.class);
-            // 액토가 유효하면 곧장 리턴
-            // 액토가 만료되면 리프레시 토큰 달라는 메시지를 다시 반환
 
             // 3. 로그인 성공으로 간주하고 access,refreshToken 생성
             TokenDto allTokens = jwtUtil.createAllTokens(info.getMemberId());
 
-            // 4. RefreshToken db에 존재하는지 확인
-            Optional<RefreshToken> refreshToken = tokenRepository.findByAccountEmail(info.getEmail());
-            if(refreshToken.isPresent()){
-                //토큰이 존재한다면 refreshToken 갱신
-                tokenRepository.save(refreshToken.get().updateToken(allTokens.getRefreshToken()));
-            }else{
-                // 없으면 새로 만들기
-                tokenRepository.save(new RefreshToken(allTokens.getRefreshToken(), info.getEmail()));
-            }
+            tokenRepository.save(new RefreshToken(allTokens.getRefreshToken(), info.getEmail()));
+
             return ResponseEntity.ok(ApiResponseWrapper.success(allTokens));
         }catch (UsernameNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
@@ -83,5 +72,8 @@ public class AuthService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("헤더에 토큰이 없습니다."));
         }
     }
+
+    // 로그아웃 처리
+    // 토큰회전 방식 채택
 
 }

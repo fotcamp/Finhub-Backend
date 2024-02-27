@@ -25,7 +25,6 @@ public class MemberController {
 //    @PreAuthorize("hasRole('SUPADMIN')")
     // 로그인을 한 유저만 접근 가능한 api
     public ResponseEntity<ApiResponseWrapper> test1(){
-        System.out.println("3--");
         return memberService.test1();
     }
 
