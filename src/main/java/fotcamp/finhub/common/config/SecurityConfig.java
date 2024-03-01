@@ -58,7 +58,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(AUTH_WHITELIST).permitAll() // 로그인 없이 접근이 가능한 api
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("SUPER","BE","FE") //admin api는 관리자 계정만
-                         .requestMatchers("/api/v1/member/test1").hasRole("USER")
+                .requestMatchers("/api/v1/member/test1").hasRole("USER")
                 /**
                  * 권한 규칙 요구사항
                  * SUPER 모든 API에 접근 허용
