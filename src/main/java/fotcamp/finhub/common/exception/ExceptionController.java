@@ -6,15 +6,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
 @Slf4j
-public class ExceptionController {
+public class ExceptionController{
 
     // 값에 "", " " 등이 들어왔을 때
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -48,6 +53,13 @@ public class ExceptionController {
         log.error("중복되는 이메일",e);
         String msg = "중복되는 이메일입니다.";
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(msg));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ApiResponseWrapper> handleCorsException(Exception ex) {
+        // 여기서 커스텀 응답을 생성하여 반환
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseWrapper.fail("CORS Policy Error"));
     }
 }
 
