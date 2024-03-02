@@ -1,7 +1,6 @@
 package fotcamp.finhub.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.api.ApiStatus;
 import fotcamp.finhub.common.dto.response.ErrorMessageResponseDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
@@ -12,30 +11,35 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Objects;
 
 
-@Component
 @Slf4j
 @RequiredArgsConstructor
 public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequestFilter : 한 번 실행 보장
 
     private final ObjectMapper objectMapper;
+    private final String expectedHeaderKey;
+    private final String expectedHeaderValue;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         try {
-            if(Objects.equals(request.getHeader("finhub"), "willbesuccess")){ //1차 보안 (사전에 약속된 key 하나를 default로 지정) : 헤더에 없으면 에러처리
+            log.info("Header key: {}", expectedHeaderKey);
+            log.info("Header value for key '{}': {}", expectedHeaderKey, request.getHeader(expectedHeaderKey));
+
+            if (request.getHeader(expectedHeaderKey) == null) {
+                log.error(request.getHeader(expectedHeaderKey));
+                setResponse(response, ErrorMessage.EMPTY_HEADER);
+            } else if(Objects.equals(expectedHeaderValue, request.getHeader(expectedHeaderKey))){ //1차 보안 (사전에 약속된 key 하나를 default로 지정) : 헤더에 없으면 에러처리
                 filterChain.doFilter(request, response);
-            }
-            else{
-                setResponse(response, ErrorMessage.EMPTY_TOKEN);
+            } else{
+                log.error(request.getHeader(expectedHeaderKey));
+                setResponse(response, ErrorMessage.NOT_CORRECT_HEADER);
             }
         } catch (JwtException ex) {
             String message = ex.getMessage();

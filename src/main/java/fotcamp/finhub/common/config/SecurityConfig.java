@@ -3,7 +3,8 @@ package fotcamp.finhub.common.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.common.security.*;
 import fotcamp.finhub.common.utils.JwtUtil;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -23,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
@@ -31,6 +32,9 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final ObjectMapper objectMapper;
+
+    @Value("${api-header.key}") private String expectedHeaderKey;
+    @Value("${api-header.value}") private String expectedHeaderValue;
 
     private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login", "/api/v1/member/signup", "/api/v1/member/test2"};
 
@@ -50,7 +54,7 @@ public class SecurityConfig {
         // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
         // JwtExceptionFilter를 JwtAuthFilter를 앞에 추가
         http.addFilterBefore(new JwtAuthFilter(customUserDetailService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(new JwtExceptionFilter(objectMapper), JwtAuthFilter.class);
+        http.addFilterBefore(new JwtExceptionFilter(objectMapper, expectedHeaderKey, expectedHeaderValue), JwtAuthFilter.class);
         http.exceptionHandling( (exceptionHandling) -> exceptionHandling
                 .accessDeniedHandler(customAccessDeniedHandler));
 
