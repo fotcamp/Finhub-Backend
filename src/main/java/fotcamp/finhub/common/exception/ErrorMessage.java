@@ -7,7 +7,9 @@ public enum ErrorMessage {
     UNSUPPORTED_TOKEN("지원되지 않는 토큰입니다.", 400),
     ACCESS_DENIED("접근이 거부되었습니다.", 403),
     DUPLICATED_EMAIL("중복되는 이메일입니다.", 400),
-    EMPTY_TOKEN("토큰이 비어있습니다.", 500);
+    EMPTY_HEADER("헤더 필수값이 비어있습니다.", 403),
+    NOT_CORRECT_HEADER("헤더 필수값이 틀렸습니다.", 403);
+
 
     private final String msg;
     private final int code;
