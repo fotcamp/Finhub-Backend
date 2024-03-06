@@ -5,6 +5,7 @@ import fotcamp.finhub.main.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,12 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public CustomUserDetails loadUserByUsername(String id) throws UsernameNotFoundException{
-        Member member = memberRepository.findById(Long.parseLong(id))
+    public CustomUserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException{
+        Member member = memberRepository.findById(Long.parseLong(memberId))
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저가 없습니다."));
 
         CustomUserInfo dto = modelMapper.map(member, CustomUserInfo.class);
         return new CustomUserDetails(dto);
     }
+
 }

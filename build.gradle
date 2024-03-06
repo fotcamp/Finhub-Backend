@@ -62,8 +62,8 @@ dependencies {
 	// ModelMapper
 	implementation group: 'org.modelmapper', name: 'modelmapper' , version: '2.4.2'
 
-	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// OAuth2.0 client lib
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 def querydslSrcDir = 'src/main/generated'

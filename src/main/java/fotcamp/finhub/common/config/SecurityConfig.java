@@ -36,7 +36,7 @@ public class SecurityConfig {
     @Value("${api-header.key}") private String expectedHeaderKey;
     @Value("${api-header.value}") private String expectedHeaderValue;
 
-    private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login", "/api/v1/member/signup", "/api/v1/member/test2"};
+   private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -72,6 +72,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
 }

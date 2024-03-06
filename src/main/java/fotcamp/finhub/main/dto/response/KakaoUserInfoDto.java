@@ -1,16 +1,17 @@
-package fotcamp.finhub.main.dto.request;
+package fotcamp.finhub.main.dto.response;
 
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequestDto {
+public class KakaoUserInfoDto {
 
+    private String name;
     private String email;
-    private String password;
+
 
 }

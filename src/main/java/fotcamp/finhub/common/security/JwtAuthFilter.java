@@ -1,16 +1,14 @@
 package fotcamp.finhub.common.security;
 
 
-import fotcamp.finhub.common.exception.ErrorMessage;
 import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.filter.OncePerRequestFilter;
+
 
 import java.io.IOException;
 import java.util.jar.JarException;
@@ -27,10 +25,11 @@ public class JwtAuthFilter extends GenericFilter {
         String token = jwtUtil.resolveToken((HttpServletRequest) request);
         // 토큰 유효성 검증
         if(token != null && jwtUtil.validateToken(token)){
-            Long userId = jwtUtil.getUserId(token);
-            System.out.println(userId);
-            CustomUserDetails userDetails = customUserDetailService.loadUserByUsername(userId.toString());
+            Long memberId = jwtUtil.getUserId(token);
+
+            CustomUserDetails userDetails = customUserDetailService.loadUserByUsername(memberId.toString());
             if(userDetails != null){
+                // 24.3.6 이제부턴 이 부분 활용 x -> 카카오 로그인 성공 이후 곧장 contextholder에 강제로 userdetail 주입예정
                 //UserDetails, Password, Role -> 접근권한 인증 Token 생성
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

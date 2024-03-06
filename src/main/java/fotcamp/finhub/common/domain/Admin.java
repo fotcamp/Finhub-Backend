@@ -1,48 +1,45 @@
-package fotcamp.finhub.main.domain;
+package fotcamp.finhub.common.domain;
 
 
+import fotcamp.finhub.main.domain.RoleType;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Map;
-
 @Entity
-@Table(name = "MEMBER")
+@Table(name = "ADMIN")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Member {
+public class Admin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
-    private Long memberId;
+    @Column(name = "ADMIN_ID")
+    private Long adminId;
 
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "PROFILE_NICKNAME", nullable = false)
+    @Column(name = "NAME", nullable = false)
     private String name;
+
+    @Column(name = "PASSWORD", nullable = false)
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
     private RoleType role;
 
     @Builder
-    public Member(String email, String name) {
+    public Admin(Long adminId, String email, String name, String password) {
+        this.adminId = adminId;
         this.email = email;
         this.name = name;
-        this.role = RoleType.ROLE_USER;
-    }
-
-    public static Member ToEntity(String email, String nickname){
-        return Member.builder()
-                .email(email)
-                .name(nickname)
-                .build();
+        this.password = password;
+        this.role = RoleType.ROLE_BE;
     }
 
 }
