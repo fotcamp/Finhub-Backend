@@ -17,15 +17,13 @@ public class CustomUserInfo {
     private Long memberId;
     private String email;
     private String name;
-    private String password;
     private RoleType role;
 
 
-    public CustomUserInfo(Long memberId, String email, String name, String password, RoleType role) {
+    public CustomUserInfo(Long memberId,String email, String name, RoleType role) {
         this.memberId = memberId;
         this.email = email;
         this.name = name;
-        this.password = password;
         this.role = role;
     }
 
@@ -33,7 +31,6 @@ public class CustomUserInfo {
         return CustomUserInfo.builder()
                 .email(member.getEmail())
                 .name(member.getName())
-                .password(member.getPassword())
                 .role(member.getRole())
                 .build();
     }

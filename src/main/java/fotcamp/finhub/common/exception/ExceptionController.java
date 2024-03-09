@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -50,9 +51,7 @@ public class ExceptionController{
 
     @ExceptionHandler(IllegalArgumentException.class)
     protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
-        log.error("중복되는 이메일",e);
-        String msg = "중복되는 이메일입니다.";
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(msg));
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -60,6 +59,11 @@ public class ExceptionController{
     public ResponseEntity<ApiResponseWrapper> handleCorsException(Exception ex) {
         // 여기서 커스텀 응답을 생성하여 반환
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseWrapper.fail("CORS Policy Error"));
+    }
+
+    @ExceptionHandler(RestClientException.class)
+    public ResponseEntity<ApiResponseWrapper> handleRestTemplateException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("REST TEMPLATE ERROR"));
     }
 }
 
