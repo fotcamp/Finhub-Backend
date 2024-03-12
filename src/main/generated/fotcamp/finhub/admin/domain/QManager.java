@@ -19,11 +19,15 @@ public class QManager extends EntityPathBase<Manager> {
 
     public static final QManager manager = new QManager("manager");
 
-    public final NumberPath<Long> id = createNumber("id", Long.class);
+    public final StringPath email = createString("email");
+
+    public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
+
+    public final StringPath name = createString("name");
 
     public final StringPath password = createString("password");
 
-    public final StringPath userId = createString("userId");
+    public final EnumPath<fotcamp.finhub.main.domain.RoleType> role = createEnum("role", fotcamp.finhub.main.domain.RoleType.class);
 
     public QManager(String variable) {
         super(Manager.class, forVariable(variable));

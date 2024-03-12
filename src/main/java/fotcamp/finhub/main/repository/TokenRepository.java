@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface TokenRepository extends JpaRepository<RefreshToken, Long> {
+public interface TokenRepository extends JpaRepository<RefreshToken, String> {
 
     Optional<RefreshToken> findByAccountEmail(String email);
 }

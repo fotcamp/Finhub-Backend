@@ -20,7 +20,7 @@ public class CustomUserInfo {
     private RoleType role;
 
 
-    public CustomUserInfo(Long memberId,String email, String name, RoleType role) {
+    public CustomUserInfo(Long memberId, String email, String name, RoleType role) {
         this.memberId = memberId;
         this.email = email;
         this.name = name;

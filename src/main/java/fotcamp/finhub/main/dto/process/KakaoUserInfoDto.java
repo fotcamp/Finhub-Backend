@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.dto.response;
+package fotcamp.finhub.main.dto.process;
 
 
 import lombok.AllArgsConstructor;
