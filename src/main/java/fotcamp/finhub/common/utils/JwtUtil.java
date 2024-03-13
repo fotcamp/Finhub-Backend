@@ -3,6 +3,7 @@ package fotcamp.finhub.common.utils;
 
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
+import fotcamp.finhub.main.domain.RoleType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -42,8 +43,8 @@ public class JwtUtil {
      * @param memberId
      * @return TokenDto
      */
-    public TokenDto createAllTokens(Long memberId){
-        return new TokenDto(createToken(memberId, "Access"), createToken(memberId, "Refresh"));
+    public TokenDto createAllTokens(Long memberId, String roleType){
+        return new TokenDto(createToken(memberId, roleType, "Access"), createToken(memberId,roleType, "Refresh"));
     }
 
     /**
@@ -51,12 +52,12 @@ public class JwtUtil {
      * @param memberId, type
      * @return JWT String
      */
-    public String createToken(Long memberId, String type){
+    public String createToken(Long memberId, String roleType, String type){
         long expireTime = type.equals("Access") ? accessTokenExpTime : refreshTokenExpTime;
 
         Claims claims = Jwts.claims();
         claims.put("memberId", memberId);
-
+        claims.put("role", roleType);
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
 
@@ -75,6 +76,15 @@ public class JwtUtil {
      * */
     public Long getUserId(String token){
         return parseClaims(token).get("memberId", Long.class);
+    }
+
+    /**
+     * 토큰에서 RoleType 추출
+     * @param token
+     * @return RoleType
+     * */
+    public String getRoleType(String token){
+        return parseClaims(token).get("role", String.class);
     }
 
     /**

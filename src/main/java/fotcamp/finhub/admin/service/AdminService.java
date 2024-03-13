@@ -3,6 +3,7 @@ package fotcamp.finhub.admin.service;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
+import fotcamp.finhub.admin.domain.ManagerRefreshToken;
 import fotcamp.finhub.admin.dto.process.*;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.dto.response.*;
@@ -13,8 +14,11 @@ import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
 import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
+import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
+import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +41,6 @@ import java.util.List;
 @Slf4j
 public class AdminService {
 
-    private final ManagerRepository managerRepository;
     private final CategoryRepository categoryRepository;
     private final CategoryRepositoryCustom categoryRepositoryCustom;
     private final TopicRepository topicRepository;
@@ -51,7 +54,9 @@ public class AdminService {
     private final GptRepository gptRepository;
     private final AwsS3Service awsS3Service;
     private final CommonService commonService;
-
+    private final ManagerRefreshRepository managerRefreshRepository;
+    private final JwtUtil jwtUtil;
+    private final ManagerRepository managerRepository;
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
     @Value("${promise.usertype}") String promiseUsertype;
@@ -60,14 +65,25 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> login(LoginRequestDto loginRequestDto) {
         try {
-            Manager manager = managerRepository.findByUserId(loginRequestDto.id()).orElseThrow(EntityNotFoundException::new);
+            // 이메일로 바꾸기
+            Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
+
             if (manager.getPassword().equals(loginRequestDto.password())) {
-                return ResponseEntity.ok(ApiResponseWrapper.success()); // 200
+                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
+                // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
+                ManagerRefreshToken refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
+                if (refreshToken != null) {
+                    refreshToken.updateToken(allTokens.getRefreshToken());
+                } else {
+                    refreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
+                }
+                managerRefreshRepository.save(refreshToken);
+                return ResponseEntity.ok(ApiResponseWrapper.success(allTokens)); // 200
             }
             // 비밀번호 틀렸을 경우
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호 틀림"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호가 틀렸습니다."));
         } catch (EntityNotFoundException e) { // 유저 아이디가 틀린 경우
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 아이디"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 아이디입니다."));
         }
     }
 
@@ -196,7 +212,7 @@ public class AdminService {
     }
 
     // 토픽 생성
-    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicRequestDto createTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicRequestDto createTopicRequestDto, CustomUserDetails userDetails) {
         try {
             Category topicCategory = categoryRepository.findById(createTopicRequestDto.categoryId()).orElseThrow(EntityNotFoundException::new);
 
@@ -205,6 +221,7 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
+                    .createdBy(userDetails.getRole())
                     .build();
 
             topic.setCategory(topicCategory);

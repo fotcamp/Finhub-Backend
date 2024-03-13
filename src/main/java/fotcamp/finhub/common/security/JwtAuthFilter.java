@@ -2,6 +2,7 @@ package fotcamp.finhub.common.security;
 
 
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.domain.RoleType;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,11 +27,16 @@ public class JwtAuthFilter extends GenericFilter {
         // 토큰 유효성 검증
         if(token != null && jwtUtil.validateToken(token)){
             Long memberId = jwtUtil.getUserId(token);
+            String roleType = jwtUtil.getRoleType(token);
+            CustomUserDetails userDetails;
 
-            CustomUserDetails userDetails = customUserDetailService.loadUserByUsername(memberId.toString());
+            if(roleType.equals("ROLE_USER")){
+                userDetails = customUserDetailService.loadUserByUsername(memberId.toString());
+            }
+            else {
+                userDetails = customUserDetailService.loadAdminByRole(memberId.toString());
+            }
             if(userDetails != null){
-                // 24.3.6 이제부턴 이 부분 활용 x -> 카카오 로그인 성공 이후 곧장 contextholder에 강제로 userdetail 주입예정
-                //UserDetails, Password, Role -> 접근권한 인증 Token 생성
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 // 현재 Request의 Security Context에 접근권한 설정

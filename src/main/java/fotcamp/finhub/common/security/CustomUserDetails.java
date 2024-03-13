@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final CustomUserInfo member;
+    private final CustomUserInfo user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<String> roles =  new ArrayList<>();
-        roles.add(member.getRole().toString());
+        roles.add(user.getRole().toString());
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
@@ -34,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getMemberId().toString();
+        return user.getMemberId().toString();
     }
 
     @Override
@@ -55,5 +55,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public String getRole(){
+        return user.getRole().toString();
     }
 }

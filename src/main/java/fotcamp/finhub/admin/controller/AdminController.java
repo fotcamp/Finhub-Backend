@@ -3,6 +3,7 @@ package fotcamp.finhub.admin.controller;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.utils.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 //@Tag(name = "admin", description = "admin api")
@@ -91,8 +93,10 @@ public class AdminController {
     @PostMapping("/topic")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
     @Operation(summary = "토픽 생성", description = "topic 등록", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createTopic(@Valid @RequestBody CreateTopicRequestDto createTopicRequestDto) {
-        return adminService.createTopic(createTopicRequestDto);
+    public ResponseEntity<ApiResponseWrapper> createTopic(
+            @Valid @RequestBody CreateTopicRequestDto createTopicRequestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createTopic(createTopicRequestDto, userDetails);
     }
 
     @PutMapping("/topic")
@@ -156,6 +160,7 @@ public class AdminController {
         return adminService.createGptContent(createGptContentRequestDto);
     }
     @GetMapping("/gpt-log")
+    @PreAuthorize("hasRole('SUPER')")
     @Operation(summary = "gpt 질문 답변 로그 확인", description = "gpt 질문 답변 로그 확인 / 필터 존재", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getGptLog(
             @RequestParam(value = "page", defaultValue = "1") int page,

@@ -58,7 +58,9 @@ public class ExceptionController{
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<ApiResponseWrapper> handleCorsException(Exception ex) {
         // 여기서 커스텀 응답을 생성하여 반환
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseWrapper.fail("CORS Policy Error"));
+//        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseWrapper.fail(
+//                "CORS Policy Error 또는 접근권한 제한(터트리는 exception이 동일)"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseWrapper.fail(ex.getMessage()));
     }
 
     @ExceptionHandler(RestClientException.class)

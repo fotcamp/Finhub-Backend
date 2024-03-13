@@ -1,4 +1,4 @@
 package fotcamp.finhub.admin.dto.request;
 
-public record LoginRequestDto(String id, String password) {
+public record LoginRequestDto(String email, String password) {
 }
