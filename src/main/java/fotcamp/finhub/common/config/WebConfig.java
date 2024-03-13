@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         // Admin 애플리케이션을 위한 CORS 설정
         registry.addMapping("/api/v1/admin/**")
-                .allowedOrigins(adminOrigin)  // Admin 프론트엔드 애플리케이션의 도메인
+                .allowedOrigins(adminOrigin, "http://127.0.0.1:3000", "http://localhost:3000")  // Admin 프론트엔드 애플리케이션의 도메인
                 .allowedMethods("GET", "POST", "PUT")
                 .allowedHeaders("*")
                 .allowCredentials(true);
