@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class GptLogResponseDto {
+public class GptLogProcessDto {
     private final Long id;
     private final String categoryName;
     private final String topicTitle;
@@ -16,7 +16,7 @@ public class GptLogResponseDto {
     private final LocalDateTime createdTime;
     private final String createdBy;
 
-    public GptLogResponseDto(GptLog gptLog, String categoryName, String topicTitle, String usertypeName) {
+    public GptLogProcessDto(GptLog gptLog, String categoryName, String topicTitle, String usertypeName) {
         this.id = gptLog.getId();
         this.categoryName = categoryName;
         this.topicTitle = topicTitle;

@@ -3,20 +3,29 @@ package fotcamp.finhub.admin.service;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
+import fotcamp.finhub.admin.domain.ManagerRefreshToken;
 import fotcamp.finhub.admin.dto.process.*;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.dto.response.*;
 import fotcamp.finhub.admin.repository.*;
+import fotcamp.finhub.admin.service.gpt.GptService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
+import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
+import fotcamp.finhub.common.service.CommonService;
+import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,7 +41,6 @@ import java.util.List;
 @Slf4j
 public class AdminService {
 
-    private final ManagerRepository managerRepository;
     private final CategoryRepository categoryRepository;
     private final CategoryRepositoryCustom categoryRepositoryCustom;
     private final TopicRepository topicRepository;
@@ -45,7 +53,10 @@ public class AdminService {
     private final GptPromptRepository gptPromptRepository;
     private final GptRepository gptRepository;
     private final AwsS3Service awsS3Service;
-
+    private final CommonService commonService;
+    private final ManagerRefreshRepository managerRefreshRepository;
+    private final JwtUtil jwtUtil;
+    private final ManagerRepository managerRepository;
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
     @Value("${promise.usertype}") String promiseUsertype;
@@ -54,23 +65,35 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> login(LoginRequestDto loginRequestDto) {
         try {
-            Manager manager = managerRepository.findByUserId(loginRequestDto.id()).orElseThrow(EntityNotFoundException::new);
+            // 이메일로 바꾸기
+            Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
+
             if (manager.getPassword().equals(loginRequestDto.password())) {
-                return ResponseEntity.ok(ApiResponseWrapper.success()); // 200
+                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
+                // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
+                ManagerRefreshToken refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
+                if (refreshToken != null) {
+                    refreshToken.updateToken(allTokens.getRefreshToken());
+                } else {
+                    refreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
+                }
+                managerRefreshRepository.save(refreshToken);
+                return ResponseEntity.ok(ApiResponseWrapper.success(allTokens)); // 200
             }
             // 비밀번호 틀렸을 경우
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호 틀림"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호가 틀렸습니다."));
         } catch (EntityNotFoundException e) { // 유저 아이디가 틀린 경우
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 아이디"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 아이디입니다."));
         }
     }
 
     // 카테고리 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(String useYN) {
-        List<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(useYN);
-        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.stream().map(AllCategoryProcessDto::new).toList();
-        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList);
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
+        Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(categories);
+        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
     }
@@ -163,12 +186,14 @@ public class AdminService {
 
     // 토픽 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllTopic(Long categoryId, String useYN) {
-        List<Topic> topicList = topicRepositoryCustom.searchAllTopicFilterList(categoryId, useYN);
-        List<TopicProcessDto> topicProcessDtos = topicList.stream().map(TopicProcessDto::new).toList();
-        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos);
+    public ResponseEntity<ApiResponseWrapper> getAllTopic(Pageable pageable, Long categoryId, String useYN) {
+        Page<Topic> topics = topicRepositoryCustom.searchAllTopicFilterList(pageable, categoryId, useYN);
+        List<TopicProcessDto> topicProcessDtos = topics.getContent().stream().map(TopicProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(topics);
+        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos, pageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+
     }
 
     // 토픽 상세 조회
@@ -187,7 +212,7 @@ public class AdminService {
     }
 
     // 토픽 생성
-    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicRequestDto createTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createTopic(CreateTopicRequestDto createTopicRequestDto, CustomUserDetails userDetails) {
         try {
             Category topicCategory = categoryRepository.findById(createTopicRequestDto.categoryId()).orElseThrow(EntityNotFoundException::new);
 
@@ -196,6 +221,7 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
+                    .createdBy(userDetails.getRole())
                     .build();
 
             topic.setCategory(topicCategory);
@@ -235,10 +261,11 @@ public class AdminService {
 
     // 유저타입 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllUserType(String useYN) {
-        List<UserType> userTypeList = userTypeRepositoryCustom.searchAllUserTypeFilterList(useYN);
-        List<UserTypeProcessDto> userTypeProcessDtos = userTypeList.stream().map(UserTypeProcessDto::new).toList();
-        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos);
+    public ResponseEntity<ApiResponseWrapper> getAllUserType(Pageable pageable, String useYN) {
+        Page<UserType> userTypes = userTypeRepositoryCustom.searchAllUserTypeFilterList(pageable, useYN);
+        List<UserTypeProcessDto> userTypeProcessDtos = userTypes.getContent().stream().map(UserTypeProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(userTypes);
+        AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos, pageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allUserTypeResponseDto));
     }
@@ -324,7 +351,7 @@ public class AdminService {
             String usertypeName = userType.getName();
 
             // 최신 프롬프트 가져오기 from DB
-            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
+            GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(() -> new EntityNotFoundException("프롬프트가 존재하지 않음"));
             String prompt = gptPrompt.getPrompt();
 
             // 프롬프트 약속 단어 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
@@ -423,7 +450,7 @@ public class AdminService {
     }
 
     // gpt 질문 답변 로그 조회
-    public ResponseEntity<ApiResponseWrapper> getGptLog(Long topicId, Long usertypeId) {
+    public ResponseEntity<ApiResponseWrapper> getGptLog(Pageable pageable, Long topicId, Long usertypeId) {
         try {
             if (topicId != null) {
                 topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
@@ -431,8 +458,8 @@ public class AdminService {
             if (usertypeId != null) {
                 userTypeRepository.findById(usertypeId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
             }
-            List<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(topicId, usertypeId);
-            List<GptLogResponseDto> gptLogResponseDtos = gptLogs.stream()
+            Page<GptLog> gptLogs = gptLogRepositoryCustom.searchAllGptLogFilterList(pageable, topicId, usertypeId);
+            List<GptLogProcessDto> gptLogProcessDtos = gptLogs.getContent().stream()
                     .filter(gptLog -> {
                         // 필터링 조건을 여기에 추가
                         return categoryRepository.existsById(gptLog.getCategoryId()) &&
@@ -444,13 +471,17 @@ public class AdminService {
                         String topicTitle = topicRepository.findById(gptLog.getTopicId()).get().getTitle();
                         String usertypeName = userTypeRepository.findById(gptLog.getUsertypeId()).get().getName();
 
-                        return new GptLogResponseDto(gptLog, categoryName, topicTitle, usertypeName);
+                        return new GptLogProcessDto(gptLog, categoryName, topicTitle, usertypeName);
                     }).toList();
+            PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(gptLogs);
+            AllGptLogResponseDto allGptLogResponseDto = new AllGptLogResponseDto(gptLogProcessDtos, pageInfoProcessDto);
 
-            return ResponseEntity.ok(ApiResponseWrapper.success(gptLogResponseDtos));
+            return ResponseEntity.ok(ApiResponseWrapper.success(allGptLogResponseDto));
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         }
+
+
     }
 }
