@@ -53,7 +53,7 @@ public class SecurityConfig {
 
         // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
         // JwtExceptionFilter를 JwtAuthFilter를 앞에 추가
-        http.addFilterBefore(new JwtAuthFilter(customUserDetailService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthFilter(customUserDetailService, objectMapper, jwtUtil), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtExceptionFilter(objectMapper, expectedHeaderKey, expectedHeaderValue), JwtAuthFilter.class);
         http.exceptionHandling( (exceptionHandling) -> exceptionHandling
                 .accessDeniedHandler(customAccessDeniedHandler));

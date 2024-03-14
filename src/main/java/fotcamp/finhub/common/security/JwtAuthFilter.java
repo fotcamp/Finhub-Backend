@@ -1,11 +1,17 @@
 package fotcamp.finhub.common.security;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fotcamp.finhub.common.api.ApiStatus;
+import fotcamp.finhub.common.dto.response.ErrorMessageResponseDto;
+import fotcamp.finhub.common.exception.ErrorMessage;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.domain.RoleType;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,14 +24,33 @@ import java.util.jar.JarException;
 public class JwtAuthFilter extends GenericFilter {
 
     private final CustomUserDetailService customUserDetailService;
+    private final ObjectMapper objectMapper;
     private final JwtUtil jwtUtil;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+        // 토큰 검증 필요없는 uri
+        String requestURI = ((HttpServletRequest) request).getRequestURI();
+        if(requestURI.contains("/api/v1/auth/login")
+                || requestURI.contains("/api/v1/auth/updateAccessToken")
+                || requestURI.contains("/api/v1/admin/login"))
+        {
+            chain.doFilter(request,response);
+            return;
+        }
+
         // 토큰 추출
         String token = jwtUtil.resolveToken((HttpServletRequest) request);
+
+        // http header에 authorization key가 없는 경우, value값이 null인 경우
+        if (token == null || token.isEmpty()){
+            setResponse((HttpServletResponse) response, ErrorMessage.NULL_AUTHORIZATION_HEADER);
+            return;
+        }
+
         // 토큰 유효성 검증
-        if(token != null && jwtUtil.validateToken(token)){
+        else if(jwtUtil.validateToken(token)){
             Long memberId = jwtUtil.getUserId(token);
             String roleType = jwtUtil.getRoleType(token);
             CustomUserDetails userDetails;
@@ -44,5 +69,13 @@ public class JwtAuthFilter extends GenericFilter {
             }
         }
         chain.doFilter(request,response);
+    }
+
+    public void setResponse(HttpServletResponse response, ErrorMessage errorMessage) throws RuntimeException, IOException {
+        ErrorMessageResponseDto errMsg = new ErrorMessageResponseDto(ApiStatus.FAIL, errorMessage.getMsg(), errorMessage.toString());
+        String responseMsg = objectMapper.writeValueAsString(errMsg);
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(errorMessage.getCode());
+        response.getWriter().write(responseMsg);
     }
 }
