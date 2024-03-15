@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
     private final String expectedHeaderValue;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
             log.info("Header key: {}", expectedHeaderKey);
@@ -35,11 +36,13 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             if (request.getHeader(expectedHeaderKey) == null) {
                 log.error(request.getHeader(expectedHeaderKey));
                 setResponse(response, ErrorMessage.EMPTY_HEADER);
+                return;
             } else if(Objects.equals(expectedHeaderValue, request.getHeader(expectedHeaderKey))){ //1차 보안 (사전에 약속된 key 하나를 default로 지정) : 헤더에 없으면 에러처리
                 filterChain.doFilter(request, response);
             } else{
                 log.error(request.getHeader(expectedHeaderKey));
                 setResponse(response, ErrorMessage.NOT_CORRECT_HEADER);
+                return;
             }
         } catch (JwtException ex) {
             String message = ex.getMessage();
@@ -73,6 +76,5 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(errorMessage.getCode());
         response.getWriter().write(responseMsg);
-
     }
 }
