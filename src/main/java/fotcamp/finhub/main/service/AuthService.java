@@ -9,6 +9,7 @@ import fotcamp.finhub.common.domain.RefreshToken;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.domain.Member;
+import fotcamp.finhub.main.dto.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.KakaoUserInfoDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
@@ -48,7 +49,8 @@ public class AuthService {
         Long memberId = member.getMemberId();
         TokenDto allTokens = jwtUtil.createAllTokens(memberId, member.getRole().toString());
         tokenRepository.save(new RefreshToken(allTokens.getRefreshToken(), email));
-        return ResponseEntity.ok(ApiResponseWrapper.success(allTokens));
+        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens.getAccessToken(),allTokens.getRefreshToken() ,member.getName(), member.getEmail());
+        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
 
     }
 
