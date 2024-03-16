@@ -1,12 +1,15 @@
 package fotcamp.finhub.main.domain;
 
 
+import fotcamp.finhub.common.domain.MemberQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -30,6 +33,9 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
     private RoleType role;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST)
+    private final List<MemberQuiz> quizList = new ArrayList<>();
 
     @Builder
     public Member(String email, String name) {
