@@ -50,10 +50,11 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
-    }
+//    @ExceptionHandler(IllegalArgumentException.class)
+//    protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
+//        log.error("IllegalArgumentException", e);
+//        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+//    }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -72,6 +73,11 @@ public class ExceptionController{
     @ExceptionHandler(DateTimeException.class)
     public ResponseEntity<ApiResponseWrapper> handleDateTimeException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Invalid Date"));
+    }
+  
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponseWrapper> handleNotFoundException(Exception ex){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(ex.getMessage()));
     }
 }
 

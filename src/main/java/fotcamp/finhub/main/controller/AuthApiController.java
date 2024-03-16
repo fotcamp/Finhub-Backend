@@ -3,8 +3,10 @@ package fotcamp.finhub.main.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,5 +32,11 @@ public class AuthApiController {
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
             HttpServletRequest request){
         return authService.validRefreshToken(request);
+    }
+
+    // 자동로그인
+    @PostMapping("/autoLogin")
+    public ResponseEntity<ApiResponseWrapper> autoLogin(@RequestBody @Valid AutoLoginRequestDto autoLoginRequestDto){
+        return authService.autoLogin(autoLoginRequestDto);
     }
 }

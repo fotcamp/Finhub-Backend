@@ -6,11 +6,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.RefreshToken;
+import fotcamp.finhub.common.exception.NotFoundException;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.domain.Member;
-import fotcamp.finhub.main.dto.LoginResponseDto;
+import fotcamp.finhub.main.dto.response.AutoLoginResponseDto;
+import fotcamp.finhub.main.dto.response.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.KakaoUserInfoDto;
+import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.repository.TokenRepository;
@@ -23,6 +26,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
 
 
 @Slf4j
@@ -46,12 +51,20 @@ public class AuthService {
         );
 
         // 4. jwt 발급
-        Long memberId = member.getMemberId();
-        TokenDto allTokens = jwtUtil.createAllTokens(memberId, member.getRole().toString());
-        tokenRepository.save(new RefreshToken(allTokens.getRefreshToken(), email));
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+
+        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByEmail(member.getEmail());
+        if (existingRefreshToken.isPresent()) {
+            // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
+            RefreshToken refreshToken = existingRefreshToken.get();
+            refreshToken.updateToken(allTokens.getRefreshToken());
+            tokenRepository.save(refreshToken);
+        } else {
+            // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
+            tokenRepository.save(new RefreshToken(member.getEmail(), allTokens.getRefreshToken()));
+        }
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens.getAccessToken(),allTokens.getRefreshToken() ,member.getName(), member.getEmail());
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
-
     }
 
     public String getKakaoAccessToken(String code) throws JsonProcessingException {
@@ -78,7 +91,6 @@ public class AuthService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        System.out.println(jsonNode.get("access_token").asText());
         return jsonNode.get("access_token").asText();
     }
 
@@ -94,19 +106,16 @@ public class AuthService {
                 kakaoUserInfo,
                 String.class);
 
-        System.out.println(response);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(response.getBody());
-        System.out.println(jsonNode);
         String nickname = jsonNode.get("properties").get("nickname").asText();
         String email = jsonNode.get("kakao_account").get("email").asText();
-
         return new KakaoUserInfoDto(nickname,email);
     }
 
 
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
-        String refreshToken = request.getHeader("x-refreshToken");
+        String refreshToken = request.getHeader("refreshToken");
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
             Long memberId = jwtUtil.getUserId(refreshToken);
             String  roleType = jwtUtil.getRoleType(refreshToken);
@@ -116,6 +125,48 @@ public class AuthService {
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("헤더에 토큰이 없습니다."));
         }
+    }
+
+    // 자동로그인
+    public ResponseEntity<ApiResponseWrapper> autoLogin(AutoLoginRequestDto autoLoginRequestDto){
+        String accessToken = autoLoginRequestDto.getAccessToken();
+        String refreshToken = autoLoginRequestDto.getRefreshToken();
+
+        if(jwtUtil.validateTokenServiceLayer(accessToken)){
+            // 액세스토큰 유효할 때
+            Long memberId = jwtUtil.getUserId(accessToken);
+            Member member = memberRepository.findById(memberId).orElseThrow(
+                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+
+            LoginResponseDto loginResponseDto = updatingLoginResponse(member);
+            return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+        }
+        if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
+            // 액세스토큰 유효x, 리프레시토큰 유효할 때
+            Long memberId = jwtUtil.getUserId(refreshToken);
+            Member member = memberRepository.findById(memberId).orElseThrow(
+                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+
+            LoginResponseDto loginResponseDto = updatingLoginResponse(member);
+            return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("로그인이 필요합니다"));
+    }
+
+    public LoginResponseDto updatingLoginResponse(Member member){
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByEmail(member.getEmail());
+        if (existingRefreshToken.isPresent()) {
+            // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
+            RefreshToken refreshToken = existingRefreshToken.get();
+            refreshToken.updateToken(allTokens.getRefreshToken());
+            tokenRepository.save(refreshToken);
+        } else {
+            // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
+            tokenRepository.save(new RefreshToken(member.getEmail(), allTokens.getRefreshToken()));
+        }
+        return new LoginResponseDto(allTokens.getAccessToken(), allTokens.getRefreshToken(), member.getName(), member.getEmail());
     }
 
 }
