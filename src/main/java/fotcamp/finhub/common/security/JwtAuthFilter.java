@@ -34,6 +34,7 @@ public class JwtAuthFilter extends GenericFilter {
         String requestURI = ((HttpServletRequest) request).getRequestURI();
         if(requestURI.contains("/api/v1/auth/login")
                 || requestURI.contains("/api/v1/auth/updateAccessToken")
+                || requestURI.contains("/api/v1/auth/autoLogin")
                 || requestURI.contains("/api/v1/admin/login"))
         {
             chain.doFilter(request,response);
@@ -42,15 +43,14 @@ public class JwtAuthFilter extends GenericFilter {
 
         // 토큰 추출
         String token = jwtUtil.resolveToken((HttpServletRequest) request);
-
         // http header에 authorization key가 없는 경우, value값이 null인 경우
         if (token == null || token.isEmpty()){
-            setResponse((HttpServletResponse) response, ErrorMessage.NULL_AUTHORIZATION_HEADER);
+            setResponseInAuthFilter((HttpServletResponse) response, ErrorMessage.NULL_AUTHORIZATION_HEADER);
             return;
         }
 
         // 토큰 유효성 검증
-        else if(jwtUtil.validateToken(token)){
+        if(jwtUtil.validateToken(token)){
             Long memberId = jwtUtil.getUserId(token);
             String roleType = jwtUtil.getRoleType(token);
             CustomUserDetails userDetails;
@@ -71,7 +71,8 @@ public class JwtAuthFilter extends GenericFilter {
         chain.doFilter(request,response);
     }
 
-    public void setResponse(HttpServletResponse response, ErrorMessage errorMessage) throws RuntimeException, IOException {
+    // 함수명 수정 ( exceptionFilter setResponse메소드가 오버라이딩 되어 제대로 동작 안함 )
+    public void setResponseInAuthFilter(HttpServletResponse response, ErrorMessage errorMessage) throws RuntimeException, IOException {
         ErrorMessageResponseDto errMsg = new ErrorMessageResponseDto(ApiStatus.FAIL, errorMessage.getMsg(), errorMessage.toString());
         String responseMsg = objectMapper.writeValueAsString(errMsg);
         response.setContentType("application/json;charset=UTF-8");
