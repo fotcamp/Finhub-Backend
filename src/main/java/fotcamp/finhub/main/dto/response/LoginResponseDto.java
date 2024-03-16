@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.dto;
+package fotcamp.finhub.main.dto.response;
 
 import fotcamp.finhub.common.security.TokenDto;
 import lombok.AllArgsConstructor;

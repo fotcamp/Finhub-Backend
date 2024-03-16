@@ -6,19 +6,16 @@ import fotcamp.finhub.common.api.ApiStatus;
 import fotcamp.finhub.common.dto.response.ErrorMessageResponseDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
 import fotcamp.finhub.common.utils.JwtUtil;
-import fotcamp.finhub.main.domain.RoleType;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 
 import java.io.IOException;
-import java.util.jar.JarException;
 
 @RequiredArgsConstructor
 public class JwtAuthFilter extends GenericFilter {

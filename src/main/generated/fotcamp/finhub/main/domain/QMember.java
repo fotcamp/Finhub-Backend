@@ -7,6 +7,8 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import fotcamp.finhub.common.domain.Member;
+import fotcamp.finhub.common.domain.RoleType;
 
 
 /**
