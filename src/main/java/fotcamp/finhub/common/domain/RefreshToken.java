@@ -18,17 +18,18 @@ public class RefreshToken {
     private Long id;
 
     @NotBlank
-    private String refreshToken;
-    @NotBlank
-    private String accountEmail;
+    private String token;
 
-    public RefreshToken(String refreshToken, String accountEmail) {
-        this.refreshToken = refreshToken;
-        this.accountEmail = accountEmail;
+    @NotBlank
+    private String email;
+
+    public RefreshToken(String email, String token) {
+        this.email = email;
+        this.token = token;
     }
 
     public RefreshToken updateToken(String token){
-        this.refreshToken = token;
+        this.token = token;
         return this;
     }
 }

@@ -46,7 +46,6 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             }
         } catch (JwtException ex) {
             String message = ex.getMessage();
-            System.out.println(message);
             if(ErrorMessage.UNKNOWN_ERROR.getMsg().equals(message)) {
                 setResponse(response, ErrorMessage.UNKNOWN_ERROR);
             }

@@ -18,6 +18,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.time.DateTimeException;
+
 @ControllerAdvice
 @Slf4j
 public class ExceptionController{
@@ -29,7 +31,6 @@ public class ExceptionController{
                 .getAllErrors()
                 .get(0)
                 .getDefaultMessage();
-        log.error("값에 \"\", \" \"등이 들어왔을 때", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
@@ -49,10 +50,11 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
-    }
+//    @ExceptionHandler(IllegalArgumentException.class)
+//    protected ResponseEntity<ApiResponseWrapper> handledupEmailException(IllegalArgumentException e){
+//        log.error("IllegalArgumentException", e);
+//        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+//    }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -66,6 +68,16 @@ public class ExceptionController{
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ApiResponseWrapper> handleRestTemplateException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("REST TEMPLATE ERROR"));
+    }
+
+    @ExceptionHandler(DateTimeException.class)
+    public ResponseEntity<ApiResponseWrapper> handleDateTimeException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Invalid Date"));
+    }
+  
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponseWrapper> handleNotFoundException(Exception ex){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(ex.getMessage()));
     }
 }
 

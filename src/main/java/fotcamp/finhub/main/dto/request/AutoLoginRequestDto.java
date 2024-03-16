@@ -1,18 +1,15 @@
-package fotcamp.finhub.main.dto;
+package fotcamp.finhub.main.dto.request;
 
-import fotcamp.finhub.common.security.TokenDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponseDto {
+public class AutoLoginRequestDto {
 
     private String accessToken;
     private String refreshToken;
-    private String name;
-    private String email;
-
 }

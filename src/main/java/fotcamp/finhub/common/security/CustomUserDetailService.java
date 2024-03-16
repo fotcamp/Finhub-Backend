@@ -26,10 +26,8 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public CustomUserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException{
-        System.out.println("loaduser :"+memberId);
         Member member = memberRepository.findById(Long.parseLong(memberId))
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저가 없습니다."));
-        System.out.println("접근한 사람의 Role: " + member.getRole());
         CustomUserInfo dto = modelMapper.map(member, CustomUserInfo.class);
         return new CustomUserDetails(dto);
     }

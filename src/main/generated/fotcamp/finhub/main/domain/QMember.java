@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -24,6 +25,8 @@ public class QMember extends EntityPathBase<Member> {
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
     public final StringPath name = createString("name");
+
+    public final ListPath<fotcamp.finhub.common.domain.MemberQuiz, fotcamp.finhub.common.domain.QMemberQuiz> quizList = this.<fotcamp.finhub.common.domain.MemberQuiz, fotcamp.finhub.common.domain.QMemberQuiz>createList("quizList", fotcamp.finhub.common.domain.MemberQuiz.class, fotcamp.finhub.common.domain.QMemberQuiz.class, PathInits.DIRECT2);
 
     public final EnumPath<RoleType> role = createEnum("role", RoleType.class);
 
