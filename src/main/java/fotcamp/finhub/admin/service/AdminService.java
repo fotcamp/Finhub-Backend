@@ -10,18 +10,18 @@ import fotcamp.finhub.admin.dto.response.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.admin.service.gpt.GptService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.domain.Category;
-import fotcamp.finhub.common.domain.Topic;
-import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
+import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
@@ -30,8 +30,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.NoSuchFileException;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -57,6 +59,10 @@ public class AdminService {
     private final ManagerRefreshRepository managerRefreshRepository;
     private final JwtUtil jwtUtil;
     private final ManagerRepository managerRepository;
+    private final QuizRepository quizRepository;
+    private final TopicQuizRepository topicQuizRepository;
+
+
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
     @Value("${promise.usertype}") String promiseUsertype;
@@ -437,6 +443,7 @@ public class AdminService {
     }
 
     // gpt 프롬프트 최신 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
         try {
             GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
@@ -450,6 +457,7 @@ public class AdminService {
     }
 
     // gpt 질문 답변 로그 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getGptLog(Pageable pageable, Long topicId, Long usertypeId) {
         try {
             if (topicId != null) {
@@ -483,5 +491,55 @@ public class AdminService {
         }
 
 
+    }
+
+    // 퀴즈 생성
+    @Transactional(rollbackFor = {EntityNotFoundException.class, BadRequestException.class})
+    public ResponseEntity<ApiResponseWrapper> createQuiz(CreateQuizRequestDto createQuizRequestDto,
+                                                         CustomUserDetails userDetails) {
+        try {
+            List<Long> topicList = createQuizRequestDto.getTopicList();
+            LocalDate targetDate = DateUtil.convertToDate(createQuizRequestDto.getYear(), createQuizRequestDto.getMonth(), createQuizRequestDto.getDay());
+            // 퀴즈에 이미 존재하는 tagetDate일 경우 에러 반환
+            if (quizRepository.existsByTargetDate(targetDate)) {
+                throw new BadRequestException();
+            }
+            // 모든 토픽이 존재하는지 확인
+            if (!topicList.isEmpty()) {
+                for (Long topicId : topicList) {
+                    Topic topic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
+                }
+            }
+            Quiz quiz = Quiz.builder()
+                    .question(createQuizRequestDto.getQuestion())
+                    .answer(createQuizRequestDto.getAnswer())
+                    .comment(createQuizRequestDto.getComment())
+                    .targetDate(targetDate)
+                    .createdBy(userDetails.getRole())
+                    .build();
+
+            quizRepository.save(quiz);
+
+
+            for (Long topicId : topicList) {
+                Topic topic = topicRepository.findById(topicId).get();
+
+                TopicQuiz topicQuiz = TopicQuiz.builder()
+                        .topic(topic)
+                        .quiz(quiz)
+                        .build();
+
+                topicQuizRepository.save(topicQuiz);
+                quiz.addTopicQuizList(topicQuiz);
+            }
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateQuizResponseDto(quiz.getId())));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 토픽입니다"));
+        } catch (BadRequestException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("이미 존재하는 날짜입니다."));
+        }
     }
 }

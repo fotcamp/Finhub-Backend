@@ -180,4 +180,13 @@ public class AdminController {
         return adminService.saveImgToS3(saveImgToS3RequestDto);
     }
 
+    @PostMapping(value = "/quiz")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "퀴즈 생성", description = "퀴즈 날짜에 맞게 생성", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createQuiz(@Valid @RequestBody CreateQuizRequestDto createQuizRequestDto,
+                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createQuiz(createQuizRequestDto, userDetails);
+    }
+
+
 }
