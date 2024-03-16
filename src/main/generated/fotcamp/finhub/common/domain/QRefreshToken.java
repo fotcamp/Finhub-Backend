@@ -17,13 +17,13 @@ public class QRefreshToken extends EntityPathBase<RefreshToken> {
 
     private static final long serialVersionUID = -2038926297L;
 
-    public static final QRefreshToken refreshToken1 = new QRefreshToken("refreshToken1");
+    public static final QRefreshToken refreshToken = new QRefreshToken("refreshToken");
 
-    public final StringPath accountEmail = createString("accountEmail");
+    public final StringPath email = createString("email");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final StringPath refreshToken = createString("refreshToken");
+    public final StringPath token = createString("token");
 
     public QRefreshToken(String variable) {
         super(RefreshToken.class, forVariable(variable));

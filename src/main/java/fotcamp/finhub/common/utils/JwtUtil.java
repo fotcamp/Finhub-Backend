@@ -120,6 +120,17 @@ public class JwtUtil {
         }
     }
 
+    // 컨트롤러 계층에서 활용하는 토큰 검증 메소드
+    public boolean validateTokenServiceLayer(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+//            log.info("Token validation error", e);
+            return false;
+        }
+    }
+
     /**
      * 헤더 정보 추출
      * @param request
@@ -127,7 +138,7 @@ public class JwtUtil {
      * */
     public String resolveToken(HttpServletRequest request){
         String bearerToken = request.getHeader("Authorization");
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")){
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){
             return bearerToken.substring(7);
         }
         else {
