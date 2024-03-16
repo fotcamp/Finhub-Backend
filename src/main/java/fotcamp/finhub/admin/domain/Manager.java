@@ -1,6 +1,6 @@
 package fotcamp.finhub.admin.domain;
 
-import fotcamp.finhub.main.domain.RoleType;
+import fotcamp.finhub.common.domain.RoleType;
 import jakarta.persistence.*;
 import lombok.*;
 

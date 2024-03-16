@@ -3,7 +3,6 @@ package fotcamp.finhub.common.utils;
 
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.exception.ErrorMessage;
-import fotcamp.finhub.main.domain.RoleType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

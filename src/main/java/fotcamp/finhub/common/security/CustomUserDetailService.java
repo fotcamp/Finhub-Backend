@@ -2,13 +2,11 @@ package fotcamp.finhub.common.security;
 
 import fotcamp.finhub.admin.domain.Manager;
 import fotcamp.finhub.admin.repository.ManagerRepository;
-import fotcamp.finhub.main.domain.Member;
-import fotcamp.finhub.main.domain.RoleType;
+import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.main.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

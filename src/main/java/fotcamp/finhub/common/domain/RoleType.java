@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.domain;
+package fotcamp.finhub.common.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

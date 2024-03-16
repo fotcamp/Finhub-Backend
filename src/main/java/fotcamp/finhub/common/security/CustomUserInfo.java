@@ -1,7 +1,7 @@
 package fotcamp.finhub.common.security;
 
-import fotcamp.finhub.main.domain.Member;
-import fotcamp.finhub.main.domain.RoleType;
+import fotcamp.finhub.common.domain.Member;
+import fotcamp.finhub.common.domain.RoleType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
