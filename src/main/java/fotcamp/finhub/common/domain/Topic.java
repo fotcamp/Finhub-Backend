@@ -45,6 +45,9 @@ public class Topic extends BaseEntity {
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private final List<Gpt> gptList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
+    private List<MemberScrap> memberScraps = new ArrayList<>();
+
     // 토픽 카테고리 변경
     public void changeCategory(Category newCategory) {
         // 변경이 없는 경우에는 그냥 return

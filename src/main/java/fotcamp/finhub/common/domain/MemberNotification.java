@@ -17,8 +17,7 @@ public class MemberNotification {
     @Id
     @Column(name = "MEMBER_NOTI_ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long memberNotificationId;
-
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID")
@@ -28,7 +27,8 @@ public class MemberNotification {
     @JoinColumn(name = "NOTI_ID")
     private Notification notification;
 
-    private boolean isRead; // default는 false
+    @Builder.Default
+    private boolean isRead = false; // default는 false
 
     private LocalDateTime sentAt;
     private LocalDateTime receivedAt;

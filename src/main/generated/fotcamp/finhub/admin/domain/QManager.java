@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
-import fotcamp.finhub.common.domain.RoleType;
 
 
 /**
@@ -28,7 +27,7 @@ public class QManager extends EntityPathBase<Manager> {
 
     public final StringPath password = createString("password");
 
-    public final EnumPath<RoleType> role = createEnum("role", RoleType.class);
+    public final EnumPath<fotcamp.finhub.common.domain.RoleType> role = createEnum("role", fotcamp.finhub.common.domain.RoleType.class);
 
     public QManager(String variable) {
         super(Manager.class, forVariable(variable));
