@@ -224,4 +224,11 @@ public class AdminController {
         return adminService.createBanner(createBannerRequestDto, userDetails);
     }
 
+    @PutMapping(value = "/banner")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "배너 수정", description = "배너 수정 기능", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> modifyBanner(@RequestBody ModifyBannerRequestDto modifyBannerRequestDto,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.modifyBanner(modifyBannerRequestDto, userDetails);
+    }
 }

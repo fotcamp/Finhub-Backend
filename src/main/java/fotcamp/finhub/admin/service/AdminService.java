@@ -658,4 +658,16 @@ public class AdminService {
         Banner saveBanner = bannerRepository.save(banner);
         return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
     }
+
+    public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
+        try {
+            Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+            banner.modifyBanner(modifyBannerRequestDto, userDetails.getRole());
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
 }
