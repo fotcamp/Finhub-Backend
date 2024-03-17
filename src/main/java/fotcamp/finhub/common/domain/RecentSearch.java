@@ -1,8 +1,8 @@
 package fotcamp.finhub.common.domain;
 
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -11,24 +11,18 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class MemberQuiz {
+public class RecentSearch {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "MEMBER_ID")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id")
-    private Quiz quiz;
-
-    @Column(nullable = false, updatable = false)
-    @CreatedDate
-    private LocalDateTime solvedTime;
-
-    private String answerYN;
+    private String keyword;
+    private LocalDateTime localDateTime;
 
 }

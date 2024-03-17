@@ -27,7 +27,7 @@ public class QManager extends EntityPathBase<Manager> {
 
     public final StringPath password = createString("password");
 
-    public final EnumPath<fotcamp.finhub.main.domain.RoleType> role = createEnum("role", fotcamp.finhub.main.domain.RoleType.class);
+    public final EnumPath<fotcamp.finhub.common.domain.RoleType> role = createEnum("role", fotcamp.finhub.common.domain.RoleType.class);
 
     public QManager(String variable) {
         super(Manager.class, forVariable(variable));
