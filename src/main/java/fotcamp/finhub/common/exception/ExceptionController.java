@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExceptionController{
 
-    // 값에 "", " " 등이 들어왔을 때
+    // 값의 유효 범위를 벗어날 때
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseWrapper> handlingInvalidException(MethodArgumentNotValidException e) {
         String errorMessage = e.getBindingResult()
@@ -32,21 +32,6 @@ public class ExceptionController{
                 .getDefaultMessage();
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponseWrapper> handleConstraintViolationException(ConstraintViolationException e) {
-        // 오류 메시지들을 담을 리스트
-        List<String> errorMessages = e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.toList());
-
-        // 리스트를 문자열로 변환하거나, 단일 메시지로 처리
-        String errorMessage = String.join(", ", errorMessages);
-
-        // 오류 메시지를 포함한 응답 반환
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
-    }
-
-
 
     // 값에 빈 공란 일때
     @ExceptionHandler(HttpMessageNotReadableException.class)

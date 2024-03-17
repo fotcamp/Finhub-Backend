@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -493,7 +494,6 @@ public class AdminService {
     }
 
     // 퀴즈 생성
-    @Transactional(rollbackFor = {EntityNotFoundException.class, BadRequestException.class})
     public ResponseEntity<ApiResponseWrapper> createQuiz(CreateQuizRequestDto createQuizRequestDto,
                                                          CustomUserDetails userDetails) {
         try {
@@ -545,6 +545,10 @@ public class AdminService {
     // 퀴즈 월별 전체 조회
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(Long year, Long month) {
+        // 월에 대한 범위 검사
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
+        }
         LocalDate startDate = DateUtil.convertToDate(year, month, 1L);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
         List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate).stream().map(QuizProcessDto::new).toList();
@@ -555,6 +559,13 @@ public class AdminService {
 
     // 퀴즈 일 상세 조회
     public ResponseEntity<ApiResponseWrapper> getDailyQuiz(Long year, Long month, Long day) {
+        // 월과 일에 대한 범위 검사
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
+        }
+        if (day < 1 || day > 31) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("일은 1에서 31 사이의 값이어야 합니다."));
+        }
         try {
             LocalDate targetDate = DateUtil.convertToDate(year, month, day);
             Quiz quiz = quizRepository.findByTargetDate(targetDate).orElseThrow(EntityNotFoundException::new);
@@ -564,7 +575,63 @@ public class AdminService {
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("퀴즈가 존재하지 않는 날입니다"));
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("동일 날짜에 퀴즈가 2개 있습니다."));
         }
 
+    }
+
+    // 퀴즈 수정
+    public ResponseEntity<ApiResponseWrapper> modifyQuiz(ModifyQuizRequestDto modifyQuizRequestDto, CustomUserDetails userDetails) {
+        try {
+            LocalDate targetDate = DateUtil.convertToDate(modifyQuizRequestDto.getYear(), modifyQuizRequestDto.getMonth(), modifyQuizRequestDto.getDay());
+            // targetDate를 기준으로 Quiz 엔티티 찾기
+            Quiz quiz = quizRepository.findByTargetDate(targetDate)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 날짜에 대한 퀴즈가 존재하지 않습니다: " + targetDate));
+
+            // ID를 기준으로 Quiz 엔티티 찾기
+            Quiz findQuiz = quizRepository.findById(modifyQuizRequestDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("해당 ID를 가진 퀴즈가 존재하지 않습니다: " + modifyQuizRequestDto.getId()));
+
+            // 두 Quiz 엔티티의 ID가 다를 경우 예외 처리
+            if (!quiz.getId().equals(findQuiz.getId())) {
+                throw new IllegalArgumentException("요청된 퀴즈 ID와 날짜에 해당하는 퀴즈 ID가 일치하지 않습니다.");
+            }
+
+            // 모든 토픽이 존재하는지 확인
+            List<Long> topicList = modifyQuizRequestDto.getTopicList();
+            if (!topicList.isEmpty()) {
+                for (Long topicId : topicList) {
+                    Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽: " + topicId));
+                }
+            }
+
+            // 기존 TopicQuiz 삭제
+            topicQuizRepository.deleteAllByQuizId(quiz.getId());
+            // 새로운 TopicQuiz 생성 후 quiz에 저장
+            for (Long topicId : topicList) {
+                Topic topic = topicRepository.findById(topicId).get();
+
+                TopicQuiz topicQuiz = TopicQuiz.builder()
+                        .topic(topic)
+                        .quiz(quiz)
+                        .build();
+
+                topicQuizRepository.save(topicQuiz);
+                // 퀴즈 토픽 리스트 수정
+                quiz.addTopicQuizList(topicQuiz);
+            }
+            // 퀴즈 나머지 데이터 수정
+            quiz.modifyQuiz(modifyQuizRequestDto, userDetails.getRole());
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
     }
 }
