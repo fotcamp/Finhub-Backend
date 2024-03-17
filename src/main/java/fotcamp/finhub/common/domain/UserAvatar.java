@@ -3,6 +3,9 @@ package fotcamp.finhub.common.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -20,6 +23,7 @@ public class UserAvatar extends BaseEntity{
     private String createdBy;
 
     @OneToMany(mappedBy = "userAvatar") // 1대1 연관관계 주인은 member
-    private Member member;
+    private List<Member> memberList = new ArrayList<>();
+
 
 }

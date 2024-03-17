@@ -62,12 +62,13 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category) {
+    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category, String role) {
         changeCategory(category);
         this.title = modifyTopicRequestDto.getTitle();
         this.definition = modifyTopicRequestDto.getDefinition();
         this.summary = modifyTopicRequestDto.getSummary();
         this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
+        this.createdBy = role;
     }
 
     // 이미지 url 생성 및 변경

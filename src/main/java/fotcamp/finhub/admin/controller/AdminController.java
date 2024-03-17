@@ -10,15 +10,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 //@Tag(name = "admin", description = "admin api")
@@ -106,8 +102,9 @@ public class AdminController {
     @PutMapping("/topic")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
     @Operation(summary = "토픽 수정", description = "topic 수정", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> modifyTopic(@Valid @RequestBody ModifyTopicRequestDto modifyTopicRequestDto) {
-        return adminService.modifyTopic(modifyTopicRequestDto);
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(@Valid @RequestBody ModifyTopicRequestDto modifyTopicRequestDto,
+                                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.modifyTopic(modifyTopicRequestDto, userDetails);
     }
 
     @GetMapping("/usertype")
@@ -153,15 +150,17 @@ public class AdminController {
     @PostMapping("/prompt")
     @PreAuthorize("hasRole('SUPER')")
     @Operation(summary = "gpt 프롬프트 저장", description = "gpt 프롬프트 저장", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(@Valid @RequestBody SaveGptPromptRequestDto saveGptPromptRequestDto) {
-        return adminService.saveGptPrompt(saveGptPromptRequestDto);
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(@Valid @RequestBody SaveGptPromptRequestDto saveGptPromptRequestDto,
+                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.saveGptPrompt(saveGptPromptRequestDto, userDetails);
     }
 
     @PostMapping("/gpt")
     @PreAuthorize("hasRole('SUPER')")
     @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환", tags = {"AdminController"})
-    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto) {
-        return adminService.createGptContent(createGptContentRequestDto);
+    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto,
+                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createGptContent(createGptContentRequestDto, userDetails);
     }
     @GetMapping("/gpt-log")
     @PreAuthorize("hasRole('SUPER')")
@@ -179,7 +178,7 @@ public class AdminController {
 
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
+    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 해당 레포지토리에 s3 url 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
         return adminService.saveImgToS3(saveImgToS3RequestDto);
     }

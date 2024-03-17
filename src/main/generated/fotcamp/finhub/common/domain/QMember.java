@@ -28,15 +28,19 @@ public class QMember extends EntityPathBase<Member> {
 
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
-    public final ListPath<MemberNotification, QMemberNotification> memberNotifications = this.<MemberNotification, QMemberNotification>createList("memberNotifications", MemberNotification.class, QMemberNotification.class, PathInits.DIRECT2);
+    public final ListPath<MemberNotification, QMemberNotification> memberNotificationList = this.<MemberNotification, QMemberNotification>createList("memberNotificationList", MemberNotification.class, QMemberNotification.class, PathInits.DIRECT2);
+
+    public final ListPath<MemberScrap, QMemberScrap> memberScrapList = this.<MemberScrap, QMemberScrap>createList("memberScrapList", MemberScrap.class, QMemberScrap.class, PathInits.DIRECT2);
 
     public final StringPath name = createString("name");
 
     public final BooleanPath push_yn = createBoolean("push_yn");
 
-    public final EnumPath<RoleType> role = createEnum("role", RoleType.class);
+    public final ListPath<MemberQuiz, QMemberQuiz> quizList = this.<MemberQuiz, QMemberQuiz>createList("quizList", MemberQuiz.class, QMemberQuiz.class, PathInits.DIRECT2);
 
-    public final NumberPath<Long> user_avatar_id = createNumber("user_avatar_id", Long.class);
+    public final ListPath<RecentSearch, QRecentSearch> recentSearchList = this.<RecentSearch, QRecentSearch>createList("recentSearchList", RecentSearch.class, QRecentSearch.class, PathInits.DIRECT2);
+
+    public final EnumPath<RoleType> role = createEnum("role", RoleType.class);
 
     public final QUserAvatar userAvatar;
 
@@ -60,7 +64,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar"), inits.get("userAvatar")) : null;
+        this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar")) : null;
     }
 
 }

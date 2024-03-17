@@ -22,11 +22,11 @@ public class QMemberNotification extends EntityPathBase<MemberNotification> {
 
     public static final QMemberNotification memberNotification = new QMemberNotification("memberNotification");
 
+    public final NumberPath<Long> id = createNumber("id", Long.class);
+
     public final BooleanPath isRead = createBoolean("isRead");
 
     public final QMember member;
-
-    public final NumberPath<Long> memberNotificationId = createNumber("memberNotificationId", Long.class);
 
     public final QNotification notification;
 

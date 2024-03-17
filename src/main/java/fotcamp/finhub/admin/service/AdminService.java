@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -241,19 +242,20 @@ public class AdminService {
     }
 
     // 토픽 수정
-    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto,
+                                                          CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(modifyTopicRequestDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             Category category = categoryRepository.findById(modifyTopicRequestDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
             // 토픽 내용 수정
-            topic.modifyTopic(modifyTopicRequestDto, category);
+            topic.modifyTopic(modifyTopicRequestDto, category, userDetails.getRole());
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
             for (GptProcessDto gptProcessDto : gptProcessDtoList) {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
                 gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
-                    gpt.modifyContentUseYN(gptProcessDto);
+                    gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole());
                 });
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -347,7 +349,8 @@ public class AdminService {
     }
 
     // GPT 질문 답변 로그 저장 및 답변 반환
-    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto,
+                                                               CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             UserType userType = userTypeRepository.findById(createGptContentRequestDto.usertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
@@ -380,6 +383,7 @@ public class AdminService {
                     .usertypeId(userType.getId())
                     .question(resultPrompt)
                     .answer(answer)
+                    .createdBy(userDetails.getRole())
                     .build();
 
             gptLogRepository.save(gptLog);
@@ -434,10 +438,12 @@ public class AdminService {
     }
 
     // gpt 프롬프트 저장
-    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto,
+                                                            CustomUserDetails userDetails) {
         try {
             GptPrompt prompt = GptPrompt.builder()
                     .prompt(saveGptPromptRequestDto.prompt())
+                    .createdBy(userDetails.getRole())
                     .build();
             gptPromptRepository.save(prompt);
             return ResponseEntity.ok(ApiResponseWrapper.success());

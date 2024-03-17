@@ -23,7 +23,6 @@ public class Member {
     private Long memberId;
 
     private Long usertype_id;
-    private Long user_avatar_id;
 
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;

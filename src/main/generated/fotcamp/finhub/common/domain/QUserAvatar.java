@@ -18,8 +18,6 @@ public class QUserAvatar extends EntityPathBase<UserAvatar> {
 
     private static final long serialVersionUID = -1422229619L;
 
-    private static final PathInits INITS = PathInits.DIRECT2;
-
     public static final QUserAvatar userAvatar = new QUserAvatar("userAvatar");
 
     public final QBaseEntity _super = new QBaseEntity(this);
@@ -31,32 +29,23 @@ public class QUserAvatar extends EntityPathBase<UserAvatar> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
 
-    public final QMember member;
+    public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final ListPath<Member, QMember> memberList = this.<Member, QMember>createList("memberList", Member.class, QMember.class, PathInits.DIRECT2);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
-    public final NumberPath<Long> userAvatarId = createNumber("userAvatarId", Long.class);
-
     public QUserAvatar(String variable) {
-        this(UserAvatar.class, forVariable(variable), INITS);
+        super(UserAvatar.class, forVariable(variable));
     }
 
     public QUserAvatar(Path<? extends UserAvatar> path) {
-        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
+        super(path.getType(), path.getMetadata());
     }
 
     public QUserAvatar(PathMetadata metadata) {
-        this(metadata, PathInits.getFor(metadata, INITS));
-    }
-
-    public QUserAvatar(PathMetadata metadata, PathInits inits) {
-        this(UserAvatar.class, metadata, inits);
-    }
-
-    public QUserAvatar(Class<? extends UserAvatar> type, PathMetadata metadata, PathInits inits) {
-        super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new QMember(forProperty("member"), inits.get("member")) : null;
+        super(UserAvatar.class, metadata);
     }
 
 }
