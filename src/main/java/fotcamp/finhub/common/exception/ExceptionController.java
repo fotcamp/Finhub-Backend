@@ -1,7 +1,8 @@
 package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,15 +11,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.DateTimeException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
@@ -33,6 +32,21 @@ public class ExceptionController{
                 .getDefaultMessage();
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponseWrapper> handleConstraintViolationException(ConstraintViolationException e) {
+        // 오류 메시지들을 담을 리스트
+        List<String> errorMessages = e.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.toList());
+
+        // 리스트를 문자열로 변환하거나, 단일 메시지로 처리
+        String errorMessage = String.join(", ", errorMessages);
+
+        // 오류 메시지를 포함한 응답 반환
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
+    }
+
+
 
     // 값에 빈 공란 일때
     @ExceptionHandler(HttpMessageNotReadableException.class)
