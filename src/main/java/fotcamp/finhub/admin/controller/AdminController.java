@@ -195,18 +195,26 @@ public class AdminController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "퀴즈 월 전체 조회", description = "퀴즈 월 전체 조회 기능", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(@PathVariable(name = "year") Long year,
-                                                             @PathVariable(name = "month") @Min(1) @Max(12) Long month) {
+                                                             @PathVariable(name = "month") Long month) {
         return adminService.getMonthlyQuiz(year, month);
     }
 
     @GetMapping(value = "/quiz/{year}/{month}/{day}")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "퀴즈 일 상세 조회", description = "퀴즈 일 상세 조회 기능", tags = {"AdminController"})
-    @Validated
     public ResponseEntity<ApiResponseWrapper> getDailyQuiz(@PathVariable(name = "year") Long year,
-                                                           @PathVariable(name = "month") @Min(1) @Max(12) Long month,
-                                                           @PathVariable(name = "day") @Min(1) @Max(31) Long day) {
+                                                           @PathVariable(name = "month") Long month,
+                                                           @PathVariable(name = "day") Long day) {
         return adminService.getDailyQuiz(year, month, day);
     }
+
+    @PutMapping(value = "/quiz")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "퀴즈 수정", description = "퀴즈 수정 기능", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> modifyQuiz(@Valid @RequestBody ModifyQuizRequestDto modifyQuizRequestDto,
+                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.modifyQuiz(modifyQuizRequestDto, userDetails);
+    }
+
 
 }

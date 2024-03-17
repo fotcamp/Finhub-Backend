@@ -1,5 +1,6 @@
 package fotcamp.finhub.common.domain;
 
+import fotcamp.finhub.admin.dto.request.ModifyQuizRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,5 +30,12 @@ public class Quiz extends BaseEntity{
 
     public void addTopicQuizList(TopicQuiz topicQuiz) {
         topicList.add(topicQuiz);
+    }
+
+    public void modifyQuiz(ModifyQuizRequestDto quiz, String role) {
+        this.question = quiz.getQuestion();
+        this.answer = quiz.getAnswer();
+        this.comment = quiz.getComment();
+        this.createdBy = role;
     }
 }
