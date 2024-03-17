@@ -61,6 +61,7 @@ public class AdminService {
     private final ManagerRepository managerRepository;
     private final QuizRepository quizRepository;
     private final TopicQuizRepository topicQuizRepository;
+    private final BannerRepository bannerRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -413,6 +414,11 @@ public class AdminService {
                     userType.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
                     return ResponseEntity.ok(ApiResponseWrapper.success());
                 }
+                case "banner" -> {
+                    Banner banner = bannerRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+                    banner.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
+                    return ResponseEntity.ok(ApiResponseWrapper.success());
+                }
                 default -> throw new IllegalArgumentException("Unsupported entity type: " + saveImgToS3RequestDto.getType());
             }
         } catch (IllegalArgumentException e) {
@@ -633,5 +639,17 @@ public class AdminService {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
         }
+    }
+
+    public ResponseEntity<ApiResponseWrapper> createBanner(CreateBannerRequestDto createBannerRequestDto, CustomUserDetails userDetails) {
+        Banner banner = Banner.builder()
+                .title(createBannerRequestDto.getTitle())
+                .subTitle(createBannerRequestDto.getSubTitle())
+                .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
+                .createdBy(userDetails.getRole())
+                .useYN(createBannerRequestDto.getUseYN())
+                .build();
+        Banner saveBanner = bannerRepository.save(banner);
+        return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
     }
 }

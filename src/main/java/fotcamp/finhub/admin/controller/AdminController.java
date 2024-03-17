@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -177,7 +178,7 @@ public class AdminController {
 
 
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
-    @PreAuthorize("hasRole('SUPER')")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 s3 url 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
         return adminService.saveImgToS3(saveImgToS3RequestDto);
@@ -216,5 +217,12 @@ public class AdminController {
         return adminService.modifyQuiz(modifyQuizRequestDto, userDetails);
     }
 
+    @PostMapping(value = "/banner")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "배너 생성", description = "배너 생성 기능", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> createBanner(@RequestBody CreateBannerRequestDto createBannerRequestDto,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createBanner(createBannerRequestDto, userDetails);
+    }
 
 }
