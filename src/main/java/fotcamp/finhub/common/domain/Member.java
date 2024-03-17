@@ -22,7 +22,9 @@ public class Member {
     @Column(name = "MEMBER_ID")
     private Long memberId;
 
-    private Long usertype_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "USERTYPE_ID")
+    private UserType userType;
 
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
