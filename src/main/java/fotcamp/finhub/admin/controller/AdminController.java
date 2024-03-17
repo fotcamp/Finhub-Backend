@@ -10,11 +10,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 //@Tag(name = "admin", description = "admin api")
@@ -188,5 +191,22 @@ public class AdminController {
         return adminService.createQuiz(createQuizRequestDto, userDetails);
     }
 
+    @GetMapping(value = "/quiz/{year}/{month}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "퀴즈 월 전체 조회", description = "퀴즈 월 전체 조회 기능", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(@PathVariable(name = "year") Long year,
+                                                             @PathVariable(name = "month") @Min(1) @Max(12) Long month) {
+        return adminService.getMonthlyQuiz(year, month);
+    }
+
+    @GetMapping(value = "/quiz/{year}/{month}/{day}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "퀴즈 일 상세 조회", description = "퀴즈 일 상세 조회 기능", tags = {"AdminController"})
+    @Validated
+    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(@PathVariable(name = "year") Long year,
+                                                           @PathVariable(name = "month") @Min(1) @Max(12) Long month,
+                                                           @PathVariable(name = "day") @Min(1) @Max(31) Long day) {
+        return adminService.getDailyQuiz(year, month, day);
+    }
 
 }

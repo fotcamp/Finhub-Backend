@@ -30,7 +30,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
@@ -541,5 +540,31 @@ public class AdminService {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("이미 존재하는 날짜입니다."));
         }
+    }
+
+    // 퀴즈 월별 전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(Long year, Long month) {
+        LocalDate startDate = DateUtil.convertToDate(year, month, 1L);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+        List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate).stream().map(QuizProcessDto::new).toList();
+        GetMonthlyQuizResponseDto resultDto = new GetMonthlyQuizResponseDto(quizProcessDtos);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // 퀴즈 일 상세 조회
+    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(Long year, Long month, Long day) {
+        try {
+            LocalDate targetDate = DateUtil.convertToDate(year, month, day);
+            Quiz quiz = quizRepository.findByTargetDate(targetDate).orElseThrow(EntityNotFoundException::new);
+            GetDailyQuizResponseDto resultDto = new GetDailyQuizResponseDto(quiz);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("퀴즈가 존재하지 않는 날입니다"));
+        }
+
     }
 }

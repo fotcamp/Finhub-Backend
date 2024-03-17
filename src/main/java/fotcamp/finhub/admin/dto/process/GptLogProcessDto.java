@@ -1,4 +1,4 @@
-package fotcamp.finhub.admin.dto.response;
+package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.admin.domain.GptLog;
 import lombok.Getter;
