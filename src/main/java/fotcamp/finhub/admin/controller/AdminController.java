@@ -243,4 +243,11 @@ public class AdminController {
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllBanner(pageable, useYN);
     }
+
+    @GetMapping("/banner/{bannerId}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "배너 상세조회", description = "배너 상세 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getDetailBanner(@PathVariable(name = "bannerId") Long bannerId) {
+        return adminService.getDetailBanner(bannerId);
+    }
 }

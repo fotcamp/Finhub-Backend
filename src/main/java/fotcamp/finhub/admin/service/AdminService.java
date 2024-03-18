@@ -570,6 +570,7 @@ public class AdminService {
     }
 
     // 퀴즈 일 상세 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getDailyQuiz(Long year, Long month, Long day) {
         // 월과 일에 대한 범위 검사
         if (month < 1 || month > 12) {
@@ -674,6 +675,7 @@ public class AdminService {
     }
 
     // 배너 전체 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllBanner(Pageable pageable, String useYN) {
         Page<Banner> banners = bannerRepositoryCustom.searchAllBannerFilterList(pageable, useYN);
         List<BannerProcessDto> bannerProcessDtos = banners.getContent().stream().map(BannerProcessDto::new).toList();
@@ -682,5 +684,20 @@ public class AdminService {
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allBannerResponseDto));
 
+    }
+
+    // 배너 상세 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getDetailBanner(Long bannerId) {
+        try {
+            Banner findBanner = bannerRepository.findById(bannerId).orElseThrow(EntityNotFoundException::new);
+            DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(findBanner);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
+
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 배너입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 배너"));
+        }
     }
 }
