@@ -2,10 +2,14 @@ package fotcamp.finhub.main.controller;
 
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,5 +29,13 @@ public class MemberController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
     public ResponseEntity<ApiResponseWrapper> test2(){
         return ResponseEntity.ok(ApiResponseWrapper.success("ok2"));
+    }
+
+    @PostMapping("/setting/nickname")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "설정 - 닉네임 변경", description = "nickname change", tags = {"MemberController"})
+    public ResponseEntity<ApiResponseWrapper> changeNickname(
+            @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
+        return memberService.changeNickname(userDetails, dto);
     }
 }
