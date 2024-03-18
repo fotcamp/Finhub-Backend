@@ -231,4 +231,16 @@ public class AdminController {
                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         return adminService.modifyBanner(modifyBannerRequestDto, userDetails);
     }
+
+    @GetMapping("/banner")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "배너 전체조회", description = "배너 전체 조회", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> getAllBanner(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getAllBanner(pageable, useYN);
+    }
 }

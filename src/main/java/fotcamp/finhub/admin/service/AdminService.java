@@ -29,7 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +62,7 @@ public class AdminService {
     private final QuizRepository quizRepository;
     private final TopicQuizRepository topicQuizRepository;
     private final BannerRepository bannerRepository;
+    private final BannerRepositoryCustom bannerRepositoryCustom;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -647,6 +647,7 @@ public class AdminService {
         }
     }
 
+    // 배너 생성
     public ResponseEntity<ApiResponseWrapper> createBanner(CreateBannerRequestDto createBannerRequestDto, CustomUserDetails userDetails) {
         Banner banner = Banner.builder()
                 .title(createBannerRequestDto.getTitle())
@@ -659,9 +660,10 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
     }
 
+    // 배너 수정
     public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
         try {
-            Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(EntityNotFoundException::new);
+            Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 배너"));
             banner.modifyBanner(modifyBannerRequestDto, userDetails.getRole());
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -669,5 +671,16 @@ public class AdminService {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
         }
+    }
+
+    // 배너 전체 조회
+    public ResponseEntity<ApiResponseWrapper> getAllBanner(Pageable pageable, String useYN) {
+        Page<Banner> banners = bannerRepositoryCustom.searchAllBannerFilterList(pageable, useYN);
+        List<BannerProcessDto> bannerProcessDtos = banners.getContent().stream().map(BannerProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(banners);
+        AllBannerResponseDto allBannerResponseDto = new AllBannerResponseDto(bannerProcessDtos, pageInfoProcessDto);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allBannerResponseDto));
+
     }
 }
