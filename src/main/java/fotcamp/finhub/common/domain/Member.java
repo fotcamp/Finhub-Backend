@@ -13,7 +13,6 @@ import java.util.List;
 @Entity
 @Table(name = "MEMBER")
 @Getter
-@Setter
 @NoArgsConstructor
 public class Member {
 
@@ -32,6 +31,7 @@ public class Member {
     @Column(name = "PROFILE_NICKNAME", nullable = false)
     private String name;
 
+    private String nickname;
     private boolean push_yn;
     private String fcmToken;
 
@@ -56,18 +56,30 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST)
     private List<RecentSearch> recentSearchList = new ArrayList<>();
 
-    @Builder
-    public Member(String email, String name) {
+
+    public Member(String email, String name){
         this.email = email;
         this.name = name;
         this.role = RoleType.ROLE_USER;
     }
 
-    public static Member ToEntity(String email, String nickname){
-        return Member.builder()
-                .email(email)
-                .name(nickname)
-                .build();
+    @Builder
+    public Member(UserType userType, String email, String name, String nickname, boolean push_yn, String fcmToken, RoleType role, UserAvatar userAvatar, List<MemberNotification> memberNotificationList, List<MemberScrap> memberScrapList, List<RecentSearch> recentSearchList) {
+        this.userType = userType;
+        this.email = email;
+        this.name = name;
+        this.nickname = nickname;
+        this.push_yn = push_yn;
+        this.fcmToken = fcmToken;
+        this.role = RoleType.ROLE_USER;
+        this.userAvatar = userAvatar;
+        this.memberNotificationList = memberNotificationList;
+        this.memberScrapList = memberScrapList;
+        this.recentSearchList = recentSearchList;
+    }
+
+    public void updateNickname(String newNickname){
+        this.nickname = newNickname;
     }
 
 }

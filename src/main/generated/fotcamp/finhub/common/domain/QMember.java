@@ -34,6 +34,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final StringPath name = createString("name");
 
+    public final StringPath nickname = createString("nickname");
+
     public final BooleanPath push_yn = createBoolean("push_yn");
 
     public final ListPath<MemberQuiz, QMemberQuiz> quizList = this.<MemberQuiz, QMemberQuiz>createList("quizList", MemberQuiz.class, QMemberQuiz.class, PathInits.DIRECT2);
@@ -44,7 +46,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public final QUserAvatar userAvatar;
 
-    public final NumberPath<Long> usertype_id = createNumber("usertype_id", Long.class);
+    public final QUserType userType;
 
     public QMember(String variable) {
         this(Member.class, forVariable(variable), INITS);
@@ -65,6 +67,7 @@ public class QMember extends EntityPathBase<Member> {
     public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar")) : null;
+        this.userType = inits.isInitialized("userType") ? new QUserType(forProperty("userType")) : null;
     }
 
 }

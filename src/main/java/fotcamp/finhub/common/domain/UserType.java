@@ -26,7 +26,7 @@ public class UserType {
     @Builder.Default
     private String useYN = "N";
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "userType")
     private List<Member> memberList = new ArrayList<>();
 
 
@@ -34,8 +34,6 @@ public class UserType {
         this.name = modifyUserTypeRequestDto.name();
         this.useYN = modifyUserTypeRequestDto.useYN();
     }
-
-
 
     // 이미지 url 생성 및 변경
     public void changeImgPath(String url) {

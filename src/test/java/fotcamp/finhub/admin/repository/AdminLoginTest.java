@@ -20,7 +20,7 @@ class AdminLoginTest {
     @BeforeEach
     public void beforeEach() {
         Manager adminUser = Manager.builder()
-                .userId("admin")
+                .email("admin@naver.com")
                 .password("20000")
                 .build();
 
@@ -38,15 +38,15 @@ class AdminLoginTest {
 
         // given
         Manager adminUser = Manager.builder()
-                .userId("admin")
+                .email("admin@naver.com")
                 .password("0000")
                 .build();
 
         // when
-        Manager manager = managerRepository.findByUserId("admin").get();
+        Manager manager = managerRepository.findByEmail("admin@naver.com").get();
 
         // then
-        assertThat(adminUser.getUserId()).isEqualTo(manager.getUserId());
+        assertThat(adminUser.getEmail()).isEqualTo(manager.getEmail());
         assertThat(adminUser.getPassword()).isEqualTo(manager.getPassword());
     }
 
