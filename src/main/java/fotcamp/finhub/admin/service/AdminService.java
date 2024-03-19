@@ -681,4 +681,15 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 배너"));
         }
     }
+
+    // 생성/수정 취소 (s3 이미지 삭제)
+    public ResponseEntity<ApiResponseWrapper> deleteS3Image(DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
+        try {
+            awsS3Service.deleteImageFromS3(deleteS3ImageRequestDto.s3ImgUrl());
+            return ResponseEntity.ok(ApiResponseWrapper.success("이미지 삭제 성공"));
+        } catch (RuntimeException e) {
+            log.error("Failed to delete S3 image: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("이미지 삭제 실패"));
+        }
+    }
 }

@@ -250,4 +250,11 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> getDetailBanner(@PathVariable(name = "bannerId") Long bannerId) {
         return adminService.getDetailBanner(bannerId);
     }
+
+    @PostMapping(value = "/cancel")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "생성/수정 취소", description = "s3에 저장한 이미지 삭제", tags = {"AdminController"})
+    public ResponseEntity<ApiResponseWrapper> deleteImg(@RequestBody DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
+        return adminService.deleteS3Image(deleteS3ImageRequestDto);
+    }
 }

@@ -9,10 +9,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.NoSuchFileException;
 
 @Slf4j
@@ -47,6 +49,7 @@ public class AwsS3Service {
             log.error("cannot upload image",e);
             throw new RuntimeException(e);
         }
+
         GetUrlRequest getUrlRequest = GetUrlRequest.builder()
                 .bucket(bucketName)
                 .key(filePath)
@@ -57,5 +60,23 @@ public class AwsS3Service {
 
     public String getFileName(MultipartFile multipartFile) {
         return CommonUtils.buildFileName(multipartFile.getOriginalFilename());
+    }
+
+    // S3에 저장된 이미지 삭제
+    public void deleteImageFromS3(String imageUrl) {
+        try {
+            // URL에서 키 추출
+            URL url = new URL(imageUrl);
+            String key = url.getPath().substring(1); // URL의 경로 부분에서 첫 번째 '/' 문자를 제거
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            log.error("Error deleting image from S3", e);
+            throw new RuntimeException("Failed to delete image from S3", e);
+        }
     }
 }
