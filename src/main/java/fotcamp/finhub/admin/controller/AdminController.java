@@ -9,6 +9,7 @@ import fotcamp.finhub.common.utils.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-//@Tag(name = "admin", description = "admin api")
+@Tag(name = "admin", description = "admin api")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin")

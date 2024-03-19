@@ -5,12 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "auth", description = "auth api")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor

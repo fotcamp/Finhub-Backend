@@ -34,6 +34,15 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             log.info("Header key: {}", expectedHeaderKey);
             log.info("Header value for key '{}': {}", expectedHeaderKey, request.getHeader(expectedHeaderKey));
 
+            String requestURI = request.getRequestURI();
+            if (requestURI.contains("/swagger-ui/")
+                    || requestURI.contains("/v3/api-docs")
+                    || requestURI.contains("/swagger-resources")
+                    || requestURI.equals("/swagger-ui.html")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (request.getHeader(expectedHeaderKey) == null) {
                 log.error(request.getHeader(expectedHeaderKey));
                 setResponse(response, ErrorMessage.EMPTY_HEADER);

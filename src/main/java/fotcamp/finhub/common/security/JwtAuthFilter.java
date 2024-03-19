@@ -32,7 +32,12 @@ public class JwtAuthFilter extends GenericFilter {
         if(requestURI.contains("/api/v1/auth/login")
                 || requestURI.contains("/api/v1/auth/updateAccessToken")
                 || requestURI.contains("/api/v1/auth/autoLogin")
-                || requestURI.contains("/api/v1/admin/login"))
+                || requestURI.contains("/api/v1/admin/login")
+                || requestURI.contains("/swagger-ui/")
+                || requestURI.contains("/v3/api-docs")
+                || requestURI.contains("/swagger-resources")
+                || requestURI.equals("/swagger-ui.html"))
+
         {
             chain.doFilter(request,response);
             return;

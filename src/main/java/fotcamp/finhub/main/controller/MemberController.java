@@ -6,12 +6,14 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "main", description = "main api")
 @RestController
 @RequestMapping("/api/v1/member")
 @RequiredArgsConstructor

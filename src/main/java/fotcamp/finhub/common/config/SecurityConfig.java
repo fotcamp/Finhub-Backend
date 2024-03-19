@@ -36,7 +36,7 @@ public class SecurityConfig {
     @Value("${api-header.key}") private String expectedHeaderKey;
     @Value("${api-header.value}") private String expectedHeaderValue;
 
-   private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login"};
+   private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
