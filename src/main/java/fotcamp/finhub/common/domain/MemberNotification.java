@@ -27,9 +27,6 @@ public class MemberNotification {
     @JoinColumn(name = "NOTI_ID")
     private Notification notification;
 
-    @Builder.Default
-    private boolean isRead = false; // default는 false
-
     private LocalDateTime sentAt;
     private LocalDateTime receivedAt;
 

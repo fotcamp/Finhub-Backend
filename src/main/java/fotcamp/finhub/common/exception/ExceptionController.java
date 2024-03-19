@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,6 @@ public class ExceptionController{
     @ExceptionHandler(DateTimeException.class)
     public ResponseEntity<ApiResponseWrapper> handleDateTimeException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Invalid Date"));
-    }
-  
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiResponseWrapper> handleNotFoundException(Exception ex){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(ex.getMessage()));
     }
 }
 

@@ -9,7 +9,8 @@ public enum ErrorMessage {
     DUPLICATED_EMAIL("중복되는 이메일입니다.", 400),
     EMPTY_HEADER("헤더 필수값이 비어있습니다.", 400),
     NOT_CORRECT_HEADER("헤더 필수값이 틀렸습니다.", 403),
-    NULL_AUTHORIZATION_HEADER("헤더에 오류가 있습니다.", 400);
+    NULL_AUTHORIZATION_HEADER("헤더에 오류가 있습니다.", 400),
+    NOT_FOUND("해당 요청 데이터가 존재하지 않습니다.", 400);
 
 
     private final String msg;

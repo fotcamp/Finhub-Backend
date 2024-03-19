@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
-import fotcamp.finhub.common.exception.NotFoundException;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.dto.response.LoginResponseDto;
@@ -16,6 +15,7 @@ import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.repository.TokenRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -137,7 +137,7 @@ public class AuthService {
             // 액세스토큰 유효할 때
             Long memberId = jwtUtil.getUserId(accessToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
-                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+                    () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
 
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -146,7 +146,7 @@ public class AuthService {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
             Long memberId = jwtUtil.getUserId(refreshToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
-                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+                    () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
 
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
