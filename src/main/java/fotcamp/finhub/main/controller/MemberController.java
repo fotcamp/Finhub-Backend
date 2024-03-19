@@ -38,4 +38,14 @@ public class MemberController {
             @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
         return memberService.changeNickname(userDetails, dto);
     }
+
+    @GetMapping("/setting/resign")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "설정 - 회원탈퇴", description = "membership resign", tags = {"MemberController"})
+    public ResponseEntity<ApiResponseWrapper> resignMembership(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return memberService.membershipResign(userDetails);
+    }
+
 }

@@ -21,6 +21,6 @@ public class TopicRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String term;
-    private String request;
-    private LocalDateTime requestAt;
+    private String requester;
+    private LocalDateTime requestedAt;
 }
