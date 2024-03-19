@@ -68,12 +68,8 @@ public class Topic extends BaseEntity {
         this.definition = modifyTopicRequestDto.getDefinition();
         this.summary = modifyTopicRequestDto.getSummary();
         this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
+        this.thumbnailImgPath = modifyTopicRequestDto.getS3ImgUrl();
         this.createdBy = role;
-    }
-
-    // 이미지 url 생성 및 변경
-    public void changeImgPath(String url) {
-        this.thumbnailImgPath = url;
     }
 
     // 연관관계 편의 메서드

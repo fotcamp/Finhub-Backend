@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.util.List;
@@ -136,6 +137,7 @@ public class AdminService {
 
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
+                    .thumbnailImgPath(createCategoryRequestDto.s3ImgUrl())
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -169,7 +171,7 @@ public class AdminService {
             }
 
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameUseYN(modifyCategoryRequestDto);
+            category.modifyNameUseYNImg(modifyCategoryRequestDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
@@ -229,6 +231,7 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
+                    .thumbnailImgPath(createTopicRequestDto.s3ImgUrl())
                     .createdBy(userDetails.getRole())
                     .build();
 
@@ -305,6 +308,7 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
+                    .avatarImgPath(createUserTypeRequestDto.s3ImgUrl())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
@@ -399,41 +403,17 @@ public class AdminService {
         }
     }
 
-    // 타입 분류에 따른 이미지 저장
+    // 타입 분류에 따른 s3에 이미지 저장 후 이미지 url 반환
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(SaveImgToS3RequestDto saveImgToS3RequestDto) {
         try {
-            switch (saveImgToS3RequestDto.getType()) {
-                case "category" -> {
-                    Category category = categoryRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    category.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                case "topic" -> {
-                    Topic topic = topicRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    topic.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                case "usertype" -> {
-                    UserType userType = userTypeRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    userType.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                case "banner" -> {
-                    Banner banner = bannerRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    banner.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                default -> throw new IllegalArgumentException("Unsupported entity type: " + saveImgToS3RequestDto.getType());
-            }
-        } catch (IllegalArgumentException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
-        } catch (EntityNotFoundException e) {
-            log.error("유형의 id가 존재하지 않습니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("유형의 id가 존재하지 않습니다"));
+            String imgUrl = awsS3Service.uploadFile(saveImgToS3RequestDto);
+            return ResponseEntity.ok(ApiResponseWrapper.success(new S3ImgUrlResponseDto(imgUrl)));
         } catch (NoSuchFileException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+            log.error("File not found exception", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("파일이 없습니다. 파일을 첨부해주세요."));
+        } catch (RuntimeException e) {
+            log.error("Runtime exception", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("내부 서버 오류가 발생했습니다."));
         }
     }
 
@@ -654,6 +634,7 @@ public class AdminService {
                 .title(createBannerRequestDto.getTitle())
                 .subTitle(createBannerRequestDto.getSubTitle())
                 .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
+                .bannerImageUrl(createBannerRequestDto.getS3ImgUrl())
                 .createdBy(userDetails.getRole())
                 .useYN(createBannerRequestDto.getUseYN())
                 .build();

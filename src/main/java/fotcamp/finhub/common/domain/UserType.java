@@ -33,10 +33,7 @@ public class UserType {
     public void modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
         this.name = modifyUserTypeRequestDto.name();
         this.useYN = modifyUserTypeRequestDto.useYN();
+        this.avatarImgPath = modifyUserTypeRequestDto.s3ImgUrl();
     }
 
-    // 이미지 url 생성 및 변경
-    public void changeImgPath(String url) {
-        this.avatarImgPath = url;
-    }
 }

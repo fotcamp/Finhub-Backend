@@ -1,5 +1,6 @@
 package fotcamp.finhub.common.service;
 
+import fotcamp.finhub.admin.dto.request.SaveImgToS3RequestDto;
 import fotcamp.finhub.common.utils.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,23 +24,24 @@ public class AwsS3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile multipartFile) throws NoSuchFileException {
+    public String uploadFile(SaveImgToS3RequestDto saveImgToS3RequestDto) throws NoSuchFileException {
 
-        if(multipartFile.isEmpty()) {
+        if(saveImgToS3RequestDto.getFile().isEmpty()) {
             log.error("image is null");
             throw new NoSuchFileException("파일이 없습니다. 파일을 첨부해주세요.");
         }
 
-        String fileName = getFileName(multipartFile);
-
+        String fileName = getFileName(saveImgToS3RequestDto.getFile());
+        // 파일 이름에 type을 포함시켜 폴더 구조를 생성
+        String filePath = saveImgToS3RequestDto.getType() + "/" + fileName;
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .contentType(multipartFile.getContentType())
-                    .contentLength(multipartFile.getSize())
-                    .key(fileName)
+                    .contentType(saveImgToS3RequestDto.getFile().getContentType())
+                    .contentLength(saveImgToS3RequestDto.getFile().getSize())
+                    .key(filePath)
                     .build();
-            RequestBody requestBody = RequestBody.fromBytes(multipartFile.getBytes());
+            RequestBody requestBody = RequestBody.fromBytes(saveImgToS3RequestDto.getFile().getBytes());
             s3Client.putObject(putObjectRequest, requestBody);
         } catch (IOException e) {
             log.error("cannot upload image",e);
@@ -47,7 +49,7 @@ public class AwsS3Service {
         }
         GetUrlRequest getUrlRequest = GetUrlRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(filePath)
                 .build();
 
         return s3Client.utilities().getUrl(getUrlRequest).toString() ;

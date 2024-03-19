@@ -24,17 +24,12 @@ public class Banner extends BaseEntity{
     private String createdBy;
     private String useYN;
 
-
-    // 이미지 url 생성 및 변경
-    public void changeImgPath(String url) {
-        this.bannerImageUrl = url;
-    }
-
     // Banner 수정
     public void modifyBanner(ModifyBannerRequestDto dto, String role) {
         this.title = dto.getTitle();
         this.subTitle = dto.getSubTitle();
         this.landingPageUrl = dto.getLandingPageUrl();
+        this.bannerImageUrl = dto.getS3ImgUrl();
         this.useYN = dto.getUseYN();
         this.createdBy = role;
     }

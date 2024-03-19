@@ -178,7 +178,7 @@ public class AdminController {
 
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 해당 레포지토리에 s3 url 반환", tags = {"AdminController"})
+    @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 이미지 s3 url 반환", tags = {"AdminController"})
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(@Valid @ModelAttribute SaveImgToS3RequestDto saveImgToS3RequestDto) {
         return adminService.saveImgToS3(saveImgToS3RequestDto);
     }
