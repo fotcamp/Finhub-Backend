@@ -35,7 +35,7 @@ public class MemberController {
 
     @PostMapping("/setting/nickname")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 닉네임 변경", description = "nickname change", tags = {"MemberController"})
+    @Operation(summary = "설정 - 닉네임 변경", description = "nickname change")
     public ResponseEntity<ApiResponseWrapper> changeNickname(
             @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
         return memberService.changeNickname(userDetails, dto);
@@ -43,7 +43,7 @@ public class MemberController {
 
     @GetMapping("/setting/resign")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 회원탈퇴", description = "membership resign", tags = {"MemberController"})
+    @Operation(summary = "설정 - 회원탈퇴", description = "membership resign")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
