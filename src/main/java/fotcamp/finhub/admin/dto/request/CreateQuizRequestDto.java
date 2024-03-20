@@ -12,14 +12,17 @@ import java.util.List;
 public class CreateQuizRequestDto {
     @NotNull
     private Long year;
+
     @NotNull
     @Min(1)
     @Max(12)
     private Long month;
+
     @NotNull
     @Min(1)
     @Max(31)
     private Long day;
+
     @NotBlank
     private String question; // 질문
     @NotBlank

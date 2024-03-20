@@ -1,7 +1,9 @@
 package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,21 +12,19 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.DateTimeException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
 public class ExceptionController{
 
-    // 값에 "", " " 등이 들어왔을 때
+    // 값의 유효 범위를 벗어날 때
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseWrapper> handlingInvalidException(MethodArgumentNotValidException e) {
         String errorMessage = e.getBindingResult()
@@ -73,11 +73,6 @@ public class ExceptionController{
     @ExceptionHandler(DateTimeException.class)
     public ResponseEntity<ApiResponseWrapper> handleDateTimeException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Invalid Date"));
-    }
-  
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiResponseWrapper> handleNotFoundException(Exception ex){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(ex.getMessage()));
     }
 }
 

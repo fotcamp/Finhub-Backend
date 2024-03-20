@@ -26,7 +26,7 @@ public class QMemberQuiz extends EntityPathBase<MemberQuiz> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final fotcamp.finhub.main.domain.QMember member;
+    public final QMember member;
 
     public final QQuiz quiz;
 
@@ -50,7 +50,7 @@ public class QMemberQuiz extends EntityPathBase<MemberQuiz> {
 
     public QMemberQuiz(Class<? extends MemberQuiz> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new fotcamp.finhub.main.domain.QMember(forProperty("member")) : null;
+        this.member = inits.isInitialized("member") ? new QMember(forProperty("member"), inits.get("member")) : null;
         this.quiz = inits.isInitialized("quiz") ? new QQuiz(forProperty("quiz")) : null;
     }
 

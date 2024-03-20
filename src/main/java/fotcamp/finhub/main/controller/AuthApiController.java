@@ -5,20 +5,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "auth", description = "auth api")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthApiController {
 
     private final AuthService authService;
-
     // https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri={REDIRECT_URI}&response_type=code
+
+
+
 
     /** REDIRECT URI -> 프론트에서 인가코드를 포함시켜서 전송 */
     @GetMapping("/login/oauth2/callback/kakao")

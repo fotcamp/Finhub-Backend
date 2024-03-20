@@ -24,14 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.util.List;
@@ -61,6 +62,8 @@ public class AdminService {
     private final ManagerRepository managerRepository;
     private final QuizRepository quizRepository;
     private final TopicQuizRepository topicQuizRepository;
+    private final BannerRepository bannerRepository;
+    private final BannerRepositoryCustom bannerRepositoryCustom;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -134,6 +137,7 @@ public class AdminService {
 
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
+                    .thumbnailImgPath(createCategoryRequestDto.s3ImgUrl())
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -167,7 +171,7 @@ public class AdminService {
             }
 
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameUseYN(modifyCategoryRequestDto);
+            category.modifyNameUseYNImg(modifyCategoryRequestDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
@@ -227,6 +231,7 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
+                    .thumbnailImgPath(createTopicRequestDto.s3ImgUrl())
                     .createdBy(userDetails.getRole())
                     .build();
 
@@ -240,19 +245,20 @@ public class AdminService {
     }
 
     // 토픽 수정
-    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto,
+                                                          CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(modifyTopicRequestDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             Category category = categoryRepository.findById(modifyTopicRequestDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
             // 토픽 내용 수정
-            topic.modifyTopic(modifyTopicRequestDto, category);
+            topic.modifyTopic(modifyTopicRequestDto, category, userDetails.getRole());
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
             for (GptProcessDto gptProcessDto : gptProcessDtoList) {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
                 gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
-                    gpt.modifyContentUseYN(gptProcessDto);
+                    gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole());
                 });
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -302,6 +308,7 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
+                    .avatarImgPath(createUserTypeRequestDto.s3ImgUrl())
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
@@ -346,7 +353,8 @@ public class AdminService {
     }
 
     // GPT 질문 답변 로그 저장 및 답변 반환
-    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto,
+                                                               CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             UserType userType = userTypeRepository.findById(createGptContentRequestDto.usertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
@@ -379,6 +387,7 @@ public class AdminService {
                     .usertypeId(userType.getId())
                     .question(resultPrompt)
                     .answer(answer)
+                    .createdBy(userDetails.getRole())
                     .build();
 
             gptLogRepository.save(gptLog);
@@ -394,44 +403,27 @@ public class AdminService {
         }
     }
 
-    // 타입 분류에 따른 이미지 저장
+    // 타입 분류에 따른 s3에 이미지 저장 후 이미지 url 반환
     public ResponseEntity<ApiResponseWrapper> saveImgToS3(SaveImgToS3RequestDto saveImgToS3RequestDto) {
         try {
-            switch (saveImgToS3RequestDto.getType()) {
-                case "category" -> {
-                    Category category = categoryRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    category.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                case "topic" -> {
-                    Topic topic = topicRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    topic.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                case "usertype" -> {
-                    UserType userType = userTypeRepository.findById(saveImgToS3RequestDto.getId()).orElseThrow(EntityNotFoundException::new);
-                    userType.changeImgPath(awsS3Service.uploadFile(saveImgToS3RequestDto.getFile()));
-                    return ResponseEntity.ok(ApiResponseWrapper.success());
-                }
-                default -> throw new IllegalArgumentException("Unsupported entity type: " + saveImgToS3RequestDto.getType());
-            }
-        } catch (IllegalArgumentException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
-        } catch (EntityNotFoundException e) {
-            log.error("유형의 id가 존재하지 않습니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("유형의 id가 존재하지 않습니다"));
+            String imgUrl = awsS3Service.uploadFile(saveImgToS3RequestDto);
+            return ResponseEntity.ok(ApiResponseWrapper.success(new S3ImgUrlResponseDto(imgUrl)));
         } catch (NoSuchFileException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+            log.error("File not found exception", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("파일이 없습니다. 파일을 첨부해주세요."));
+        } catch (RuntimeException e) {
+            log.error("Runtime exception", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("내부 서버 오류가 발생했습니다."));
         }
     }
 
     // gpt 프롬프트 저장
-    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto) {
+    public ResponseEntity<ApiResponseWrapper> saveGptPrompt(SaveGptPromptRequestDto saveGptPromptRequestDto,
+                                                            CustomUserDetails userDetails) {
         try {
             GptPrompt prompt = GptPrompt.builder()
                     .prompt(saveGptPromptRequestDto.prompt())
+                    .createdBy(userDetails.getRole())
                     .build();
             gptPromptRepository.save(prompt);
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -494,7 +486,6 @@ public class AdminService {
     }
 
     // 퀴즈 생성
-    @Transactional(rollbackFor = {EntityNotFoundException.class, BadRequestException.class})
     public ResponseEntity<ApiResponseWrapper> createQuiz(CreateQuizRequestDto createQuizRequestDto,
                                                          CustomUserDetails userDetails) {
         try {
@@ -540,6 +531,165 @@ public class AdminService {
         } catch (BadRequestException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("이미 존재하는 날짜입니다."));
+        }
+    }
+
+    // 퀴즈 월별 전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(Long year, Long month) {
+        // 월에 대한 범위 검사
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
+        }
+        LocalDate startDate = DateUtil.convertToDate(year, month, 1L);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+        List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate).stream().map(QuizProcessDto::new).toList();
+        GetMonthlyQuizResponseDto resultDto = new GetMonthlyQuizResponseDto(quizProcessDtos);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // 퀴즈 일 상세 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(Long year, Long month, Long day) {
+        // 월과 일에 대한 범위 검사
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
+        }
+        if (day < 1 || day > 31) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("일은 1에서 31 사이의 값이어야 합니다."));
+        }
+        try {
+            LocalDate targetDate = DateUtil.convertToDate(year, month, day);
+            Quiz quiz = quizRepository.findByTargetDate(targetDate).orElseThrow(EntityNotFoundException::new);
+            GetDailyQuizResponseDto resultDto = new GetDailyQuizResponseDto(quiz);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("퀴즈가 존재하지 않는 날입니다"));
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("동일 날짜에 퀴즈가 2개 있습니다."));
+        }
+
+    }
+
+    // 퀴즈 수정
+    public ResponseEntity<ApiResponseWrapper> modifyQuiz(ModifyQuizRequestDto modifyQuizRequestDto, CustomUserDetails userDetails) {
+        try {
+            LocalDate targetDate = DateUtil.convertToDate(modifyQuizRequestDto.getYear(), modifyQuizRequestDto.getMonth(), modifyQuizRequestDto.getDay());
+            // targetDate를 기준으로 Quiz 엔티티 찾기
+            Quiz quiz = quizRepository.findByTargetDate(targetDate)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 날짜에 대한 퀴즈가 존재하지 않습니다: " + targetDate));
+
+            // ID를 기준으로 Quiz 엔티티 찾기
+            Quiz findQuiz = quizRepository.findById(modifyQuizRequestDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("해당 ID를 가진 퀴즈가 존재하지 않습니다: " + modifyQuizRequestDto.getId()));
+
+            // 두 Quiz 엔티티의 ID가 다를 경우 예외 처리
+            if (!quiz.getId().equals(findQuiz.getId())) {
+                throw new IllegalArgumentException("요청된 퀴즈 ID와 날짜에 해당하는 퀴즈 ID가 일치하지 않습니다.");
+            }
+
+            // 모든 토픽이 존재하는지 확인
+            List<Long> topicList = modifyQuizRequestDto.getTopicList();
+            if (!topicList.isEmpty()) {
+                for (Long topicId : topicList) {
+                    Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽: " + topicId));
+                }
+            }
+
+            // 기존 TopicQuiz 삭제
+            topicQuizRepository.deleteAllByQuizId(quiz.getId());
+            // 새로운 TopicQuiz 생성 후 quiz에 저장
+            for (Long topicId : topicList) {
+                Topic topic = topicRepository.findById(topicId).get();
+
+                TopicQuiz topicQuiz = TopicQuiz.builder()
+                        .topic(topic)
+                        .quiz(quiz)
+                        .build();
+
+                topicQuizRepository.save(topicQuiz);
+                // 퀴즈 토픽 리스트 수정
+                quiz.addTopicQuizList(topicQuiz);
+            }
+            // 퀴즈 나머지 데이터 수정
+            quiz.modifyQuiz(modifyQuizRequestDto, userDetails.getRole());
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
+
+    // 배너 생성
+    public ResponseEntity<ApiResponseWrapper> createBanner(CreateBannerRequestDto createBannerRequestDto, CustomUserDetails userDetails) {
+        Banner banner = Banner.builder()
+                .title(createBannerRequestDto.getTitle())
+                .subTitle(createBannerRequestDto.getSubTitle())
+                .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
+                .bannerImageUrl(createBannerRequestDto.getS3ImgUrl())
+                .createdBy(userDetails.getRole())
+                .useYN(createBannerRequestDto.getUseYN())
+                .build();
+        Banner saveBanner = bannerRepository.save(banner);
+        return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
+    }
+
+    // 배너 수정
+    public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
+        try {
+            Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 배너"));
+            banner.modifyBanner(modifyBannerRequestDto, userDetails.getRole());
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+    }
+
+    // 배너 전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getAllBanner(Pageable pageable, String useYN) {
+        Page<Banner> banners = bannerRepositoryCustom.searchAllBannerFilterList(pageable, useYN);
+        List<BannerProcessDto> bannerProcessDtos = banners.getContent().stream().map(BannerProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(banners);
+        AllBannerResponseDto allBannerResponseDto = new AllBannerResponseDto(bannerProcessDtos, pageInfoProcessDto);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allBannerResponseDto));
+
+    }
+
+    // 배너 상세 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> getDetailBanner(Long bannerId) {
+        try {
+            Banner findBanner = bannerRepository.findById(bannerId).orElseThrow(EntityNotFoundException::new);
+            DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(findBanner);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
+
+        } catch (EntityNotFoundException e) {
+            log.error("존재하지 않는 배너입니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 배너"));
+        }
+    }
+
+    // 생성/수정 취소 (s3 이미지 삭제)
+    public ResponseEntity<ApiResponseWrapper> deleteS3Image(DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
+        try {
+            awsS3Service.deleteImageFromS3(deleteS3ImageRequestDto.s3ImgUrl());
+            return ResponseEntity.ok(ApiResponseWrapper.success("이미지 삭제 성공"));
+        } catch (RuntimeException e) {
+            log.error("Failed to delete S3 image: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("이미지 삭제 실패"));
         }
     }
 }

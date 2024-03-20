@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -32,6 +33,15 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
         try {
             log.info("Header key: {}", expectedHeaderKey);
             log.info("Header value for key '{}': {}", expectedHeaderKey, request.getHeader(expectedHeaderKey));
+
+            String requestURI = request.getRequestURI();
+            if (requestURI.contains("/swagger-ui/")
+                    || requestURI.contains("/v3/api-docs")
+                    || requestURI.contains("/swagger-resources")
+                    || requestURI.equals("/swagger-ui.html")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (request.getHeader(expectedHeaderKey) == null) {
                 log.error(request.getHeader(expectedHeaderKey));
@@ -66,6 +76,8 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             }
         } catch (IllegalArgumentException e){
             setResponse(response, ErrorMessage.DUPLICATED_EMAIL);
+        } catch (UsernameNotFoundException e){
+            setResponse(response, ErrorMessage.NOT_FOUND);
         }
     }
 

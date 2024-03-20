@@ -37,6 +37,8 @@ public class QTopic extends EntityPathBase<Topic> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final ListPath<MemberScrap, QMemberScrap> memberScraps = this.<MemberScrap, QMemberScrap>createList("memberScraps", MemberScrap.class, QMemberScrap.class, PathInits.DIRECT2);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 

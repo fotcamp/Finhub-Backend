@@ -1,6 +1,5 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.main.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

@@ -10,8 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SaveImgToS3RequestDto {
     @NotBlank
     private String type;
-    @NotNull
-    private Long id;
+
     @NotNull(message = "file key null")
     private MultipartFile file;
 }

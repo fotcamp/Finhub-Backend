@@ -5,23 +5,23 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
-import fotcamp.finhub.common.exception.NotFoundException;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.config.KakaoConfig;
-import fotcamp.finhub.main.domain.Member;
-import fotcamp.finhub.main.dto.response.AutoLoginResponseDto;
 import fotcamp.finhub.main.dto.response.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.KakaoUserInfoDto;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.repository.TokenRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +33,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthService {
 
     private final JwtUtil jwtUtil;
@@ -136,7 +137,7 @@ public class AuthService {
             // 액세스토큰 유효할 때
             Long memberId = jwtUtil.getUserId(accessToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
-                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+                    () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
 
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -145,7 +146,7 @@ public class AuthService {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
             Long memberId = jwtUtil.getUserId(refreshToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
-                    () -> new NotFoundException("MEMBER ID가 존재하지 않습니다."));
+                    () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
 
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));

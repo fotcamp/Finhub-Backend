@@ -45,6 +45,9 @@ public class Topic extends BaseEntity {
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private final List<Gpt> gptList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
+    private List<MemberScrap> memberScraps = new ArrayList<>();
+
     // 토픽 카테고리 변경
     public void changeCategory(Category newCategory) {
         // 변경이 없는 경우에는 그냥 return
@@ -59,17 +62,14 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category) {
+    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category, String role) {
         changeCategory(category);
         this.title = modifyTopicRequestDto.getTitle();
         this.definition = modifyTopicRequestDto.getDefinition();
         this.summary = modifyTopicRequestDto.getSummary();
         this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
-    }
-
-    // 이미지 url 생성 및 변경
-    public void changeImgPath(String url) {
-        this.thumbnailImgPath = url;
+        this.thumbnailImgPath = modifyTopicRequestDto.getS3ImgUrl();
+        this.createdBy = role;
     }
 
     // 연관관계 편의 메서드

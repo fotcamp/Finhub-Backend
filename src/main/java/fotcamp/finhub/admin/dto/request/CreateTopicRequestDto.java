@@ -4,5 +4,5 @@ package fotcamp.finhub.admin.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record CreateTopicRequestDto(@NotNull Long categoryId, @NotBlank String title, @NotBlank String definition, @NotBlank String summary,@NotBlank String shortDefinition) {
+public record CreateTopicRequestDto(@NotNull Long categoryId, @NotBlank String title, @NotBlank String definition, @NotBlank String summary, @NotBlank String s3ImgUrl, @NotBlank String shortDefinition) {
 }

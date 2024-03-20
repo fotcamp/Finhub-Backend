@@ -33,9 +33,10 @@ public class Gpt extends BaseEntity {
 
     private String createdBy;
 
-    public void modifyContentUseYN(GptProcessDto gptProcessDto) {
+    public void modifyContentUseYN(GptProcessDto gptProcessDto, String role) {
         this.content = gptProcessDto.getContent();
         this.useYN = gptProcessDto.getUseYN();
+        this.createdBy = role;
     }
 
     // 연관관계 편의 메서드

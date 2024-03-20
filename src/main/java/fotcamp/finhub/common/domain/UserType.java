@@ -4,6 +4,9 @@ import fotcamp.finhub.admin.dto.request.ModifyUserTypeRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -23,13 +26,14 @@ public class UserType {
     @Builder.Default
     private String useYN = "N";
 
+    @OneToMany(mappedBy = "userType")
+    private List<Member> memberList = new ArrayList<>();
+
+
     public void modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
         this.name = modifyUserTypeRequestDto.name();
         this.useYN = modifyUserTypeRequestDto.useYN();
+        this.avatarImgPath = modifyUserTypeRequestDto.s3ImgUrl();
     }
 
-    // 이미지 url 생성 및 변경
-    public void changeImgPath(String url) {
-        this.avatarImgPath = url;
-    }
 }

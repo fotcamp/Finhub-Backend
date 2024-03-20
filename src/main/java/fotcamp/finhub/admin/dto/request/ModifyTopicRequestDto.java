@@ -24,6 +24,8 @@ public class ModifyTopicRequestDto {
     @NotBlank
     private String summary;
     @NotBlank
+    private String s3ImgUrl;
+    @NotBlank
     private String shortDefinition;
     private List<GptProcessDto> gptList;
 
