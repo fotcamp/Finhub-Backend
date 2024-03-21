@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.Path;
 
 @Tag(name = "main", description = "main api")
 @RestController
@@ -50,4 +51,13 @@ public class MemberController {
         return memberService.membershipResign(userDetails);
     }
 
+    // 검색
+    @GetMapping("/search/{method}")
+    @Operation(summary = "세 번째 탭 검색", description = "제목만, 내용만, 제목+내용")
+    public ResponseEntity<ApiResponseWrapper> search(
+            @PathVariable(name = "method") String method,
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "page", defaultValue = "0") int page ){
+        return memberService.search(method, keyword, page);
+    }
 }

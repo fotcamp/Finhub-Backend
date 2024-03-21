@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -73,6 +74,17 @@ public class ExceptionController{
     @ExceptionHandler(DateTimeException.class)
     public ResponseEntity<ApiResponseWrapper> handleDateTimeException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Invalid Date"));
+    }
+
+    // security 영역이 아닌 service계층에서 토큰 검사 도중 error가 터지면 여기서 catch함.
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponseWrapper> handleJwtException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponseWrapper> handleArgumentException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
     }
 }
 

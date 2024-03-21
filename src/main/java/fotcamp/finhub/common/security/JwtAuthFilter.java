@@ -45,9 +45,11 @@ public class JwtAuthFilter extends GenericFilter {
 
         // 토큰 추출
         String token = jwtUtil.resolveToken((HttpServletRequest) request);
-        // http header에 authorization key가 없는 경우, value값이 null인 경우
-        if (token == null || token.isEmpty()){
-            setResponseInAuthFilter((HttpServletResponse) response, ErrorMessage.NULL_AUTHORIZATION_HEADER);
+        // http header에 key authorization value값이 null 혹은 빈 문자열 인 경우
+        /**비로그인 유저라고 판단 */
+        if (token == null || token.isEmpty()){ // null 또는 빈 문자열("")
+            //setResponseInAuthFilter((HttpServletResponse) response, ErrorMessage.NULL_AUTHORIZATION_HEADER);
+            chain.doFilter(request,response);
             return;
         }
 

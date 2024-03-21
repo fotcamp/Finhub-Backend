@@ -116,6 +116,7 @@ public class AuthService {
 
 
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
+        System.out.println("서비스 함수 진입");
         String refreshToken = request.getHeader("refreshToken");
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
             Long memberId = jwtUtil.getUserId(refreshToken);
@@ -124,7 +125,7 @@ public class AuthService {
             return ResponseEntity.ok(ApiResponseWrapper.success(newAccessToken));
         }
         else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("헤더에 토큰이 없습니다."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("액세스토큰 갱신에 실패했습니다."));
         }
     }
 
