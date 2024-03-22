@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 public class NonLoginHomeRequestDto {
 
     // 카테고리 id 와 이름
-    private Long category_id;
-    private String category_name;
+    private Long categoryId;
+    private String categoryName;
 
     // 카테고리 id 중 가장 상위 카테고리의 topic list
-    private Long topic_id;
-    private String topic_title;
-    private String topic_summary;
+    private Long topicId;
+    private String topicTitle;
+    private String topicSummary;
 
     public NonLoginHomeRequestDto(Category category, Topic topic) {
-        this.category_id = category.getId();
-        this.category_name = category.getName();
-        this.topic_id = topic.getId();
-        this.topic_title = topic.getTitle();
-        this.topic_summary = topic.getSummary();
+        this.categoryId = category.getId();
+        this.categoryName = category.getName();
+        this.topicId = topic.getId();
+        this.topicTitle = topic.getTitle();
+        this.topicSummary = topic.getSummary();
     }
 }

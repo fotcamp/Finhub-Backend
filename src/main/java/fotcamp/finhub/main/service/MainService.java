@@ -6,7 +6,7 @@ import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
-import fotcamp.finhub.main.dto.process.SearchResultListDto;
+import fotcamp.finhub.main.dto.process.SearchResultListProcessDto;
 import fotcamp.finhub.main.dto.response.SearchResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class MemberService {
+public class MainService {
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
@@ -85,8 +85,8 @@ public class MemberService {
         }
 
         List<Topic> resultList = pageResult.getContent();
-        List<SearchResultListDto> response = resultList.stream()
-                .map(topic -> new SearchResultListDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
+        List<SearchResultListProcessDto> response = resultList.stream()
+                .map(topic -> new SearchResultListProcessDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
         SearchResponseDto responseDto = new SearchResponseDto(response, page, pageResult.getTotalPages(), pageResult.getTotalElements());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }

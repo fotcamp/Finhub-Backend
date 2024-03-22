@@ -1,19 +1,21 @@
-package fotcamp.finhub.main.dto.process;
+package fotcamp.finhub.main.dto.response;
 
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SearchResultListDto {
+public class HomeTopicListResponseDto {
 
+    private Long id;
     private String title;
     private String summary;
 
-    public SearchResultListDto(String title, String summary) {
+    public HomeTopicListResponseDto(Long id, String title, String summary) {
+        this.id = id;
         this.title = title;
         this.summary = summary;
     }
+
 }
