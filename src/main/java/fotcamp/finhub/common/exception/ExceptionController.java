@@ -86,6 +86,12 @@ public class ExceptionController{
     public ResponseEntity<ApiResponseWrapper> handleArgumentException(Exception e){
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
     }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponseWrapper> handEntityNotFoundException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+    }
+
 }
 
 
