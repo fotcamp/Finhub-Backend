@@ -73,8 +73,7 @@ public class MainService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> search(String method, String keyword, int page){
-        int pageSize = 4;
+    public ResponseEntity<ApiResponseWrapper> search(String method, String keyword, int pageSize, int page){
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<Topic> pageResult = null;
         switch (method) {

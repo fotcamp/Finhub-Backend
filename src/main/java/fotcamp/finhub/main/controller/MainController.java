@@ -44,7 +44,8 @@ public class MainController {
     public ResponseEntity<ApiResponseWrapper> search(
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "size", defaultValue = "4") int size,
             @RequestParam(name = "page", defaultValue = "0") int page ){
-        return mainService.search(method, keyword, page);
+        return mainService.search(method, keyword, size,page);
     }
 }
