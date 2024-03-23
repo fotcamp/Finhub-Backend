@@ -25,12 +25,12 @@ public class Banner extends BaseEntity{
     private String useYN;
 
     // Banner 수정
-    public void modifyBanner(ModifyBannerRequestDto dto, String role) {
-        this.title = dto.getTitle();
-        this.subTitle = dto.getSubTitle();
-        this.landingPageUrl = dto.getLandingPageUrl();
-        this.bannerImageUrl = dto.getS3ImgUrl();
-        this.useYN = dto.getUseYN();
+    public void modifyBanner(String title, String subTitle, String landingPageUrl, String bannerImageUrl, String useYN, String role) {
+        this.title = title;
+        this.subTitle = subTitle;
+        this.landingPageUrl = landingPageUrl;
+        this.bannerImageUrl = bannerImageUrl;
+        this.useYN = useYN;
         this.createdBy = role;
     }
 }

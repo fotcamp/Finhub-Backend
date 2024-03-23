@@ -1,11 +1,13 @@
 package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.common.domain.Banner;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@AllArgsConstructor
 public class DetailBannerResponseDto {
     private final Long id;
     private final String title;
@@ -16,16 +18,4 @@ public class DetailBannerResponseDto {
     private final String bannerImageUrl;
     private final LocalDateTime createdTime;
     private final LocalDateTime modifiedTime;
-
-    public DetailBannerResponseDto(Banner banner) {
-        this.id = banner.getId();
-        this.title = banner.getTitle();
-        this.subTitle = banner.getSubTitle();
-        this.landingPageUrl = banner.getLandingPageUrl();
-        this.useYN = banner.getUseYN();
-        this.createdBy = banner.getCreatedBy();
-        this.bannerImageUrl = banner.getBannerImageUrl();
-        this.createdTime = banner.getCreatedTime();
-        this.modifiedTime = banner.getModifiedTime();
-    }
 }

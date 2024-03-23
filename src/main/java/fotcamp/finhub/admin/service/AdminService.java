@@ -654,28 +654,36 @@ public class AdminService {
 
     // 배너 생성
     public ResponseEntity<ApiResponseWrapper> createBanner(CreateBannerRequestDto createBannerRequestDto, CustomUserDetails userDetails) {
-        Banner banner = Banner.builder()
-                .title(createBannerRequestDto.getTitle())
-                .subTitle(createBannerRequestDto.getSubTitle())
-                .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
-                .bannerImageUrl(createBannerRequestDto.getS3ImgUrl())
-                .createdBy(userDetails.getRole())
-                .useYN(createBannerRequestDto.getUseYN())
-                .build();
-        Banner saveBanner = bannerRepository.save(banner);
-        return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
+        try {
+            Banner banner = Banner.builder()
+                    .title(createBannerRequestDto.getTitle())
+                    .subTitle(createBannerRequestDto.getSubTitle())
+                    .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
+                    .bannerImageUrl(awsS3Service.extractPathFromUrl(createBannerRequestDto.getS3ImgUrl()))
+                    .createdBy(userDetails.getRole())
+                    .useYN(createBannerRequestDto.getUseYN())
+                    .build();
+            Banner saveBanner = bannerRepository.save(banner);
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateBannerResponseDto(saveBanner.getId())));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     // 배너 수정
     public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
         try {
             Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 배너"));
-            banner.modifyBanner(modifyBannerRequestDto, userDetails.getRole());
+            banner.modifyBanner(modifyBannerRequestDto.getTitle(), modifyBannerRequestDto.getSubTitle(), modifyBannerRequestDto.getLandingPageUrl(),
+                    awsS3Service.extractPathFromUrl(modifyBannerRequestDto.getS3ImgUrl()), modifyBannerRequestDto.getUseYN(), userDetails.getRole());
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -696,7 +704,11 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getDetailBanner(Long bannerId) {
         try {
             Banner findBanner = bannerRepository.findById(bannerId).orElseThrow(EntityNotFoundException::new);
-            DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(findBanner);
+            DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
+                    findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
+                    findBanner.getLandingPageUrl(), findBanner.getUseYN(), findBanner.getCreatedBy(),
+                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+            );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
 
