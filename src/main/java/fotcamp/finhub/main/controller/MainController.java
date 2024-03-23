@@ -51,8 +51,9 @@ public class MainController {
 
     @GetMapping("/home")
     public ResponseEntity<ApiResponseWrapper> home(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(name = "size", defaultValue = "7") int size
-    ){return mainService.home(size);}
+    ){return mainService.home(userDetails, size);}
 
     @GetMapping("/home/{categoryId}")
     public ResponseEntity<ApiResponseWrapper> otherCategories(

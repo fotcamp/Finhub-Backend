@@ -36,7 +36,12 @@ public class SecurityConfig {
     @Value("${api-header.key}") private String expectedHeaderKey;
     @Value("${api-header.value}") private String expectedHeaderValue;
 
-   private static final String[] AUTH_WHITELIST = {"/api/v1/auth/**", "/api/v1/admin/login", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"};
+   private static final String[] AUTH_WHITELIST = {
+           "/api/v1/auth/**",
+           "/api/v1/admin/login",
+           "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
+           "/api/v1/home/**"
+   };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -63,7 +68,7 @@ public class SecurityConfig {
                 .requestMatchers(AUTH_WHITELIST).permitAll() // 로그인 없이 접근이 가능한 api
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("SUPER","BE","FE") //admin api는 관리자 계정만
                 .requestMatchers("/api/v1/member/**").hasRole("USER")
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 /**
                  * 권한 규칙 요구사항
                  * SUPER 모든 API에 접근 허용

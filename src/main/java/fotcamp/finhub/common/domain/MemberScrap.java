@@ -24,5 +24,4 @@ public class MemberScrap {
     @JoinColumn(name = "TOPIC_ID")
     private Topic topic;
 
-
 }
