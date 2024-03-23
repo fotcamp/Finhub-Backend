@@ -306,7 +306,8 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getDetailUserType(Long typeId) {
         try {
             UserType findUserType = userTypeRepository.findById(typeId).orElseThrow(EntityNotFoundException::new);
-            DetailUserTypeResponseDto detailUserTypeResponseDto = new DetailUserTypeResponseDto(findUserType);
+            DetailUserTypeResponseDto detailUserTypeResponseDto = new DetailUserTypeResponseDto(findUserType.getId(), findUserType.getName(),
+                    awsS3Service.combineWithBaseUrl(findUserType.getAvatarImgPath()), findUserType.getUseYN());
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailUserTypeResponseDto));
 
@@ -327,7 +328,7 @@ public class AdminService {
 
             UserType userType = UserType.builder()
                     .name(createUserTypeRequestDto.name())
-                    .avatarImgPath(createUserTypeRequestDto.s3ImgUrl())
+                    .avatarImgPath(awsS3Service.extractPathFromUrl(createUserTypeRequestDto.s3ImgUrl()))
                     .build();
 
             Long usertypeId = userTypeRepository.save(userType).getId();
@@ -338,6 +339,8 @@ public class AdminService {
         } catch (DuplicateKeyException e) {
             log.error("이미 존재하는 유저 타입입니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 유저타입"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -356,7 +359,7 @@ public class AdminService {
             if (!("Y".equals(modifyUserTypeRequestDto.useYN()) || "N".equals(modifyUserTypeRequestDto.useYN()))) {
                 throw new IllegalArgumentException();
             }
-            userType.modifyUserType(modifyUserTypeRequestDto);
+            userType.modifyUserType(modifyUserTypeRequestDto.name(), modifyUserTypeRequestDto.useYN(), awsS3Service.extractPathFromUrl(modifyUserTypeRequestDto.s3ImgUrl()));
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -368,6 +371,8 @@ public class AdminService {
         } catch (IllegalArgumentException e) {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
