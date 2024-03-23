@@ -100,7 +100,17 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
         Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
-        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map( category -> {
+            // DTO 객체 생성
+            AllCategoryProcessDto dto = new AllCategoryProcessDto(category);
+
+            // 필요한 경우 여기서 DTO의 thumbnailImgPath 값을 수정
+            String modifiedThumbnailImgPath = awsS3Service.combineWithBaseUrl(dto.getThumbnailImgPath());
+            // 새로운 DTO 객체를 생성하거나, 기존 객체의 상태를 변경해서는 안됩니다.
+            // 대신, DTO 설계를 변경하거나 적절한 메서드를 DTO에 추가해야 합니다.
+
+            return new AllCategoryProcessDto(dto.getId(), dto.getName(), modifiedThumbnailImgPath, dto.getUseYN());
+        }).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(categories);
         AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
@@ -113,10 +123,14 @@ public class AdminService {
         try {
             Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
 
+            // 썸네일 이미지 경로 수정
+            String modifiedThumbnailImgPath = awsS3Service.combineWithBaseUrl(findCategory.getThumbnailImgPath());
+
             List<Topic> topicList = findCategory.getTopics();
             List<DetailCategoryTopicProcessDto> detailCategoryTopicProcessDtos = topicList.stream().map(DetailCategoryTopicProcessDto::new).toList();
 
-            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(findCategory, detailCategoryTopicProcessDtos);
+            // 수정된 썸네일 경로를 사용하여 DTO 생성
+            DetailCategoryResponseDto detailCategoryResponseDto = new DetailCategoryResponseDto(findCategory.getId(), findCategory.getName(), modifiedThumbnailImgPath, findCategory.getUseYN(), detailCategoryTopicProcessDtos);
             return ResponseEntity.ok(ApiResponseWrapper.success(detailCategoryResponseDto));
 
         } catch (EntityNotFoundException e) {
@@ -137,7 +151,7 @@ public class AdminService {
 
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
-                    .thumbnailImgPath(createCategoryRequestDto.s3ImgUrl())
+                    .thumbnailImgPath(awsS3Service.extractPathFromUrl(createCategoryRequestDto.s3ImgUrl()))
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -148,6 +162,8 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 카테고리"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -170,8 +186,10 @@ public class AdminService {
                 throw new IllegalArgumentException();
             }
 
+            ModifyCategoryRequestDto modifiedDto = new ModifyCategoryRequestDto(modifyCategoryRequestDto.id(), modifyCategoryRequestDto.name(), modifyCategoryRequestDto.useYN(), awsS3Service.extractPathFromUrl(modifyCategoryRequestDto.s3ImgUrl()), modifyCategoryRequestDto.topicList());
+
             // 토픽 이름, 썸네일, useYN 수정
-            category.modifyNameUseYNImg(modifyCategoryRequestDto);
+            category.modifyNameUseYNImg(modifiedDto);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
@@ -191,6 +209,8 @@ public class AdminService {
         } catch (IllegalArgumentException e) {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

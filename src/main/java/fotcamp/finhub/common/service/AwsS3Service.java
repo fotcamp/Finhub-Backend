@@ -26,6 +26,9 @@ public class AwsS3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("${spring.cloud.aws.s3.base-url}")
+    private String baseUrl;
+
     public String uploadFile(SaveImgToS3RequestDto saveImgToS3RequestDto) throws NoSuchFileException {
 
         if(saveImgToS3RequestDto.getFile().isEmpty()) {
@@ -78,5 +81,18 @@ public class AwsS3Service {
             log.error("Error deleting image from S3", e);
             throw new RuntimeException("Failed to delete image from S3", e);
         }
+    }
+
+    // s3 이미지 base url 빼고 폴더 경로만 return 하게 수정
+    public String extractPathFromUrl(String s3Url) throws Exception {
+        URL url = new URL(s3Url);
+        // 필요한 경우 경로의 특정 부분만 잘라내서 반환
+        return url.getPath(); // 예: "/category/test_1710852605205.png"
+    }
+
+    // s3 이미지 base url 합쳐서 full url로 return 하게 수정
+    public String combineWithBaseUrl(String path) {
+        // Base URL과 경로를 결합하여 전체 URL 생성
+        return baseUrl + path;
     }
 }

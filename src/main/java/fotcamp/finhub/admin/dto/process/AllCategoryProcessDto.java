@@ -1,9 +1,12 @@
 package fotcamp.finhub.admin.dto.process;
 
 import fotcamp.finhub.common.domain.Category;
+import fotcamp.finhub.common.service.AwsS3Service;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class AllCategoryProcessDto {
     private final Long id;
     private final String name;
