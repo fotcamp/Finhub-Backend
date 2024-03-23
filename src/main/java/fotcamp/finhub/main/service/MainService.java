@@ -1,12 +1,17 @@
 package fotcamp.finhub.main.service;
 
+import fotcamp.finhub.admin.repository.CategoryRepository;
 import fotcamp.finhub.admin.repository.TopicRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.Category;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.main.dto.process.CategoryListProcessDto;
+import fotcamp.finhub.main.dto.process.TopicListProcessDto;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.process.SearchResultListProcessDto;
+import fotcamp.finhub.main.dto.response.LoginHomeResponseDto;
 import fotcamp.finhub.main.dto.response.SearchResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +37,24 @@ public class MainService {
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final TopicRepository topicRepository;
+    private final CategoryRepository categoryRepository;
 
-//    public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails){
-//
-//        //
-//        // 토픽은 7개만
-//        // 1. 로그인인지 비로그인인지 판단해서 로그인유저면 스크랩정보까지 줘야함
-//        if (userDetails.getAuthorities() == null){
-//
-//        }
-//    }
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> home(int size){
+        // 로그인 비로그인 체크 검사 필요
+        // 전체 카테고리리스트
+        List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
+        List<CategoryListProcessDto> categoryListDtos = allCategories.stream()
+                .map(category -> new CategoryListProcessDto(category.getId(), category.getName())).collect(Collectors.toList());
+        // 첫번째 카테고리의 토픽 7개
+        Category firstCategory = categoryRepository.findFirstByOrderByIdAsc();
+        List<Topic> topicTop7 = topicRepository.findByCategoryAndIdGreaterThan(firstCategory, 0L, PageRequest.of(0, size));
+
+        List<TopicListProcessDto> topicListDtos = topicTop7.stream()
+                .map(topic -> new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
+        LoginHomeResponseDto loginHomeResponseDto = new LoginHomeResponseDto(categoryListDtos, topicListDtos);
+        return ResponseEntity.ok(ApiResponseWrapper.success(loginHomeResponseDto));
+    }
     
     public ResponseEntity<ApiResponseWrapper> changeNickname(CustomUserDetails userDetails , ChangeNicknameRequestDto dto){
 
@@ -88,5 +102,29 @@ public class MainService {
                 .map(topic -> new SearchResultListProcessDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
         SearchResponseDto responseDto = new SearchResponseDto(response, page, pageResult.getTotalPages(), pageResult.getTotalElements());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> otherCategories(Long categoryId, int size){
+        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(
+                () -> new EntityNotFoundException("카테고리가 존재하지 않습니다.")
+        );
+        List<Topic> topicList = topicRepository.findByCategoryAndIdGreaterThan(findCategory, 0L, PageRequest.of(0, size));
+        //토픽만 7개
+        Stream<TopicListProcessDto> topicListDtos = topicList.stream()
+                .map(topic -> new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary()));
+        return ResponseEntity.ok(ApiResponseWrapper.success(topicListDtos));
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> more(Long categoryId, Long cursorId, int size){
+        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(
+                () -> new EntityNotFoundException("카테고리가 존재하지 않습니다.")
+        );
+        List<Topic> topicList = topicRepository.findByCategoryAndIdGreaterThan(findCategory, cursorId, PageRequest.of(0, size));
+        //토픽만 7개
+        Stream<TopicListProcessDto> topicListDtos = topicList.stream()
+                .map(topic -> new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary()));
+        return ResponseEntity.ok(ApiResponseWrapper.success(topicListDtos));
     }
 }

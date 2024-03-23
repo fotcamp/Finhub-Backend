@@ -48,4 +48,28 @@ public class MainController {
             @RequestParam(name = "page", defaultValue = "0") int page ){
         return mainService.search(method, keyword, size,page);
     }
+
+    @GetMapping("/home")
+    public ResponseEntity<ApiResponseWrapper> home(
+            @RequestParam(name = "size", defaultValue = "7") int size
+    ){return mainService.home(size);}
+
+    @GetMapping("/home/{categoryId}")
+    public ResponseEntity<ApiResponseWrapper> otherCategories(
+            @PathVariable(name = "categoryId") Long categoryId,
+            @RequestParam(name = "size", defaultValue = "7") int size
+    ){
+        return mainService.otherCategories(categoryId, size);
+    }
+
+    @GetMapping("/home/more/{categoryId}")
+    public ResponseEntity<ApiResponseWrapper> more(
+            @PathVariable(name = "categoryId") Long categoryId,
+            @RequestParam(name = "cursorId") Long cursorId,
+            @RequestParam(name = "size", defaultValue = "7") int size
+    ){
+        return mainService.more(categoryId, cursorId, size);
+    }
+
+
 }
