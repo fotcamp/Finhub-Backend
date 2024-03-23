@@ -100,17 +100,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
         Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
-        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map( category -> {
-            // DTO 객체 생성
-            AllCategoryProcessDto dto = new AllCategoryProcessDto(category);
-
-            // 필요한 경우 여기서 DTO의 thumbnailImgPath 값을 수정
-            String modifiedThumbnailImgPath = awsS3Service.combineWithBaseUrl(dto.getThumbnailImgPath());
-            // 새로운 DTO 객체를 생성하거나, 기존 객체의 상태를 변경해서는 안됩니다.
-            // 대신, DTO 설계를 변경하거나 적절한 메서드를 DTO에 추가해야 합니다.
-
-            return new AllCategoryProcessDto(dto.getId(), dto.getName(), modifiedThumbnailImgPath, dto.getUseYN());
-        }).toList();
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(categories);
         AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
@@ -232,7 +222,9 @@ public class AdminService {
         try {
             Topic findTopic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
             List<DetailTopicProcessDto> detailTopicProcessDtos = findTopic.getGptList().stream().map(DetailTopicProcessDto::new).toList();
-            DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic, detailTopicProcessDtos);
+            DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic.getCategory().getId(), findTopic.getId(),
+                    findTopic.getTitle(), findTopic.getDefinition(), findTopic.getSummary(), findTopic.getShortDefinition(),
+                    awsS3Service.combineWithBaseUrl(findTopic.getThumbnailImgPath()), findTopic.getUseYN(), detailTopicProcessDtos);
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailTopicResponseDto));
         } catch (EntityNotFoundException e) {
@@ -251,7 +243,7 @@ public class AdminService {
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
                     .shortDefinition(createTopicRequestDto.shortDefinition())
-                    .thumbnailImgPath(createTopicRequestDto.s3ImgUrl())
+                    .thumbnailImgPath(awsS3Service.extractPathFromUrl(createTopicRequestDto.s3ImgUrl()))
                     .createdBy(userDetails.getRole())
                     .build();
 
@@ -261,6 +253,8 @@ public class AdminService {
             return ResponseEntity.ok(ApiResponseWrapper.success(new CreateTopicResponseDto(topicId)));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("존재하지 않는 카테고리"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -271,7 +265,10 @@ public class AdminService {
             Topic topic = topicRepository.findById(modifyTopicRequestDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             Category category = categoryRepository.findById(modifyTopicRequestDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
             // 토픽 내용 수정
-            topic.modifyTopic(modifyTopicRequestDto, category, userDetails.getRole());
+            topic.modifyTopic(modifyTopicRequestDto.getTitle(), modifyTopicRequestDto.getDefinition(), modifyTopicRequestDto.getSummary(),
+                    modifyTopicRequestDto.getShortDefinition(),awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
+                    category, userDetails.getRole());
+
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
             for (GptProcessDto gptProcessDto : gptProcessDtoList) {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
@@ -288,6 +285,8 @@ public class AdminService {
         } catch (IllegalArgumentException e) {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
