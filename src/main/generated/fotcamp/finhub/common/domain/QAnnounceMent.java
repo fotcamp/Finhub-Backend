@@ -10,14 +10,14 @@ import com.querydsl.core.types.Path;
 
 
 /**
- * QAnnounceMent is a Querydsl query type for AnnounceMent
+ * QAnnouncement is a Querydsl query type for Announcement
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QAnnounceMent extends EntityPathBase<AnnounceMent> {
+public class QAnnouncement extends EntityPathBase<Announcement> {
 
-    private static final long serialVersionUID = -1826591312L;
+    private static final long serialVersionUID = -1825638000L;
 
-    public static final QAnnounceMent announceMent = new QAnnounceMent("announceMent");
+    public static final QAnnouncement announcement = new QAnnouncement("announcement");
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
@@ -35,16 +35,16 @@ public class QAnnounceMent extends EntityPathBase<AnnounceMent> {
 
     public final StringPath title = createString("title");
 
-    public QAnnounceMent(String variable) {
-        super(AnnounceMent.class, forVariable(variable));
+    public QAnnouncement(String variable) {
+        super(Announcement.class, forVariable(variable));
     }
 
-    public QAnnounceMent(Path<? extends AnnounceMent> path) {
+    public QAnnouncement(Path<? extends Announcement> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QAnnounceMent(PathMetadata metadata) {
-        super(AnnounceMent.class, metadata);
+    public QAnnouncement(PathMetadata metadata) {
+        super(Announcement.class, metadata);
     }
 
 }

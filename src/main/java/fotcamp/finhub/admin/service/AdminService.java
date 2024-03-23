@@ -64,6 +64,8 @@ public class AdminService {
     private final TopicQuizRepository topicQuizRepository;
     private final BannerRepository bannerRepository;
     private final BannerRepositoryCustom bannerRepositoryCustom;
+    private final TopicRequestRepository topicRequestRepository;
+    private final TopicRequestRepositoryCustom topicRequestRepositoryCustom;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -728,4 +730,15 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("이미지 삭제 실패"));
         }
     }
+
+     // 없는 단어 요청 한 것 확인하기
+    public ResponseEntity<ApiResponseWrapper> getNoWordList(Pageable pageable, String resolvedYN) {
+        Page<TopicRequest> topicRequests = topicRequestRepositoryCustom.searchAllTopicRequestFilterList(pageable, resolvedYN);
+        List<AllTopicRequestProcessDto> allTopicRequestProcessDtoList = topicRequests.getContent().stream().map(AllTopicRequestProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(topicRequests);
+        AllTopicRequestResponseDto allTopicRequestResponseDto = new AllTopicRequestResponseDto(allTopicRequestProcessDtoList, PageInfoProcessDto);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
+    }
+
 }
