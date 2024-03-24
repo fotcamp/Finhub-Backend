@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -64,6 +65,8 @@ public class AdminService {
     private final TopicQuizRepository topicQuizRepository;
     private final BannerRepository bannerRepository;
     private final BannerRepositoryCustom bannerRepositoryCustom;
+    private final TopicRequestRepository topicRequestRepository;
+    private final TopicRequestRepositoryCustom topicRequestRepositoryCustom;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -727,5 +730,31 @@ public class AdminService {
             log.error("Failed to delete S3 image: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail("이미지 삭제 실패"));
         }
+    }
+
+     // 없는 단어 요청 한 것 확인하기
+    public ResponseEntity<ApiResponseWrapper> getNoWordList(Pageable pageable, String resolvedYN) {
+        Page<TopicRequest> topicRequests = topicRequestRepositoryCustom.searchAllTopicRequestFilterList(pageable, resolvedYN);
+        List<AllTopicRequestProcessDto> allTopicRequestProcessDtoList = topicRequests.getContent().stream().map(AllTopicRequestProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(topicRequests);
+        AllTopicRequestResponseDto allTopicRequestResponseDto = new AllTopicRequestResponseDto(allTopicRequestProcessDtoList, PageInfoProcessDto);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
+    }
+
+    // 없는 단어 요청 시 체크하기
+    public ResponseEntity<ApiResponseWrapper> checkNoWord(CheckNoWordRequestDto checkNoWordRequestDto) {
+        TopicRequest topicRequest = topicRequestRepository.findById(checkNoWordRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 요청 단어"));
+
+        // resolvedAt이 null이면 현재 시간 설정, 그렇지 않으면 null로 설정
+        if (topicRequest.getResolvedAt() == null) {
+            topicRequest.setResolvedAt(LocalDateTime.now().withNano(0));
+        } else {
+            topicRequest.setResolvedAt(null);
+        }
+
+        // 엔티티 저장
+        topicRequestRepository.save(topicRequest);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

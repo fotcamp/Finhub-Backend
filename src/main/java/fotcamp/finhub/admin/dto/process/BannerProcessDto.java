@@ -24,5 +24,4 @@ public class BannerProcessDto {
         this.createdTime = banner.getCreatedTime();
         this.modifiedTime = banner.getModifiedTime();
     }
-
 }

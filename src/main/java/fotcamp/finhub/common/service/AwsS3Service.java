@@ -85,6 +85,9 @@ public class AwsS3Service {
 
     // s3 이미지 base url 빼고 폴더 경로만 return 하게 수정
     public String extractPathFromUrl(String s3Url) throws Exception {
+        if (s3Url == null || s3Url.isBlank()) {
+            return null;
+        }
         URL url = new URL(s3Url);
         // 필요한 경우 경로의 특정 부분만 잘라내서 반환
         return url.getPath(); // 예: "/category/test_1710852605205.png"
@@ -92,6 +95,9 @@ public class AwsS3Service {
 
     // s3 이미지 base url 합쳐서 full url로 return 하게 수정
     public String combineWithBaseUrl(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
         // Base URL과 경로를 결합하여 전체 URL 생성
         return baseUrl + path;
     }

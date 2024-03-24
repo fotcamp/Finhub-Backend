@@ -25,6 +25,8 @@ public class QTopicRequest extends EntityPathBase<TopicRequest> {
 
     public final StringPath requester = createString("requester");
 
+    public final DateTimePath<java.time.LocalDateTime> resolvedAt = createDateTime("resolvedAt", java.time.LocalDateTime.class);
+
     public final StringPath term = createString("term");
 
     public QTopicRequest(String variable) {

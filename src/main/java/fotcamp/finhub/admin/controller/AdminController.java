@@ -258,4 +258,25 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> deleteImg(@RequestBody DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
         return adminService.deleteS3Image(deleteS3ImageRequestDto);
     }
+
+    @GetMapping(value = "/no-word")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "없는 단어 요청 확인하기", description = "없는 단어 요청 확인하기")
+    public ResponseEntity<ApiResponseWrapper> getNoWordList(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "resolvedYN", required = false) String resolvedYN
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getNoWordList(pageable, resolvedYN);
+    }
+
+    @PostMapping(value = "/no-word")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "없는 단어 요청 확인 시 체크하기", description = "없는 단어 요청 확인 시 체크하기")
+    public ResponseEntity<ApiResponseWrapper> checkNoWord(@RequestBody CheckNoWordRequestDto checkNoWordRequestDto) {
+        return adminService.checkNoWord(checkNoWordRequestDto);
+    }
+
+
 }
