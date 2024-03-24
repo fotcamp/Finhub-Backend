@@ -176,7 +176,6 @@ public class AdminController {
         return adminService.getGptLog(pageable, topicId, usertypeId);
     }
 
-
     @PostMapping(value ="/img", consumes = { "multipart/form-data" })
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "이미지 저장", description = "이미지 s3 저장 후 이미지 s3 url 반환")
@@ -278,5 +277,26 @@ public class AdminController {
         return adminService.checkNoWord(checkNoWordRequestDto);
     }
 
+    @PostMapping(value = "/userAvatar")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "유저 아바타 생성", description = "유저 아바타 생성하기")
+    public ResponseEntity<ApiResponseWrapper> createUserAvatar(@RequestBody CreateUserAvatarRequestDto createUserAvatarRequestDto,
+                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createUserAvatar(createUserAvatarRequestDto, userDetails);
+    }
+
+    @GetMapping(value = "/userAvatar")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "유저 아바타 전체 조회", description = "유저 아바타 전체 조회")
+    public ResponseEntity<ApiResponseWrapper> getUserAvatar() {
+        return adminService.getUserAvatar();
+    }
+
+    @DeleteMapping(value = "/userAvatar/{id}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "유저 아바타 전체 조회", description = "유저 아바타 전체 조회")
+    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(@PathVariable(name = "id") Long id) {
+        return adminService.deleteUserAvatar(id);
+    }
 
 }

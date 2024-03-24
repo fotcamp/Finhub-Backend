@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
-import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -30,8 +29,6 @@ public class QUserAvatar extends EntityPathBase<UserAvatar> {
     public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final ListPath<Member, QMember> memberList = this.<Member, QMember>createList("memberList", Member.class, QMember.class, PathInits.DIRECT2);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;

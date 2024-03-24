@@ -27,16 +27,18 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -67,6 +69,7 @@ public class AdminService {
     private final BannerRepositoryCustom bannerRepositoryCustom;
     private final TopicRequestRepository topicRequestRepository;
     private final TopicRequestRepositoryCustom topicRequestRepositoryCustom;
+    private final UserAvatarRepository userAvatarRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -755,6 +758,48 @@ public class AdminService {
 
         // 엔티티 저장
         topicRequestRepository.save(topicRequest);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 유저아바타 생성
+    public ResponseEntity<ApiResponseWrapper> createUserAvatar(CreateUserAvatarRequestDto createUserAvatarRequestDto, CustomUserDetails userDetails) {
+        try {
+            UserAvatar userAvatar = UserAvatar.builder()
+                    .avatar_img_path(awsS3Service.extractPathFromUrl(createUserAvatarRequestDto.s3ImgUrl()))
+                    .createdBy(userDetails.getRole())
+                    .build();
+            userAvatarRepository.save(userAvatar);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateUserAvatarResponseDto(userAvatar.getId())));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    // 유저 아바타 전체조회
+    public ResponseEntity<ApiResponseWrapper> getUserAvatar() {
+        List<UserAvatar> userAvatars = userAvatarRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<GetUserAvatarProcessDto> resultList = userAvatars.stream().map(userAvatar ->
+                new GetUserAvatarProcessDto(
+                        userAvatar.getId(),
+                        awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()),
+                        userAvatar.getCreatedBy(),
+                        userAvatar.getCreatedTime(),
+                        userAvatar.getModifiedTime()
+                )
+        ).toList();
+
+        AllUserAvatarResponseDto resultDto = new AllUserAvatarResponseDto(resultList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // 유저아바타 삭제
+    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(Long id) {
+        UserAvatar userAvatar = userAvatarRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저아바타"));
+        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()));
+        userAvatarRepository.delete(userAvatar);
+
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
