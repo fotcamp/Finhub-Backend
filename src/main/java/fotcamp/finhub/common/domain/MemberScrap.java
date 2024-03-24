@@ -24,5 +24,8 @@ public class MemberScrap {
     @JoinColumn(name = "TOPIC_ID")
     private Topic topic;
 
-
+    public MemberScrap(Member member, Topic topic) {
+        this.member = member;
+        this.topic = topic;
+    }
 }
