@@ -294,7 +294,7 @@ public class AdminController {
 
     @DeleteMapping(value = "/userAvatar/{id}")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "유저 아바타 전체 조회", description = "유저 아바타 전체 조회")
+    @Operation(summary = "유저 아바타 삭제", description = "유저 아바타 삭제")
     public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(@PathVariable(name = "id") Long id) {
         return adminService.deleteUserAvatar(id);
     }
