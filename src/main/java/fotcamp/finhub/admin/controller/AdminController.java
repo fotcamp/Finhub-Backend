@@ -299,4 +299,27 @@ public class AdminController {
         return adminService.deleteUserAvatar(id);
     }
 
+    @PostMapping(value = "/calendarEmoticon")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "달력 이모티콘 생성", description = "달력 이모티콘 생성하기")
+    public ResponseEntity<ApiResponseWrapper> createCalendarEmoticon(@RequestBody CreateCalendarEmoticonRequestDto createCalendarEmoticonRequestDto,
+                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createCalendarEmoticon(createCalendarEmoticonRequestDto, userDetails);
+    }
+
+    @GetMapping(value = "/calendarEmoticon")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "달력 이모티콘 전체 조회", description = "달력 이모티콘 전체 조회")
+    public ResponseEntity<ApiResponseWrapper> getCalendarEmoticon() {
+        return adminService.getCalendarEmoticon();
+    }
+
+    @DeleteMapping(value = "/calendarEmoticon/{id}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "달력 이모티콘 삭제", description = "달력 이모티콘 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(@PathVariable(name = "id") Long id) {
+        return adminService.deleteCalendarEmoticon(id);
+    }
+
+
 }

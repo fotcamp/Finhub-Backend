@@ -77,6 +77,7 @@ public class AwsS3Service {
                     .key(key)
                     .build();
             s3Client.deleteObject(deleteObjectRequest);
+            log.info("***" + deleteObjectRequest);
         } catch (Exception e) {
             log.error("Error deleting image from S3", e);
             throw new RuntimeException("Failed to delete image from S3", e);

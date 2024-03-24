@@ -22,6 +22,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public static final QMember member = new QMember("member1");
 
+    public final QCalendarEmoticon calendarEmoticon;
+
     public final StringPath email = createString("email");
 
     public final StringPath fcmToken = createString("fcmToken");
@@ -66,6 +68,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.calendarEmoticon = inits.isInitialized("calendarEmoticon") ? new QCalendarEmoticon(forProperty("calendarEmoticon")) : null;
         this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar")) : null;
         this.userType = inits.isInitialized("userType") ? new QUserType(forProperty("userType")) : null;
     }

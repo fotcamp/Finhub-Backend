@@ -70,6 +70,7 @@ public class AdminService {
     private final TopicRequestRepository topicRequestRepository;
     private final TopicRequestRepositoryCustom topicRequestRepositoryCustom;
     private final UserAvatarRepository userAvatarRepository;
+    private final CalendarEmoticonRepository calendarEmoticonRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -774,7 +775,6 @@ public class AdminService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     // 유저 아바타 전체조회
@@ -799,6 +799,47 @@ public class AdminService {
         UserAvatar userAvatar = userAvatarRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저아바타"));
         awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()));
         userAvatarRepository.delete(userAvatar);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 달력 이모티콘 생성
+    public ResponseEntity<ApiResponseWrapper> createCalendarEmoticon(CreateCalendarEmoticonRequestDto createCalendarEmoticonRequestDto, CustomUserDetails userDetails) {
+        try {
+            CalendarEmoticon calendarEmoticon = CalendarEmoticon.builder()
+                    .emoticon_img_path(awsS3Service.extractPathFromUrl(createCalendarEmoticonRequestDto.s3ImgUrl()))
+                    .createdBy(userDetails.getRole())
+                    .build();
+            calendarEmoticonRepository.save(calendarEmoticon);
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateUserAvatarResponseDto(calendarEmoticon.getId())));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // 달력 이모티콘 조회
+    public ResponseEntity<ApiResponseWrapper> getCalendarEmoticon() {
+        List<CalendarEmoticon> calendarEmoticons = calendarEmoticonRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<GetCalendarEmoticonProcessDto> resultList = calendarEmoticons.stream().map(calendarEmoticon ->
+                new GetCalendarEmoticonProcessDto(
+                        calendarEmoticon.getId(),
+                        awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path()),
+                        calendarEmoticon.getCreatedBy(),
+                        calendarEmoticon.getCreatedTime(),
+                        calendarEmoticon.getModifiedTime()
+                )
+        ).toList();
+
+        AllCalendarEmoticonResponseDto resultDto = new AllCalendarEmoticonResponseDto(resultList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // 달력 이모티콘 삭제
+    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(Long id) {
+        CalendarEmoticon calendarEmoticon = calendarEmoticonRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 달력 이모티콘"));
+        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path()));
+        calendarEmoticonRepository.delete(calendarEmoticon);
 
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
