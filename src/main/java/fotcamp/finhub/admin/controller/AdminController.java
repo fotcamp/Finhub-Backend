@@ -271,5 +271,12 @@ public class AdminController {
         return adminService.getNoWordList(pageable, resolvedYN);
     }
 
+    @PostMapping(value = "/no-word")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "없는 단어 요청 확인 시 체크하기", description = "없는 단어 요청 확인 시 체크하기")
+    public ResponseEntity<ApiResponseWrapper> checkNoWord(@RequestBody CheckNoWordRequestDto checkNoWordRequestDto) {
+        return adminService.checkNoWord(checkNoWordRequestDto);
+    }
+
 
 }

@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -741,4 +742,19 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
     }
 
+    // 없는 단어 요청 시 체크하기
+    public ResponseEntity<ApiResponseWrapper> checkNoWord(CheckNoWordRequestDto checkNoWordRequestDto) {
+        TopicRequest topicRequest = topicRequestRepository.findById(checkNoWordRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 요청 단어"));
+
+        // resolvedAt이 null이면 현재 시간 설정, 그렇지 않으면 null로 설정
+        if (topicRequest.getResolvedAt() == null) {
+            topicRequest.setResolvedAt(LocalDateTime.now().withNano(0));
+        } else {
+            topicRequest.setResolvedAt(null);
+        }
+
+        // 엔티티 저장
+        topicRequestRepository.save(topicRequest);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
 }

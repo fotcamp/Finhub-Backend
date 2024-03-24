@@ -24,4 +24,7 @@ public class TopicRequest {
     private LocalDateTime requestedAt;
     private LocalDateTime resolvedAt;
 
+    public void setResolvedAt(LocalDateTime now) {
+        resolvedAt = now;
+    }
 }
