@@ -9,11 +9,11 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class OtherCategoriesResponseDto {
+public class HomeMoreResponseDto {
 
     List<TopicListProcessDto> topicList;
 
-    public OtherCategoriesResponseDto(List<TopicListProcessDto> topicList) {
+    public HomeMoreResponseDto(List<TopicListProcessDto> topicList) {
         this.topicList = topicList;
     }
 }

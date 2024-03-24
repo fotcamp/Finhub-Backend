@@ -57,19 +57,30 @@ public class MainController {
 
     @GetMapping("/home/{categoryId}")
     public ResponseEntity<ApiResponseWrapper> otherCategories(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "categoryId") Long categoryId,
             @RequestParam(name = "size", defaultValue = "7") int size
     ){
-        return mainService.otherCategories(categoryId, size);
+        return mainService.otherCategories(userDetails, categoryId, size);
     }
 
     @GetMapping("/home/more/{categoryId}")
     public ResponseEntity<ApiResponseWrapper> more(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "categoryId") Long categoryId,
             @RequestParam(name = "cursorId") Long cursorId,
             @RequestParam(name = "size", defaultValue = "7") int size
     ){
-        return mainService.more(categoryId, cursorId, size);
+        return mainService.more(userDetails, categoryId, cursorId, size);
+    }
+
+    @GetMapping("/home/scrap/{topicId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> scrapTopic(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "topicId") Long topicId
+    ){
+        return mainService.scrapTopic(userDetails, topicId);
     }
 
 

@@ -13,12 +13,8 @@ public class TopicListProcessDto {
     private String summary;
 
     private boolean isScrapped;
+    private String categoryName;
 
-    public TopicListProcessDto(Long id, String title, String summary) {
-        this.topicId = id;
-        this.title = title;
-        this.summary = summary;
-    }
 
     public TopicListProcessDto(Long topicId, String title, String summary, boolean isScrapped) {
         this.topicId = topicId;
@@ -27,7 +23,11 @@ public class TopicListProcessDto {
         this.isScrapped = isScrapped;
     }
 
-    public void add(TopicListProcessDto dto, boolean isScrapped){
-
+    public TopicListProcessDto(Long topicId, String title, String summary, boolean isScrapped, String categoryName) {
+        this.topicId = topicId;
+        this.title = title;
+        this.summary = summary;
+        this.isScrapped = isScrapped;
+        this.categoryName = categoryName;
     }
 }
