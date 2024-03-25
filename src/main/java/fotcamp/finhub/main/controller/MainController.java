@@ -42,11 +42,12 @@ public class MainController {
     @GetMapping("/search/{method}")
     @Operation(summary = "세 번째 탭 검색", description = "제목만, 내용만, 제목+내용")
     public ResponseEntity<ApiResponseWrapper> search(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
             @RequestParam(name = "size", defaultValue = "4") int size,
             @RequestParam(name = "page", defaultValue = "0") int page ){
-        return mainService.search(method, keyword, size,page);
+        return mainService.search(userDetails, method, keyword, size,page);
     }
 
     @GetMapping("/home")
@@ -83,5 +84,18 @@ public class MainController {
         return mainService.scrapTopic(userDetails, topicId);
     }
 
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/thirdTab/recent")
+    public ResponseEntity<ApiResponseWrapper> recentSearch(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.recentSearch(userDetails);
+    }
+
+    @GetMapping("/thirdTab/popular")
+    public ResponseEntity<ApiResponseWrapper> popularKeyword(
+    ){
+        return mainService.popularKeyword();
+    }
 
 }
