@@ -4,6 +4,7 @@ package fotcamp.finhub.main.controller;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
+import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -113,5 +114,13 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
         return mainService.deleteAllRecentKeyword(userDetails);
+    }
+
+    @PostMapping("/search/requestKeyword")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> requestKeyword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody NewKeywordRequestDto dto){
+        return mainService.requestKeyword(userDetails, dto);
     }
 }
