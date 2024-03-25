@@ -21,4 +21,13 @@ public class PopularSearch {
 
     private String keyword;
     private Long frequency;
+
+    public PopularSearch(String keyword) {
+        this.keyword = keyword;
+        this.frequency = 0L;
+    }
+
+    public void plusFrequency(){
+        this.frequency += 1L;
+    }
 }

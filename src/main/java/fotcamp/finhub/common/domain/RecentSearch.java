@@ -25,4 +25,13 @@ public class RecentSearch {
     private String keyword;
     private LocalDateTime localDateTime;
 
+    public RecentSearch(Member member, String keyword, LocalDateTime localDateTime) {
+        this.member = member;
+        this.keyword = keyword;
+        this.localDateTime = localDateTime;
+    }
+
+    public void updateRecord(LocalDateTime localDateTime){
+        this.localDateTime = localDateTime;
+    }
 }
