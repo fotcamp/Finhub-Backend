@@ -16,4 +16,5 @@ public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long
     List<RecentSearch> findByMember_IdOrderByLocalDateTimeDesc(@Param("memberId") Long memberId, Pageable pageable);
 
     Optional<RecentSearch> findByMember_memberIdAndKeyword(Long memberId, String keyword);
+    void deleteByMember_memberId(Long memberId);
 }

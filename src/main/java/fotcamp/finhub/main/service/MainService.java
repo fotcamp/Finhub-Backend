@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -225,6 +226,21 @@ public class MainService {
         List<PopularKeywordResponseDto> responseDto = popularSearchList.stream()
                 .map(popularSearch -> new PopularKeywordResponseDto(popularSearch.getKeyword())).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(CustomUserDetails userDetails, Long searchId){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        RecentSearch recentSearch = recentSearchRepository.findById(searchId).orElseThrow(() -> new EntityNotFoundException("최근검색 ID가 존재하지 않습니다."));
+        recentSearchRepository.delete(recentSearch);
+        return ResponseEntity.ok(ApiResponseWrapper.success("삭제 성공"));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteAllRecentKeyword(CustomUserDetails userDetails){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        recentSearchRepository.deleteByMember_memberId(memberId);
+        return ResponseEntity.ok(ApiResponseWrapper.success("삭제 성공"));
     }
 
 }

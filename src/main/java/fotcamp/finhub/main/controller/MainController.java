@@ -98,4 +98,20 @@ public class MainController {
         return mainService.popularKeyword();
     }
 
+    @GetMapping("/thirdTab/delete/{searchId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "searchId") Long searchId
+    ){
+        return mainService.deleteRecentKeyword(userDetails, searchId);
+    }
+
+    @GetMapping("/thirdTab/deleteall")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> deleteAllRecentKeyword(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.deleteAllRecentKeyword(userDetails);
+    }
 }
