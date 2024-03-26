@@ -383,8 +383,8 @@ public class AdminService {
         }
     }
 
-    // GPT 질문 답변 로그 저장 및 답변 반환
-    public ResponseEntity<ApiResponseWrapper> createGptContent(CreateGptContentRequestDto createGptContentRequestDto,
+    // 토픽 유저타입 내용 GPT 질문 답변 로그 저장 및 답변 반환
+    public ResponseEntity<ApiResponseWrapper> createTopicUsertypeGptContent(CreateGptContentRequestDto createGptContentRequestDto,
                                                                CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(createGptContentRequestDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
@@ -406,9 +406,9 @@ public class AdminService {
             // GPT 답변 받기
             log.info("--gpt 실행 중---");
             log.info("prompt : " + resultPrompt);
-            String answer = gptService.returnGptAnswer(resultPrompt);
+            String gptAnswer = gptService.returnGptAnswer(resultPrompt);
             log.info("---gpt 답변 완료---");
-            log.info("answer : " + answer);
+            log.info("answer : " + gptAnswer);
 
             // 로그 DB 저장
             log.info("---gpt log 저장 중---");
@@ -417,14 +417,23 @@ public class AdminService {
                     .topicId(topic.getId())
                     .usertypeId(userType.getId())
                     .question(resultPrompt)
-                    .answer(answer)
+                    .answer(gptAnswer)
                     .createdBy(userDetails.getRole())
                     .build();
 
             gptLogRepository.save(gptLog);
 
-            // GPT 답변 리턴
-            return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(answer)));
+            String prefix = "[설명] : ";
+
+            // '[요약] :' 문자열 뒤의 내용을 추출
+            int summaryStart = gptAnswer.indexOf(prefix);
+
+            if (summaryStart != -1) {
+                String summary = gptAnswer.substring(summaryStart + prefix.length()).trim();
+                return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(summary)));
+            } else {
+                return ResponseEntity.internalServerError().body(ApiResponseWrapper.fail("GPT 답변 파싱 실패", gptAnswer));
+            }
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
@@ -863,7 +872,7 @@ public class AdminService {
 
             if (summaryStart != -1) {
                 String summary = gptAnswer.substring(summaryStart + prefix.length()).trim();
-                return ResponseEntity.ok(ApiResponseWrapper.success(new TopicSummaryGptAnswerDto(summary)));
+                return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(summary)));
             } else {
                 return ResponseEntity.internalServerError().body(ApiResponseWrapper.fail("GPT 답변 파싱 실패", gptAnswer));
             }

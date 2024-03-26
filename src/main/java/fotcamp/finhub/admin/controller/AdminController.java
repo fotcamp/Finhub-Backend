@@ -164,12 +164,12 @@ public class AdminController {
         return adminService.createTopicSummaryGptContent(createTopicSummaryGptContentRequestDto, userDetails);
     }
 
-    @PostMapping("/gpt")
+    @PostMapping("/topic-usertype")
     @PreAuthorize("hasRole('SUPER')")
-    @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환")
-    public ResponseEntity<ApiResponseWrapper> createGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto,
+    @Operation(summary = "토픽 유저타입 gpt 내용 생성", description = "토픽 유저타입 gpt 내용 생성 후 질문 답변 로그 저장 및 답변 반환")
+    public ResponseEntity<ApiResponseWrapper> createTopicUsertypeGptContent(@RequestBody CreateGptContentRequestDto createGptContentRequestDto,
                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return adminService.createGptContent(createGptContentRequestDto, userDetails);
+        return adminService.createTopicUsertypeGptContent(createGptContentRequestDto, userDetails);
     }
     @GetMapping("/gpt-log")
     @PreAuthorize("hasRole('SUPER')")
