@@ -2,6 +2,7 @@ package fotcamp.finhub.main.service;
 
 import fotcamp.finhub.admin.repository.CategoryRepository;
 import fotcamp.finhub.admin.repository.TopicRepository;
+import fotcamp.finhub.admin.repository.TopicRequestRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -9,6 +10,7 @@ import fotcamp.finhub.main.dto.process.CategoryListProcessDto;
 import fotcamp.finhub.main.dto.process.TopicListProcessDto;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.process.SearchResultListProcessDto;
+import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
 import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
@@ -44,6 +46,7 @@ public class MainService {
     private final MemberScrapRepository memberScrapRepository;
     private final PopularKeywordRepository popularKeywordRepository;
     private final RecentSearchRepository recentSearchRepository;
+    private final TopicRequestRepository topicRequestRepository;
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
@@ -241,6 +244,16 @@ public class MainService {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         recentSearchRepository.deleteByMember_memberId(memberId);
         return ResponseEntity.ok(ApiResponseWrapper.success("삭제 성공"));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> requestKeyword(CustomUserDetails userDetails, NewKeywordRequestDto dto){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        if (topicRequestRepository.existsByTerm(dto.getKeyword()) ){
+            return ResponseEntity.ok(ApiResponseWrapper.success("이미 요청처리 된 단어입니다."));
+        }
+        topicRequestRepository.save(new TopicRequest(dto.getKeyword(), member.getName(), LocalDateTime.now()));
+        return ResponseEntity.ok(ApiResponseWrapper.success("접수되었습니다."));
     }
 
 }

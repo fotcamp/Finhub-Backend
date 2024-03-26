@@ -27,4 +27,10 @@ public class TopicRequest {
     public void setResolvedAt(LocalDateTime now) {
         resolvedAt = now;
     }
+
+    public TopicRequest(String term, String requester, LocalDateTime requestedAt) {
+        this.term = term;
+        this.requester = requester;
+        this.requestedAt = requestedAt;
+    }
 }
