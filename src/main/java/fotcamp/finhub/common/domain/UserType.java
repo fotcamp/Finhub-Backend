@@ -30,10 +30,10 @@ public class UserType {
     private List<Member> memberList = new ArrayList<>();
 
 
-    public void modifyUserType(ModifyUserTypeRequestDto modifyUserTypeRequestDto) {
-        this.name = modifyUserTypeRequestDto.name();
-        this.useYN = modifyUserTypeRequestDto.useYN();
-        this.avatarImgPath = modifyUserTypeRequestDto.s3ImgUrl();
+    public void modifyUserType(String name, String useYN, String avatarImgPath) {
+        this.name = name;
+        this.useYN = useYN;
+        this.avatarImgPath = avatarImgPath;
     }
 
 }

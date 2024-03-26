@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,11 @@ public class Member {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_AVATAR_ID")
     private UserAvatar userAvatar;
+
+    // calendarEmoticon 1대1 연관관계 ( 주인은 member : 캘린더 이모티콘을 등록하지 않은 경우 null로 처리 )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CALENDAR_EMOTICON_ID")
+    private CalendarEmoticon calendarEmoticon;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<MemberNotification> memberNotificationList = new ArrayList<>();

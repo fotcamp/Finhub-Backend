@@ -2,11 +2,13 @@ package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.admin.dto.process.DetailTopicProcessDto;
 import fotcamp.finhub.common.domain.Topic;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@AllArgsConstructor
 public class DetailTopicResponseDto {
     private final Long categoryId;
     private final Long topicId;

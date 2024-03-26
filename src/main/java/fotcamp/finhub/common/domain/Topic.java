@@ -62,13 +62,13 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(ModifyTopicRequestDto modifyTopicRequestDto, Category category, String role) {
+    public void modifyTopic(String title, String definition, String summary, String shortDefinition, String thumbnailImgPath, Category category, String role) {
         changeCategory(category);
-        this.title = modifyTopicRequestDto.getTitle();
-        this.definition = modifyTopicRequestDto.getDefinition();
-        this.summary = modifyTopicRequestDto.getSummary();
-        this.shortDefinition = modifyTopicRequestDto.getShortDefinition();
-        this.thumbnailImgPath = modifyTopicRequestDto.getS3ImgUrl();
+        this.title = title;
+        this.definition = definition;
+        this.summary = summary;
+        this.shortDefinition = shortDefinition;
+        this.thumbnailImgPath = thumbnailImgPath;
         this.createdBy = role;
     }
 

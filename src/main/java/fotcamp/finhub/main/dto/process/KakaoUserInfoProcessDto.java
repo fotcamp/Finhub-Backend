@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoUserInfoDto {
+public class KakaoUserInfoProcessDto {
 
     private String name;
     private String email;

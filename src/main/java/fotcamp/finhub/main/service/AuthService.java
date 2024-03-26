@@ -10,7 +10,7 @@ import fotcamp.finhub.common.domain.RefreshToken;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.dto.response.LoginResponseDto;
-import fotcamp.finhub.main.dto.process.KakaoUserInfoDto;
+import fotcamp.finhub.main.dto.process.KakaoUserInfoProcessDto;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
@@ -43,7 +43,7 @@ public class AuthService {
 
     public ResponseEntity<ApiResponseWrapper> login(String code) throws JsonProcessingException {
         String kakaoAccessToken = getKakaoAccessToken(code); // 1. 액세스토큰 요청
-        KakaoUserInfoDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken); // 2. 사용자 정보 반환
+        KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken); // 2. 사용자 정보 반환
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
         // 3. 사용자 가입 유무 확인
@@ -95,7 +95,7 @@ public class AuthService {
         return jsonNode.get("access_token").asText();
     }
 
-    public KakaoUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
+    public KakaoUserInfoProcessDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -111,11 +111,12 @@ public class AuthService {
         JsonNode jsonNode = objectMapper.readTree(response.getBody());
         String nickname = jsonNode.get("properties").get("nickname").asText();
         String email = jsonNode.get("kakao_account").get("email").asText();
-        return new KakaoUserInfoDto(nickname,email);
+        return new KakaoUserInfoProcessDto(nickname,email);
     }
 
 
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
+        System.out.println("서비스 함수 진입");
         String refreshToken = request.getHeader("refreshToken");
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
             Long memberId = jwtUtil.getUserId(refreshToken);
@@ -124,7 +125,7 @@ public class AuthService {
             return ResponseEntity.ok(ApiResponseWrapper.success(newAccessToken));
         }
         else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("헤더에 토큰이 없습니다."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("액세스토큰 갱신에 실패했습니다."));
         }
     }
 

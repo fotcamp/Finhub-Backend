@@ -2,11 +2,13 @@ package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.admin.dto.process.DetailCategoryTopicProcessDto;
 import fotcamp.finhub.common.domain.Category;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@AllArgsConstructor
 public class DetailCategoryResponseDto {
     private final Long categoryId;
     private final String name; // 카테고리명

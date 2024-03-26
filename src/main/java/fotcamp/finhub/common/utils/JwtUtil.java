@@ -104,7 +104,7 @@ public class JwtUtil {
         try{
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SecurityException | MalformedJwtException e){
+        } catch (SecurityException | MalformedJwtException | io.jsonwebtoken.security.SignatureException e){
             log.info("Invalid JWT Token", e);
             throw new JwtException(ErrorMessage.WRONG_TYPE_TOKEN.getMsg()); //잘못된 토큰
         } catch (ExpiredJwtException e){

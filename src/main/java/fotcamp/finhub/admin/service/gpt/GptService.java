@@ -23,8 +23,8 @@ public class GptService {
     private final OpenAiService openAiService;
     private final GptLogRepository gptLogRepository;
 
-    // GPT 질문 답변 로그 db에 저장 하고 답변 반환
-    public String saveLogAndReturnAnswer(String prompt) {
+    // GPT 답변 반환
+    public String returnGptAnswer(String prompt) {
         ChatCompletionResult chatCompletion = openAiService.createChatCompletion(onlyPrompt(prompt));
         CompletionChatResponseService response = CompletionChatResponseService.of(chatCompletion);
 

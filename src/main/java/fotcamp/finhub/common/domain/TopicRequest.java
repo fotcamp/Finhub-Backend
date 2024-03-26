@@ -16,11 +16,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TopicRequest {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String term;
     private String requester;
     private LocalDateTime requestedAt;
+    private LocalDateTime resolvedAt;
+
+    public void setResolvedAt(LocalDateTime now) {
+        resolvedAt = now;
+    }
+
+    public TopicRequest(String term, String requester, LocalDateTime requestedAt) {
+        this.term = term;
+        this.requester = requester;
+        this.requestedAt = requestedAt;
+    }
 }
