@@ -156,6 +156,14 @@ public class AdminController {
         return adminService.saveGptPrompt(saveGptPromptRequestDto, userDetails);
     }
 
+    @PostMapping("/topic-summary")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "토픽 요약 gpt 내용 생성", description = "토픽 요약 gpt 생성 후 답변 반환")
+    public ResponseEntity<ApiResponseWrapper> createTopicSummaryGptContent(@RequestBody CreateTopicSummaryGptContentRequestDto createTopicSummaryGptContentRequestDto,
+                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createTopicSummaryGptContent(createTopicSummaryGptContentRequestDto, userDetails);
+    }
+
     @PostMapping("/gpt")
     @PreAuthorize("hasRole('SUPER')")
     @Operation(summary = "gpt 내용 생성", description = "gpt 생성 후 질문 답변 로그 저장 및 답변 반환")

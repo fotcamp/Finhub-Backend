@@ -406,7 +406,7 @@ public class AdminService {
             // GPT 답변 받기
             log.info("--gpt 실행 중---");
             log.info("prompt : " + resultPrompt);
-            String answer = gptService.saveLogAndReturnAnswer(resultPrompt);
+            String answer = gptService.returnGptAnswer(resultPrompt);
             log.info("---gpt 답변 완료---");
             log.info("answer : " + answer);
 
@@ -842,5 +842,34 @@ public class AdminService {
         calendarEmoticonRepository.delete(calendarEmoticon);
 
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 토픽 요약 gpt 내용 생성 및 반환
+    public ResponseEntity<ApiResponseWrapper> createTopicSummaryGptContent(CreateTopicSummaryGptContentRequestDto createTopicSummaryGptContentRequestDto, CustomUserDetails userDetails) {
+        try {
+            Topic topic = topicRepository.findById(createTopicSummaryGptContentRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
+            String prompt = topic.getDefinition() + "을 한 문장으로 요약해줘. \n" +
+                    "아래 답변 형식을 꼭 지켜서 답변해줘. \n" +
+                    "[답변형식]\n" +
+                    "[요약] : ";
+            log.info("prompt : " + prompt);
+            String gptAnswer = gptService.returnGptAnswer(prompt);
+            log.info("answer : " + gptAnswer);
+
+            String prefix = "[요약] : ";
+
+            // '[요약] :' 문자열 뒤의 내용을 추출
+            int summaryStart = gptAnswer.indexOf(prefix);
+
+            if (summaryStart != -1) {
+                String summary = gptAnswer.substring(summaryStart + prefix.length()).trim();
+                return ResponseEntity.ok(ApiResponseWrapper.success(new TopicSummaryGptAnswerDto(summary)));
+            } else {
+                return ResponseEntity.internalServerError().body(ApiResponseWrapper.fail("GPT 답변 파싱 실패", gptAnswer));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
