@@ -11,4 +11,5 @@ public interface MemberScrapRepository extends JpaRepository<MemberScrap, Long> 
 
     @Query("SELECT m FROM MemberScrap m WHERE m.member.memberId = :memberId AND m.topic.id = :topicId")
     Optional<MemberScrap> findByMemberIdAndTopicId(@Param("memberId") Long memberId, @Param("topicId") Long topicId);
+
 }

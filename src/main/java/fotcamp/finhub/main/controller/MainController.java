@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.Path;
 
 @Tag(name = "main", description = "main api")
 @RestController
@@ -122,5 +123,14 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody NewKeywordRequestDto dto){
         return mainService.requestKeyword(userDetails, dto);
+    }
+
+    @GetMapping("/detail/{categoryId}/{topicId}")
+    public ResponseEntity<ApiResponseWrapper> detailTopic(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "categoryId") Long categoryId,
+            @PathVariable(name = "topicId") Long topicId
+    ){
+        return mainService.detailTopic(userDetails, categoryId, topicId);
     }
 }

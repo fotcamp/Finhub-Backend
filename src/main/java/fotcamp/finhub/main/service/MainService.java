@@ -6,10 +6,8 @@ import fotcamp.finhub.admin.repository.TopicRequestRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.main.dto.process.CategoryListProcessDto;
-import fotcamp.finhub.main.dto.process.TopicListProcessDto;
+import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
-import fotcamp.finhub.main.dto.process.SearchResultListProcessDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
 import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.repository.MemberRepository;
@@ -254,6 +252,30 @@ public class MainService {
         }
         topicRequestRepository.save(new TopicRequest(dto.getKeyword(), member.getName(), LocalDateTime.now()));
         return ResponseEntity.ok(ApiResponseWrapper.success("접수되었습니다."));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> detailTopic(CustomUserDetails userDetails, Long categoryId, Long topicId){
+        // ** 로그인 유무 구분 -> 스크랩 여부도 확인해야함
+        // 조회 토픽
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
+
+        DetailTopicProcessDto detailTopicProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getDefinition());
+        // title, summary, definition + 맞춤형 설명 + 다음글 정보
+
+        PageRequest request = PageRequest.of(0, 1);
+        // 다음 토픽 확인하는 방법 : categoryId로 topicList 중에서 topicId 다음걸 찾아야함
+        Topic nextTopic = topicRepository.findNextTopicInSameCategory(categoryId, topicId, request);
+        DetailNextTopicProcessDto nextTopicProcessDto = new DetailNextTopicProcessDto(nextTopic.getId(), nextTopic.getTitle());
+
+        boolean isScrapped = false;
+        if (userDetails != null){
+            Long memberId = userDetails.getMemberIdasLong();
+            // 해당 멤버가 스크랩했는지 확인
+            isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).isPresent();
+        }
+
+        DetailTopicResponseDto responseDto = new DetailTopicResponseDto(detailTopicProcessDto, nextTopicProcessDto, isScrapped);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
 }
