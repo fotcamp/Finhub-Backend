@@ -5,9 +5,11 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
+import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +25,7 @@ public class MainController {
 
     private final MainService mainService;
 
-    @PostMapping("/setting/nickname")
+    @PostMapping("/menu/setting/nickname")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "설정 - 닉네임 변경", description = "nickname change")
     public ResponseEntity<ApiResponseWrapper> changeNickname(
@@ -31,7 +33,7 @@ public class MainController {
         return mainService.changeNickname(userDetails, dto);
     }
 
-    @GetMapping("/setting/resign")
+    @GetMapping("/menu/setting/resign")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "설정 - 회원탈퇴", description = "membership resign")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
@@ -125,6 +127,7 @@ public class MainController {
         return mainService.requestKeyword(userDetails, dto);
     }
 
+    // 미완성 ( 네 번째 탭 구현 후 구현 예정 - 직업 설정이 선제적으로 되어야함 )
     @GetMapping("/detail/{categoryId}/{topicId}")
     public ResponseEntity<ApiResponseWrapper> detailTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -132,5 +135,38 @@ public class MainController {
             @PathVariable(name = "topicId") Long topicId
     ){
         return mainService.detailTopic(userDetails, categoryId, topicId);
+    }
+
+    // 네 번째 탭 진입시
+    @GetMapping("/menu")
+    public ResponseEntity<ApiResponseWrapper> menu(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.menu(userDetails);
+    }
+
+    // 프로필 진입했을 때
+    @GetMapping("/menu/profile")
+    public ResponseEntity<ApiResponseWrapper> profile(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.profile(userDetails);
+    }
+
+    // 직업목록
+    @GetMapping("/menu/setting/job")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> settingJob(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.settingJob(userDetails);
+    }
+
+    // 직업 설정
+    @PostMapping("/menu/setting/job")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> selectJob(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody SelectJobRequestDto dto){
+        return mainService.selectJob(userDetails, dto);
+    }
+
+    // 나의  모음
+    @GetMapping("/menu/myscrap")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> myScrap(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.myScrap(userDetails);
     }
 }
