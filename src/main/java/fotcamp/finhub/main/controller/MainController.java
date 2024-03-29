@@ -163,10 +163,40 @@ public class MainController {
         return mainService.selectJob(userDetails, dto);
     }
 
-    // 나의  모음
+    // 나의 스크랩 모음
     @GetMapping("/menu/myscrap")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> myScrap(@AuthenticationPrincipal CustomUserDetails userDetails){
         return mainService.myScrap(userDetails);
     }
+
+    // 두번째 탭 ( 모든 카테고리 및 토픽 리스트 )
+    @GetMapping("/listTab")
+    public ResponseEntity<ApiResponseWrapper> listTab(){
+        return mainService.listTab();
+    }
+
+    @GetMapping("/listTab/{categoryId}")
+    public ResponseEntity<ApiResponseWrapper> listTabOthers(
+            @PathVariable(name = "categoryId") Long categoryId
+    ){
+        return mainService.listTabOthers(categoryId);
+    }
+
+    // 아바타 목록
+    @GetMapping("/menu/setting/avatar")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> listAvatar(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.listAvatar(userDetails);
+    }
+    // 아바타 선택
+    @PostMapping("/menu/setting/avatar/{avatarId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> selectAvatar(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "avatarId") Long avatarId){
+        return mainService.selectAvatar(userDetails, avatarId);
+    }
+
 }
+

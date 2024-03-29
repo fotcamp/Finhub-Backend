@@ -25,4 +25,6 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     @Query("SELECT t FROM Topic t WHERE t.category.id = :categoryId AND t.id > :topicId ORDER BY t.id ASC")
     Page<Topic> findNextTopicInSameCategory(@Param("categoryId") Long categoryId, @Param("topicId") Long topicId, Pageable pageable);
+
+    List<Topic> findByCategory(Category category);
 }

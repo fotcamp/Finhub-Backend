@@ -8,11 +8,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MenuResponseDto {
 
+    private String defaultAvatar;
     private String nickname;
-    private String email;
+    private String job;
 
-    public MenuResponseDto(String nickname, String email) {
+
+    public MenuResponseDto(String defaultAvatar, String nickname, String job) {
+        this.defaultAvatar = defaultAvatar;
         this.nickname = nickname;
-        this.email = email;
+        this.job = job;
     }
 }

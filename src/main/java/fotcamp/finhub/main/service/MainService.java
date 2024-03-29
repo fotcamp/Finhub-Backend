@@ -46,6 +46,7 @@ public class MainService {
     private final TopicRequestRepository topicRequestRepository;
     private final UserTypeRepository userTypeRepository;
     private final GptRepository gptRepository;
+    private final UserAvatarRepository userAvatarRepository;
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
@@ -298,33 +299,42 @@ public class MainService {
     }
 
     public ResponseEntity<ApiResponseWrapper> menu(CustomUserDetails userDetails){
-        if(userDetails == null){
+
+        String defaultAvatar = "";
+        String defaultJob = "직업 없음";
+        String defaultNickname = "닉네임을 입력하세요";
+
+        if(userDetails == null){ // 비로그인
             return ResponseEntity.ok(ApiResponseWrapper.success("로그인이 필요해요."));
         }
+
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        String job = "직업 없음";
-        Optional<UserType> findUserType = userTypeRepository.findById(member.getUserType().getId());
-        if (findUserType.isPresent()){
-            job = findUserType.get().getName();
+        defaultAvatar = member.getUserAvatar() != null ? member.getUserAvatar().getAvatar_img_path() : defaultAvatar;
+
+        if (member.getUserType() != null){
+            UserType userType = userTypeRepository.findById(member.getUserType().getId()).get();
+            defaultJob = userType.getName();
         }
-        if (member.getNickname() != null){
-            MenuResponseDto responseDto = new MenuResponseDto(member.getNickname(), job);
-            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-        }
-        else {
-            // 리턴 항목 : 닉네임 or 로그인이 필요해요 + 직업정보
-            MenuResponseDto responseDto = new MenuResponseDto("닉네임을 입력하세요", job);
-            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-        }
+
+        MenuResponseDto responseDto = new MenuResponseDto(
+                defaultAvatar, Optional.ofNullable(member.getNickname()).orElse(defaultNickname), defaultJob);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
     public ResponseEntity<ApiResponseWrapper> profile(CustomUserDetails userDetails){
-        // 추가로 유저아바타 이미지도 줘야함
+
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        ProfileResponseDto responseDto = new ProfileResponseDto(member.getEmail());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+
+        if (member.getUserAvatar() != null){
+            UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
+            ProfileResponseDto responseDto = new ProfileResponseDto(userAvatar.getId(), userAvatar.getAvatar_img_path(), member.getEmail());
+            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        } else {
+            ProfileResponseDto responseDto = new ProfileResponseDto(0L, "", member.getEmail());
+            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        }
     }
 
 
@@ -363,5 +373,52 @@ public class MainService {
         List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
         List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> listTab(){
+        List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
+        List<CategoryListProcessDto> allCategoryListDto = allCategories.stream()
+                .map(Category -> new CategoryListProcessDto(Category.getId(), Category.getName())).collect(Collectors.toList());
+
+        Category firstCategory = categoryRepository.findFirstByOrderByIdAsc();
+        List<Topic> topicList = topicRepository.findByCategory(firstCategory);
+        List<FirstTopicListProcessDto> topicListDto = topicList.stream().map(Topic -> new FirstTopicListProcessDto(Topic.getId(), Topic.getTitle())).collect(Collectors.toList());
+
+        ListTabResponseDto responseDto = new ListTabResponseDto(allCategoryListDto, topicListDto);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> listTabOthers(Long categoryId){
+        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."));
+        List<Topic> topicList = topicRepository.findByCategory(findCategory);
+        List<FirstTopicListProcessDto> responseDto = topicList.stream()
+                .map(Topic -> new FirstTopicListProcessDto(Topic.getId(), Topic.getTitle())).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> listAvatar(CustomUserDetails userDetails){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+
+        String defaultAvatarUrl = "";
+        if (member.getUserAvatar() != null) {
+            UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
+            defaultAvatarUrl = userAvatar.getAvatar_img_path();
+        }
+        List<UserAvatar> avatarList = userAvatarRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        List<UserAvatarProcessDto> avatarProcessDtoList = avatarList.stream()
+                .map(UserAvatar -> new UserAvatarProcessDto(UserAvatar.getId(), UserAvatar.getAvatar_img_path())).collect(Collectors.toList());
+
+        AvatarListResponseDto responseDto = new AvatarListResponseDto(defaultAvatarUrl, avatarProcessDtoList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> selectAvatar(CustomUserDetails userDetails, Long avatarId){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        UserAvatar userAvatar = userAvatarRepository.findById(avatarId).orElseThrow(() -> new EntityNotFoundException("아바타ID 존재하지 않습니다."));
+        member.updateAvatar(userAvatar);
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponseWrapper.success("변경 완료"));
     }
 }
