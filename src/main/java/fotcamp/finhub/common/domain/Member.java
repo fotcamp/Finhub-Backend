@@ -86,4 +86,11 @@ public class Member {
         this.nickname = newNickname;
     }
 
+    public void updateJob(UserType userType){
+        this.userType = userType;
+    }
+
+    public void updateAvatar(UserAvatar userAvatar){
+        this.userAvatar = userAvatar;
+    }
 }
