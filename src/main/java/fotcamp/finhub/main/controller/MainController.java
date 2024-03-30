@@ -197,5 +197,21 @@ public class MainController {
         return mainService.selectAvatar(userDetails, avatarId);
     }
 
+    // 스크랩 해제
+    @DeleteMapping("/menu/myscrap/{topicId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> scrapOff(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "topicId") Long topicId){
+        return mainService.scrapOff(userDetails, topicId);
+    }
+
+    // 프로필 아바타 해제
+    @DeleteMapping("/menu/setting/avatar")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> avatarOff(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return mainService.avatarOff(userDetails);
+    }
 }
 

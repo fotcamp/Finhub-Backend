@@ -93,4 +93,12 @@ public class Member {
     public void updateAvatar(UserAvatar userAvatar){
         this.userAvatar = userAvatar;
     }
+
+    public void removeScrap(MemberScrap memberScrap){
+        this.memberScrapList.remove(memberScrap);
+    }
+
+    public void removeUserAvatar(UserAvatar userAvatar){
+        this.userAvatar = null;
+    }
 }
