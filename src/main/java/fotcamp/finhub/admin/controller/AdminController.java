@@ -329,5 +329,51 @@ public class AdminController {
         return adminService.deleteCalendarEmoticon(id);
     }
 
+    @PostMapping(value = "/gpt-column/content")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 내용 생성", description = "GPT COLUMN 내용 생성")
+    public ResponseEntity<ApiResponseWrapper> creteGptColumnContent(@RequestBody CreateGptColumnRequestDto createGptColumnRequestDto) {
+        return adminService.createGptColumnContent(createGptColumnRequestDto);
+    }
+
+    @PostMapping(value = "/gpt-column/summary")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 요약 생성", description = "GPT COLUMN 요약 생성")
+    public ResponseEntity<ApiResponseWrapper> createGptColumnSummary(@RequestBody CreateGptColumnRequestDto createGptColumnRequestDto) {
+        return adminService.createGptColumnSummary(createGptColumnRequestDto);
+    }
+
+    @PostMapping(value = "/gpt-column")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 생성", description = "GPT COLUMN 생성")
+    public ResponseEntity<ApiResponseWrapper> createGptColumn(@RequestBody SaveGptColumnRequestDto saveGptColumnRequestDto,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.createGptColumn(saveGptColumnRequestDto, userDetails);
+    }
+
+    @GetMapping(value = "/gpt-column")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 전체 조회", description = "GPT COLUMN 전체 조회")
+    public ResponseEntity<ApiResponseWrapper> getGptColumn() {
+        return adminService.getGptColumn();
+    }
+
+    @GetMapping(value = "/gpt-column/{id}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 상세 조회", description = "GPT COLUMN 상세 조회")
+    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(@PathVariable(name = "id") Long id) {
+        return adminService.getDetailGptColumn(id);
+    }
+
+    @PutMapping(value = "/gpt-column")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "GPT COLUMN 수정", description = "GPT COLUMN 수정")
+    public ResponseEntity<ApiResponseWrapper> modifyGptColumn(@Valid @RequestBody ModifyGptColumnRequestDto modifyGptColumnRequestDto,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return adminService.modifyGptColumn(modifyGptColumnRequestDto, userDetails);
+    }
+
+
+
 
 }
