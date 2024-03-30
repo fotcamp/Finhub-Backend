@@ -127,7 +127,6 @@ public class MainController {
         return mainService.requestKeyword(userDetails, dto);
     }
 
-    // 미완성 ( 네 번째 탭 구현 후 구현 예정 - 직업 설정이 선제적으로 되어야함 )
     @GetMapping("/detail/{categoryId}/{topicId}")
     public ResponseEntity<ApiResponseWrapper> detailTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
