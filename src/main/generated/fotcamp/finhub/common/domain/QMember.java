@@ -44,6 +44,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final ListPath<RecentSearch, QRecentSearch> recentSearchList = this.<RecentSearch, QRecentSearch>createList("recentSearchList", RecentSearch.class, QRecentSearch.class, PathInits.DIRECT2);
 
+    public final QRefreshToken refreshToken;
+
     public final EnumPath<RoleType> role = createEnum("role", RoleType.class);
 
     public final QUserAvatar userAvatar;
@@ -69,6 +71,7 @@ public class QMember extends EntityPathBase<Member> {
     public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.calendarEmoticon = inits.isInitialized("calendarEmoticon") ? new QCalendarEmoticon(forProperty("calendarEmoticon")) : null;
+        this.refreshToken = inits.isInitialized("refreshToken") ? new QRefreshToken(forProperty("refreshToken"), inits.get("refreshToken")) : null;
         this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar")) : null;
         this.userType = inits.isInitialized("userType") ? new QUserType(forProperty("userType")) : null;
     }

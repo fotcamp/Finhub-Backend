@@ -1,9 +1,6 @@
 package fotcamp.finhub.common.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,11 +17,12 @@ public class RefreshToken {
     @NotBlank
     private String token;
 
-    @NotBlank
-    private String email;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-    public RefreshToken(String email, String token) {
-        this.email = email;
+    public RefreshToken(Member member, String token) {
+        this.member = member;
         this.token = token;
     }
 
