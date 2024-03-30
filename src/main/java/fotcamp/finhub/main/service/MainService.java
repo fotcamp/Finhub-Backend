@@ -421,4 +421,30 @@ public class MainService {
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success("변경 완료"));
     }
+
+    public ResponseEntity<ApiResponseWrapper> scrapOff(CustomUserDetails userDetails, Long topicId){
+
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+
+        MemberScrap memberScrap = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 스크랩 정보입니다."));
+        memberScrapRepository.delete(memberScrap);
+        member.removeScrap(memberScrap);
+        memberRepository.save(member);
+
+        List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
+        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+
+    }
+
+    public ResponseEntity<ApiResponseWrapper> avatarOff(CustomUserDetails userDetails){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).orElseThrow(() -> new EntityNotFoundException("아바타ID가 존재하지 않습니다."));
+        member.removeUserAvatar(userAvatar);
+        memberRepository.save(member);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success("아바타 지우기 성공"));
+    }
 }
