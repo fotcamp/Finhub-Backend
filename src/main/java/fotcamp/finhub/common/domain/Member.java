@@ -60,6 +60,8 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<RecentSearch> recentSearchList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private RefreshToken refreshToken;
 
     public Member(String email, String name){
         this.email = email;

@@ -54,7 +54,7 @@ public class AuthService {
         // 4. jwt 발급
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
 
-        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByEmail(member.getEmail());
+        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
             RefreshToken refreshToken = existingRefreshToken.get();
@@ -62,7 +62,7 @@ public class AuthService {
             tokenRepository.save(refreshToken);
         } else {
             // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
-            tokenRepository.save(new RefreshToken(member.getEmail(), allTokens.getRefreshToken()));
+            tokenRepository.save(new RefreshToken(member, allTokens.getRefreshToken()));
         }
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens.getAccessToken(),allTokens.getRefreshToken() ,member.getName(), member.getEmail());
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -158,7 +158,7 @@ public class AuthService {
 
     public LoginResponseDto updatingLoginResponse(Member member){
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
-        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByEmail(member.getEmail());
+        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
             RefreshToken refreshToken = existingRefreshToken.get();
@@ -166,7 +166,7 @@ public class AuthService {
             tokenRepository.save(refreshToken);
         } else {
             // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
-            tokenRepository.save(new RefreshToken(member.getEmail(), allTokens.getRefreshToken()));
+            tokenRepository.save(new RefreshToken(member, allTokens.getRefreshToken()));
         }
         return new LoginResponseDto(allTokens.getAccessToken(), allTokens.getRefreshToken(), member.getName(), member.getEmail());
     }
