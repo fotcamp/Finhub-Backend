@@ -371,7 +371,7 @@ public class MainService {
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
+        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getCategory().getId(), MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
@@ -433,7 +433,7 @@ public class MainService {
         memberRepository.save(member);
 
         List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
+        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getCategory().getId(), MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
 
     }
