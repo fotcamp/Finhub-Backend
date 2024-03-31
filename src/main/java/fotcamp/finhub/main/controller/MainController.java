@@ -213,5 +213,6 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.avatarOff(userDetails);
     }
+
 }
 

@@ -441,7 +441,11 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> avatarOff(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).orElseThrow(() -> new EntityNotFoundException("아바타ID가 존재하지 않습니다."));
+        if (member.getUserType() == null) {
+            throw new EntityNotFoundException("아바타 설정 정보가 없습니다.");
+        }
+        UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId())
+                .orElseThrow(() -> new EntityNotFoundException("아바타ID가 존재하지 않습니다."));
         member.removeUserAvatar(userAvatar);
         memberRepository.save(member);
 
