@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,8 @@ public class MainService {
     private final UserAvatarRepository userAvatarRepository;
     private final BannerRepository bannerRepository;
     private final AwsS3Service awsS3Service;
+    private final QuizRepository quizRepository;
+
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
 
@@ -478,5 +481,14 @@ public class MainService {
                         banner.getLandingPageUrl()))
                 .toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
+    }
+
+    // 오늘의 퀴즈 보여주기
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> todayQuiz() {
+        LocalDate today = LocalDate.now();
+        Quiz quiz = quizRepository.findByTargetDate(today).orElseThrow(() -> new EntityNotFoundException("오늘의 퀴즈가 없습니다."));
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(new TodayQuizResponseDto(quiz.getQuestion())));
     }
 }
