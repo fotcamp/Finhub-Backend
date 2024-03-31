@@ -214,10 +214,12 @@ public class MainController {
         return mainService.avatarOff(userDetails);
     }
 
+
     // 배너 리스트
     @GetMapping("/home/banner")
     public ResponseEntity<ApiResponseWrapper> bannerList() {
         return mainService.bannerList();
     }
+
 }
 
