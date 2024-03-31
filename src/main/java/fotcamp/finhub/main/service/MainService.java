@@ -4,6 +4,7 @@ import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
@@ -47,7 +48,8 @@ public class MainService {
     private final UserTypeRepository userTypeRepository;
     private final GptRepository gptRepository;
     private final UserAvatarRepository userAvatarRepository;
-
+    private final BannerRepository bannerRepository;
+    private final AwsS3Service awsS3Service;
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
 
@@ -450,5 +452,22 @@ public class MainService {
         memberRepository.save(member);
 
         return ResponseEntity.ok(ApiResponseWrapper.success("아바타 지우기 성공"));
+    }
+
+    // 배너 리스트
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> bannerList() {
+        List<Banner> bannerList = bannerRepository.findTop3ByUseYNOrderByIdDesc("Y");
+        // Banner 엔티티 리스트를 BannerListProcessDto 리스트로 변환
+        List<BannerListProcessDto> bannerListProcessDtos = bannerList.stream()
+                .map(banner -> new BannerListProcessDto(
+                        banner.getId(),
+                        banner.getTitle(),
+                        banner.getSubTitle(),
+                        banner.getBannerType(),
+                        awsS3Service.combineWithBaseUrl(banner.getBannerImageUrl()),
+                        banner.getLandingPageUrl()))
+                .toList();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
     }
 }
