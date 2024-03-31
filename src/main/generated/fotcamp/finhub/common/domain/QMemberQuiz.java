@@ -30,7 +30,7 @@ public class QMemberQuiz extends EntityPathBase<MemberQuiz> {
 
     public final QQuiz quiz;
 
-    public final DateTimePath<java.time.LocalDateTime> solvedTime = createDateTime("solvedTime", java.time.LocalDateTime.class);
+    public final DatePath<java.time.LocalDate> solvedTime = createDate("solvedTime", java.time.LocalDate.class);
 
     public QMemberQuiz(String variable) {
         this(MemberQuiz.class, forVariable(variable), INITS);

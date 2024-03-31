@@ -103,4 +103,8 @@ public class Member {
     public void removeUserAvatar(UserAvatar userAvatar){
         this.userAvatar = null;
     }
+
+    public void addMemberQuiz(MemberQuiz memberQuiz) {
+        this.quizList.add(memberQuiz);
+    }
 }

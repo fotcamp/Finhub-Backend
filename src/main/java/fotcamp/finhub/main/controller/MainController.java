@@ -6,6 +6,7 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
 import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
+import fotcamp.finhub.main.dto.request.SolveQuizRequestDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +30,7 @@ public class MainController {
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "설정 - 닉네임 변경", description = "nickname change")
     public ResponseEntity<ApiResponseWrapper> changeNickname(
-            @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
+            @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto) {
         return mainService.changeNickname(userDetails, dto);
     }
 
@@ -38,7 +39,7 @@ public class MainController {
     @Operation(summary = "설정 - 회원탈퇴", description = "membership resign")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
+    ) {
         return mainService.membershipResign(userDetails);
     }
 
@@ -50,22 +51,24 @@ public class MainController {
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
             @RequestParam(name = "size", defaultValue = "4") int size,
-            @RequestParam(name = "page", defaultValue = "0") int page ){
-        return mainService.search(userDetails, method, keyword, size,page);
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        return mainService.search(userDetails, method, keyword, size, page);
     }
 
     @GetMapping("/home")
     public ResponseEntity<ApiResponseWrapper> home(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(name = "size", defaultValue = "7") int size
-    ){return mainService.home(userDetails, size);}
+    ) {
+        return mainService.home(userDetails, size);
+    }
 
     @GetMapping("/home/{categoryId}")
     public ResponseEntity<ApiResponseWrapper> otherCategories(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "categoryId") Long categoryId,
             @RequestParam(name = "size", defaultValue = "7") int size
-    ){
+    ) {
         return mainService.otherCategories(userDetails, categoryId, size);
     }
 
@@ -75,7 +78,7 @@ public class MainController {
             @PathVariable(name = "categoryId") Long categoryId,
             @RequestParam(name = "cursorId") Long cursorId,
             @RequestParam(name = "size", defaultValue = "7") int size
-    ){
+    ) {
         return mainService.more(userDetails, categoryId, cursorId, size);
     }
 
@@ -84,7 +87,7 @@ public class MainController {
     public ResponseEntity<ApiResponseWrapper> scrapTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "topicId") Long topicId
-    ){
+    ) {
         return mainService.scrapTopic(userDetails, topicId);
     }
 
@@ -92,13 +95,13 @@ public class MainController {
     @GetMapping("/thirdTab/recent")
     public ResponseEntity<ApiResponseWrapper> recentSearch(
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
+    ) {
         return mainService.recentSearch(userDetails);
     }
 
     @GetMapping("/thirdTab/popular")
     public ResponseEntity<ApiResponseWrapper> popularKeyword(
-    ){
+    ) {
         return mainService.popularKeyword();
     }
 
@@ -107,7 +110,7 @@ public class MainController {
     public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "searchId") Long searchId
-    ){
+    ) {
         return mainService.deleteRecentKeyword(userDetails, searchId);
     }
 
@@ -115,7 +118,7 @@ public class MainController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> deleteAllRecentKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
+    ) {
         return mainService.deleteAllRecentKeyword(userDetails);
     }
 
@@ -123,7 +126,7 @@ public class MainController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> requestKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody NewKeywordRequestDto dto){
+            @RequestBody NewKeywordRequestDto dto) {
         return mainService.requestKeyword(userDetails, dto);
     }
 
@@ -132,68 +135,69 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "categoryId") Long categoryId,
             @PathVariable(name = "topicId") Long topicId
-    ){
+    ) {
         return mainService.detailTopic(userDetails, categoryId, topicId);
     }
 
     // 네 번째 탭 진입시
     @GetMapping("/menu")
-    public ResponseEntity<ApiResponseWrapper> menu(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> menu(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.menu(userDetails);
     }
 
     // 프로필 진입했을 때
     @GetMapping("/menu/profile")
-    public ResponseEntity<ApiResponseWrapper> profile(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> profile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.profile(userDetails);
     }
 
     // 직업목록
     @GetMapping("/menu/setting/job")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> settingJob(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> settingJob(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.settingJob(userDetails);
     }
 
     // 직업 설정
     @PostMapping("/menu/setting/job")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> selectJob(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody SelectJobRequestDto dto){
+    public ResponseEntity<ApiResponseWrapper> selectJob(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody SelectJobRequestDto dto) {
         return mainService.selectJob(userDetails, dto);
     }
 
     // 나의 스크랩 모음
     @GetMapping("/menu/myscrap")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> myScrap(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> myScrap(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.myScrap(userDetails);
     }
 
     // 두번째 탭 ( 모든 카테고리 및 토픽 리스트 )
     @GetMapping("/listTab")
-    public ResponseEntity<ApiResponseWrapper> listTab(){
+    public ResponseEntity<ApiResponseWrapper> listTab() {
         return mainService.listTab();
     }
 
     @GetMapping("/listTab/{categoryId}")
     public ResponseEntity<ApiResponseWrapper> listTabOthers(
             @PathVariable(name = "categoryId") Long categoryId
-    ){
+    ) {
         return mainService.listTabOthers(categoryId);
     }
 
     // 아바타 목록
     @GetMapping("/menu/setting/avatar")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> listAvatar(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> listAvatar(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return mainService.listAvatar(userDetails);
     }
+
     // 아바타 선택
     @PostMapping("/menu/setting/avatar/{avatarId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> selectAvatar(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "avatarId") Long avatarId){
+            @PathVariable(name = "avatarId") Long avatarId) {
         return mainService.selectAvatar(userDetails, avatarId);
     }
 
@@ -202,7 +206,7 @@ public class MainController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> scrapOff(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "topicId") Long topicId){
+            @PathVariable(name = "topicId") Long topicId) {
         return mainService.scrapOff(userDetails, topicId);
     }
 
@@ -226,5 +230,12 @@ public class MainController {
         return mainService.todayQuiz();
     }
 
+    // 오늘의 퀴즈 문제풀기
+    @PostMapping("/quiz/today")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> solveQuiz(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                        @RequestBody @Valid SolveQuizRequestDto solveQuizRequestDto) {
+        return mainService.solveQuiz(solveQuizRequestDto, userDetails);
+    }
 }
 
