@@ -23,6 +23,8 @@ public class QBanner extends EntityPathBase<Banner> {
 
     public final StringPath bannerImageUrl = createString("bannerImageUrl");
 
+    public final StringPath bannerType = createString("bannerType");
+
     public final StringPath createdBy = createString("createdBy");
 
     //inherited

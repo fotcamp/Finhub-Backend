@@ -7,6 +7,7 @@ public class CreateBannerRequestDto {
     private String title;
     private String subTitle;
     private String landingPageUrl;
+    private String bannerType;
     private String s3ImgUrl;
     private String useYN;
 }

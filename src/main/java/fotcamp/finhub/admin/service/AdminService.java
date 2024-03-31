@@ -676,6 +676,7 @@ public class AdminService {
                     .subTitle(createBannerRequestDto.getSubTitle())
                     .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
                     .bannerImageUrl(awsS3Service.extractPathFromUrl(createBannerRequestDto.getS3ImgUrl()))
+                    .bannerType((createBannerRequestDto.getBannerType()))
                     .createdBy(userDetails.getRole())
                     .useYN(createBannerRequestDto.getUseYN())
                     .build();
@@ -691,7 +692,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
         try {
             Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 배너"));
-            banner.modifyBanner(modifyBannerRequestDto.getTitle(), modifyBannerRequestDto.getSubTitle(), modifyBannerRequestDto.getLandingPageUrl(),
+            banner.modifyBanner(modifyBannerRequestDto.getTitle(), modifyBannerRequestDto.getSubTitle(), modifyBannerRequestDto.getLandingPageUrl(), modifyBannerRequestDto.getBannerType(),
                     awsS3Service.extractPathFromUrl(modifyBannerRequestDto.getS3ImgUrl()), modifyBannerRequestDto.getUseYN(), userDetails.getRole());
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -723,7 +724,7 @@ public class AdminService {
             DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
                     findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
                     findBanner.getLandingPageUrl(), findBanner.getUseYN(), findBanner.getCreatedBy(),
-                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getBannerType(), findBanner.getCreatedTime(), findBanner.getModifiedTime()
             );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
