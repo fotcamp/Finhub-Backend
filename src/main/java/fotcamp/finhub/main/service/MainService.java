@@ -312,7 +312,7 @@ public class MainService {
 
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        defaultAvatar = member.getUserAvatar() != null ? member.getUserAvatar().getAvatar_img_path() : defaultAvatar;
+        defaultAvatar = member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : defaultAvatar;
 
         if (member.getUserType() != null){
             UserType userType = userTypeRepository.findById(member.getUserType().getId()).get();
@@ -331,7 +331,10 @@ public class MainService {
 
         if (member.getUserAvatar() != null){
             UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
-            ProfileResponseDto responseDto = new ProfileResponseDto(userAvatar.getId(), userAvatar.getAvatar_img_path(), member.getEmail());
+            ProfileResponseDto responseDto = new ProfileResponseDto(
+                    userAvatar.getId(),
+                    awsS3Service.combineWithBaseUrl( userAvatar.getAvatar_img_path()),
+                    member.getEmail());
             return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
         } else {
             ProfileResponseDto responseDto = new ProfileResponseDto(0L, "", member.getEmail());
@@ -377,6 +380,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> listTab(){
         List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
         List<CategoryListProcessDto> allCategoryListDto = allCategories.stream()
@@ -390,6 +394,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> listTabOthers(Long categoryId){
         Category findCategory = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."));
         List<Topic> topicList = topicRepository.findByCategory(findCategory);
@@ -398,6 +403,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> listAvatar(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
@@ -405,11 +411,14 @@ public class MainService {
         String defaultAvatarUrl = "";
         if (member.getUserAvatar() != null) {
             UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
-            defaultAvatarUrl = userAvatar.getAvatar_img_path();
+            defaultAvatarUrl = awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path());
         }
         List<UserAvatar> avatarList = userAvatarRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
         List<UserAvatarProcessDto> avatarProcessDtoList = avatarList.stream()
-                .map(UserAvatar -> new UserAvatarProcessDto(UserAvatar.getId(), UserAvatar.getAvatar_img_path())).collect(Collectors.toList());
+                .map(UserAvatar -> new UserAvatarProcessDto(
+                        UserAvatar.getId(),
+                        awsS3Service.combineWithBaseUrl(UserAvatar.getAvatar_img_path())))
+                .collect(Collectors.toList());
 
         AvatarListResponseDto responseDto = new AvatarListResponseDto(defaultAvatarUrl, avatarProcessDtoList);
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
