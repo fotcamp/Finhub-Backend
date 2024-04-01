@@ -94,7 +94,8 @@ public class AdminService {
                     refreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
                 }
                 managerRefreshRepository.save(refreshToken);
-                return ResponseEntity.ok(ApiResponseWrapper.success(allTokens)); // 200
+                AdminLoginResponseDto responseDto = new AdminLoginResponseDto(manager.getRole(), allTokens);
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto)); // 200
             }
             // 비밀번호 틀렸을 경우
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호가 틀렸습니다."));
