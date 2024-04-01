@@ -10,6 +10,7 @@ public class BannerProcessDto {
     private final Long id;
     private final String title;
     private final String subTitle;
+    private final String bannerType;
     private final String useYN;
     private final String createdBy;
     private final LocalDateTime createdTime;
@@ -20,6 +21,7 @@ public class BannerProcessDto {
         this.title = banner.getTitle();
         this.subTitle = banner.getSubTitle();
         this.useYN = banner.getUseYN();
+        this.bannerType = banner.getBannerType();
         this.createdBy = banner.getCreatedBy();
         this.createdTime = banner.getCreatedTime();
         this.modifiedTime = banner.getModifiedTime();

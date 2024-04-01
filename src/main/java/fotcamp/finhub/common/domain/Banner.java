@@ -20,16 +20,18 @@ public class Banner extends BaseEntity{
     private String title;
     private String subTitle;
     private String bannerImageUrl;
+    private String bannerType;
     private String landingPageUrl;
     private String createdBy;
     private String useYN;
 
     // Banner 수정
-    public void modifyBanner(String title, String subTitle, String landingPageUrl, String bannerImageUrl, String useYN, String role) {
+    public void modifyBanner(String title, String subTitle, String landingPageUrl, String bannerType, String bannerImageUrl, String useYN, String role) {
         this.title = title;
         this.subTitle = subTitle;
         this.landingPageUrl = landingPageUrl;
         this.bannerImageUrl = bannerImageUrl;
+        this.bannerType = bannerType;
         this.useYN = useYN;
         this.createdBy = role;
     }

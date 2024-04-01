@@ -60,6 +60,8 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<RecentSearch> recentSearchList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private RefreshToken refreshToken;
 
     public Member(String email, String name){
         this.email = email;
@@ -86,4 +88,19 @@ public class Member {
         this.nickname = newNickname;
     }
 
+    public void updateJob(UserType userType){
+        this.userType = userType;
+    }
+
+    public void updateAvatar(UserAvatar userAvatar){
+        this.userAvatar = userAvatar;
+    }
+
+    public void removeScrap(MemberScrap memberScrap){
+        this.memberScrapList.remove(memberScrap);
+    }
+
+    public void removeUserAvatar(UserAvatar userAvatar){
+        this.userAvatar = null;
+    }
 }

@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -54,6 +55,15 @@ public class TopicRequestRepositoryImpl implements TopicRequestRepositoryCustom{
     }
 
     private BooleanExpression resolvedYNEq(String resolvedYN) {
-        return StringUtils.hasText(resolvedYN) ? topicRequest.resolvedAt.isNotNull() : topicRequest.resolvedAt.isNull();
+        if ("Y".equals(resolvedYN)) {
+            return topicRequest.resolvedAt.isNotNull();
+        } else if ("N".equals(resolvedYN)) {
+            return topicRequest.resolvedAt.isNull();
+        } else {
+            // resolvedYN이 "Y" 또는 "N" 이외의 값을 가질 경우 처리
+            // 이 경우 모든 데이터를 반환하거나, 어떠한 데이터도 반환하지 않는 등의 처리가 필요할 수 있습니다.
+            // 아래 코드는 예시로 모든 데이터를 반환하도록 합니다. 상황에 맞게 적절한 처리를 선택하세요.
+            return null; // 또는 다른 적절한 BooleanExpression 반환
+        }
     }
 }

@@ -36,9 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -71,6 +69,8 @@ public class AdminService {
     private final TopicRequestRepositoryCustom topicRequestRepositoryCustom;
     private final UserAvatarRepository userAvatarRepository;
     private final CalendarEmoticonRepository calendarEmoticonRepository;
+    private final GptColumnRepository gptColumnRepository;
+    private final TopicGptColumnRepository topicGptColumnRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -94,7 +94,8 @@ public class AdminService {
                     refreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
                 }
                 managerRefreshRepository.save(refreshToken);
-                return ResponseEntity.ok(ApiResponseWrapper.success(allTokens)); // 200
+                AdminLoginResponseDto responseDto = new AdminLoginResponseDto(manager.getRole(), allTokens);
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto)); // 200
             }
             // 비밀번호 틀렸을 경우
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("비밀번호가 틀렸습니다."));
@@ -676,6 +677,7 @@ public class AdminService {
                     .subTitle(createBannerRequestDto.getSubTitle())
                     .landingPageUrl(createBannerRequestDto.getLandingPageUrl())
                     .bannerImageUrl(awsS3Service.extractPathFromUrl(createBannerRequestDto.getS3ImgUrl()))
+                    .bannerType((createBannerRequestDto.getBannerType()))
                     .createdBy(userDetails.getRole())
                     .useYN(createBannerRequestDto.getUseYN())
                     .build();
@@ -691,7 +693,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> modifyBanner(ModifyBannerRequestDto modifyBannerRequestDto, CustomUserDetails userDetails) {
         try {
             Banner banner = bannerRepository.findById(modifyBannerRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 배너"));
-            banner.modifyBanner(modifyBannerRequestDto.getTitle(), modifyBannerRequestDto.getSubTitle(), modifyBannerRequestDto.getLandingPageUrl(),
+            banner.modifyBanner(modifyBannerRequestDto.getTitle(), modifyBannerRequestDto.getSubTitle(), modifyBannerRequestDto.getLandingPageUrl(), modifyBannerRequestDto.getBannerType(),
                     awsS3Service.extractPathFromUrl(modifyBannerRequestDto.getS3ImgUrl()), modifyBannerRequestDto.getUseYN(), userDetails.getRole());
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -723,7 +725,7 @@ public class AdminService {
             DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
                     findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
                     findBanner.getLandingPageUrl(), findBanner.getUseYN(), findBanner.getCreatedBy(),
-                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getBannerType(), findBanner.getCreatedTime(), findBanner.getModifiedTime()
             );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
@@ -876,6 +878,149 @@ public class AdminService {
             } else {
                 return ResponseEntity.internalServerError().body(ApiResponseWrapper.fail("GPT 답변 파싱 실패", gptAnswer));
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    // GPT 컬럼 내용 생성
+    public ResponseEntity<ApiResponseWrapper> createGptColumnContent(CreateGptColumnRequestDto createGptColumnRequestDto) {
+        String prompt = createGptColumnRequestDto.subject() + "에 대해서 한 페이지 정도 분량의 저널을 작성해줘. \n" +
+                "너가 가진 금융지식을 이용해서 분석적으로 작성해줘. \n" +
+                "소제목은 굵게 처리해주면 좋겠어 \n" +
+                "답변 형식은 html 코드 형식으로 반환해줘" ;
+        log.info("prompt : " + prompt);
+        String gptAnswer = gptService.returnGptAnswer(prompt);
+        log.info("answer : " + gptAnswer);
+        // 맨 앞의 "\\html" 문자열 제거
+        gptAnswer = gptAnswer.substring(7);
+
+        // 맨 뒤의 "\\" 문자 제거
+        gptAnswer = gptAnswer.substring(0, gptAnswer.length() - 3);
+        return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(gptAnswer)));
+    }
+
+    // GPT 컬럼 요약 생성
+    public ResponseEntity<ApiResponseWrapper> createGptColumnSummary(CreateGptColumnRequestDto createGptColumnRequestDto) {
+        String prompt = createGptColumnRequestDto.subject() + "을 한 문장으로 요약해줘. \n" +
+                "아래 답변 형식을 꼭 지켜서 답변해줘. \n" +
+                "[답변형식]\n" +
+                "[요약] : ";
+        log.info("prompt : " + prompt);
+        String gptAnswer = gptService.returnGptAnswer(prompt);
+        log.info("answer : " + gptAnswer);
+
+        String prefix = "[요약] : ";
+
+        // '[요약] :' 문자열 뒤의 내용을 추출
+        int summaryStart = gptAnswer.indexOf(prefix);
+
+        if (summaryStart != -1) {
+            String summary = gptAnswer.substring(summaryStart + prefix.length()).trim();
+            return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(summary)));
+        } else {
+            return ResponseEntity.internalServerError().body(ApiResponseWrapper.fail("GPT 답변 파싱 실패", gptAnswer));
+        }
+    }
+
+    // GPT 컬럼 저장
+    public ResponseEntity<ApiResponseWrapper> createGptColumn(SaveGptColumnRequestDto saveGptColumnRequestDto, CustomUserDetails userDetails) {
+        try {
+            List<Long> topicList = saveGptColumnRequestDto.topicList();
+            // 모든 토픽이 존재하는지 확인
+            if (!topicList.isEmpty()) {
+                for (Long topicId : topicList) {
+                    Topic topic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
+                }
+            }
+            GptColumn gptColumn = GptColumn.builder()
+                    .title(saveGptColumnRequestDto.title())
+                    .summary(saveGptColumnRequestDto.summary())
+                    .content(saveGptColumnRequestDto.content())
+                    .backgroundUrl(awsS3Service.extractPathFromUrl(saveGptColumnRequestDto.backgroundUrl()))
+                    .useYN(saveGptColumnRequestDto.useYN())
+                    .createdBy(userDetails.getRole())
+                    .build();
+            gptColumnRepository.save(gptColumn);
+
+            for (Long topicId : topicList) {
+                Topic topic = topicRepository.findById(topicId).get();
+
+                TopicGptColumn topicGptColumn = TopicGptColumn.builder()
+                        .topic(topic)
+                        .gptColumn(gptColumn)
+                        .build();
+
+                topicGptColumnRepository.save(topicGptColumn);
+                gptColumn.addTopicGptColumn(topicGptColumn);
+            }
+
+            return ResponseEntity.ok(ApiResponseWrapper.success(new CreateTopicResponseDto(gptColumn.getId())));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    // GPT 컬럼 전체 조회
+    public ResponseEntity<ApiResponseWrapper> getGptColumn() {
+        List<GptColumn> gptColumns = gptColumnRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<GetGptColumnProcessDto> resultList = gptColumns.stream().map(gptColumn ->
+                new GetGptColumnProcessDto(
+                        gptColumn.getId(),
+                        gptColumn.getCreatedBy(),
+                        gptColumn.getCreatedTime(),
+                        gptColumn.getModifiedTime(),
+                        gptColumn.getTitle(),
+                        gptColumn.getUseYN()
+                )
+        ).toList();
+
+        AllGptColumnResponseDto resultDto = new AllGptColumnResponseDto(resultList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+    }
+
+    // GPT 컬럼 상세 조회
+    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id) {
+        GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재 하지 않는 GPT COLUMN"));
+        DetailGptColumnResponseDto detailGptColumnResponseDto = new DetailGptColumnResponseDto(
+               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()));
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(detailGptColumnResponseDto));
+    }
+
+    // GPT COLUMN 수정
+    public ResponseEntity<ApiResponseWrapper> modifyGptColumn(ModifyGptColumnRequestDto modifyGptColumnRequestDto, CustomUserDetails userDetails) {
+        try {
+            GptColumn gptColumn = gptColumnRepository.findById(modifyGptColumnRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 gpt column"));
+            // 모든 토픽이 존재하는지 확인
+            List<Long> topicList = modifyGptColumnRequestDto.getTopicList();
+            if (!topicList.isEmpty()) {
+                for (Long topicId : topicList) {
+                    Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽: " + topicId));
+                }
+            }
+
+            // 기존 TopicGptColumn 삭제
+            topicGptColumnRepository.deleteAllByGptColumnId(gptColumn.getId());
+            // 새로운 TopicGptColumn 생성 후 quiz에 저장
+            for (Long topicId : topicList) {
+                Topic topic = topicRepository.findById(topicId).get();
+
+                TopicGptColumn topicGptColumn = TopicGptColumn.builder()
+                        .topic(topic)
+                        .gptColumn(gptColumn)
+                        .build();
+
+                topicGptColumnRepository.save(topicGptColumn);
+                // gpt column 토픽 리스트 수정
+                gptColumn.addTopicGptColumn(topicGptColumn);
+            }
+            // gpt column 나머지 데이터 수정
+            gptColumn.modifyGptColumn(modifyGptColumnRequestDto, awsS3Service.extractPathFromUrl(modifyGptColumnRequestDto.getBackgroundUrl()), userDetails.getRole());
+
+            return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
