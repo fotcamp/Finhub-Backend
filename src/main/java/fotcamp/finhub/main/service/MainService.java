@@ -49,6 +49,8 @@ public class MainService {
     private final GptRepository gptRepository;
     private final UserAvatarRepository userAvatarRepository;
     private final BannerRepository bannerRepository;
+    private final GptColumnRepository gptColumnRepository;
+
     private final AwsS3Service awsS3Service;
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
@@ -100,7 +102,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success("탈퇴 완료"));
     }
 
-    public ResponseEntity<ApiResponseWrapper> search(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page){
+    public ResponseEntity<ApiResponseWrapper> searchTopic(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page){
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<Topic> pageResult = null;
         switch (method) {
@@ -118,7 +120,7 @@ public class MainService {
             }
             default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
         }
-        if(userDetails != null){
+        if(userDetails != null && page == 0){
             // 로그인 유저 최근검색어 데이터 추가 ( 중복되는 검색어는 최신으로 덮어쓰기, 최근검색어는 최대 10개까지만 저장하기 )
             Long memberId = userDetails.getMemberIdasLong();
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
@@ -137,19 +139,20 @@ public class MainService {
         }
 
         List<Topic> resultList = pageResult.getContent();
-        System.out.println("빈 문자열인가요?"+resultList);
         if(resultList.isEmpty()){ // 인기검색어 데이터는 검색 결과가 있을 때만 저장
             return ResponseEntity.ok(ApiResponseWrapper.success(resultList));
         }
 
-        // 인기검색어 저장 로직
-        PopularSearch popularSearch = popularKeywordRepository.findByKeyword(keyword).orElse(new PopularSearch(keyword));
-        popularSearch.plusFrequency();
-        popularKeywordRepository.save(popularSearch);
+        if (page == 0){ // 더보기 요청시엔 인기검색 횟수 카운트 제외
+            // 인기검색어 저장 로직
+            PopularSearch popularSearch = popularKeywordRepository.findByKeyword(keyword).orElse(new PopularSearch(keyword));
+            popularSearch.plusFrequency();
+            popularKeywordRepository.save(popularSearch);
+        }
 
-        List<SearchResultListProcessDto> response = resultList.stream()
-                .map(topic -> new SearchResultListProcessDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
-        SearchResponseDto responseDto = new SearchResponseDto(response, page, pageResult.getTotalPages(), pageResult.getTotalElements());
+        List<SearchTopicResultListProcessDto> response = resultList.stream()
+                .map(topic -> new SearchTopicResultListProcessDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
+        SearchTopicResponseDto responseDto = new SearchTopicResponseDto(response, page, pageResult.getTotalPages(), pageResult.getTotalElements());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
@@ -265,20 +268,29 @@ public class MainService {
         // 로그인 유저 -> 스크랩 정보 + 직업리스트 + gpt content 설정 직업에 맞게 제공
         boolean isScrapped = false;
         Gpt findGpt = null;
-        List<UserType> JobLists = userTypeRepository.findAllJobList();
+        List<UserType> JobLists = userTypeRepository.findAllJobList(); // 이름순으로 직업 전체 리스트 가져옴
         List<JobListProcessDto> jobListProcessDtos = JobLists.stream().
-                map(UserType -> new JobListProcessDto(UserType.getId(), UserType.getName())).collect(Collectors.toList());
+                map(userType -> new JobListProcessDto(userType.getId(), userType.getName())).collect(Collectors.toList());
         if (userDetails != null){
             Long memberId = userDetails.getMemberIdasLong();
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
             // 해당 멤버가 스크랩했는지 확인
             isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).isPresent();
-            findGpt = gptRepository.findByUserTypeIdAndTopicId(member.getUserType().getId(), topicId);
+
+            if (member.getUserType() != null){
+                findGpt = gptRepository.findByUserTypeIdAndTopicId(member.getUserType().getId(), topicId);
+            }
+            else {             // 로그인을 한 유저도 직업설정이 안되어있는 경우 존재
+                PageRequest limit = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
+                Page<UserType> firstUserTypePage = userTypeRepository.findFirstByOrderByIdAsc(limit);
+                UserType firstUserType = firstUserTypePage.getContent().get(0);
+                findGpt = gptRepository.findByUserTypeIdAndTopicId(firstUserType.getId(), topicId);
+            }
         }
         // 비로그인 유저 -> 스크랩 false + 직업리스트 + 첫 번째 직업의 content 제공
         else{
             PageRequest limit = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
-            Page<UserType> firstUserTypePage = userTypeRepository.findFirstByOrderByNameAsc(limit);
+            Page<UserType> firstUserTypePage = userTypeRepository.findFirstByOrderByIdAsc(limit);
             UserType firstUserType = firstUserTypePage.getContent().get(0);
             findGpt = gptRepository.findByUserTypeIdAndTopicId(firstUserType.getId(), topicId);
         }
@@ -294,7 +306,6 @@ public class MainService {
         }else {
             nextTopicProcessDto = new DetailNextTopicProcessDto(0L, "");
         }
-
 
         DetailTopicResponseDto responseDto = new DetailTopicResponseDto(detailTopicProcessDto, nextTopicProcessDto, isScrapped, jobListProcessDtos, findGpt.getContent());
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
@@ -361,15 +372,10 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> selectJob(CustomUserDetails userDetails, SelectJobRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        Optional<UserType> findUsertype = userTypeRepository.findByName(dto.getJob());
-        if (findUsertype.isPresent()){
-            member.updateJob(findUsertype.get());
-            memberRepository.save(member);
-            return ResponseEntity.ok(ApiResponseWrapper.success("직업 선택 성공"));
-        }
-        else{
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("요청한 직업명이 없습니다."));
-        }
+        UserType userType = userTypeRepository.findById(dto.getJobId()).orElseThrow(() -> new EntityNotFoundException("요청한 직업정보가 존재하지 않습니다."));
+        member.updateJob(userType);
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponseWrapper.success("직업 선택 성공"));
     }
 
     public ResponseEntity<ApiResponseWrapper> myScrap(CustomUserDetails userDetails){
@@ -478,5 +484,38 @@ public class MainService {
                         banner.getLandingPageUrl()))
                 .toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
+    }
+
+    // 컬럼 검색
+    public ResponseEntity<ApiResponseWrapper> searchColumn(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<GptColumn> pageResult = null;
+        switch (method) {
+            case "title" -> {
+                pageResult = gptColumnRepository.findByTitleContaining(keyword, pageable);
+                gptColumnRepository.findByTitleContaining(keyword, pageable);
+                break;
+            }
+            case "content" -> {
+                pageResult = gptColumnRepository.findByContentContaining(keyword, pageable);
+                break;
+            }
+            case "both" -> {
+                pageResult = gptColumnRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+                break;
+            }
+            default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
+        }
+        List<GptColumn> resultList = pageResult.getContent();
+        List<SearchColumnResultListProcessDto> processDtoList = resultList.stream()
+                .map(gptColumn ->
+                        new SearchColumnResultListProcessDto(
+                                gptColumn.getTitle(),
+                                gptColumn.getContent(),
+                                awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl())))
+                .collect(Collectors.toList());
+
+        SearchColumnResponseDto responseDto = new SearchColumnResponseDto(processDtoList, page, pageResult.getTotalPages(), pageResult.getTotalElements());
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 }
