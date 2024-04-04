@@ -13,6 +13,7 @@ import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
+import fotcamp.finhub.main.dto.response.secondTab.ListResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import fotcamp.finhub.main.repository.PopularKeywordRepository;
@@ -347,27 +348,17 @@ public class MainService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> listTab(){
-        List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
-        List<CategoryListProcessDto> allCategoryListDto = allCategories.stream()
-                .map(Category -> new CategoryListProcessDto(Category.getId(), Category.getName())).collect(Collectors.toList());
-
-        Category firstCategory = categoryRepository.findFirstByOrderByIdAsc();
-        List<Topic> topicList = topicRepository.findByCategory(firstCategory);
-        List<FirstTopicListProcessDto> topicListDto = topicList.stream().map(Topic -> new FirstTopicListProcessDto(Topic.getId(), Topic.getTitle())).collect(Collectors.toList());
-
-        ListTabResponseDto responseDto = new ListTabResponseDto(allCategoryListDto, topicListDto);
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
-
-    @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> listTabOthers(Long categoryId){
-        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."));
+    public ResponseEntity<ApiResponseWrapper> list(Long categoryId){
+        Category findCategory = categoryRepository.findById(categoryId).orElseThrow( () -> new EntityNotFoundException("카테고리ID가 존재하지 않습니다."));
         List<Topic> topicList = topicRepository.findByCategory(findCategory);
-        List<FirstTopicListProcessDto> responseDto = topicList.stream()
-                .map(Topic -> new FirstTopicListProcessDto(Topic.getId(), Topic.getTitle())).collect(Collectors.toList());
+        List<TopicListOnlyNameProcessDto> topicListDto = topicList.stream()
+                .map(topic -> new TopicListOnlyNameProcessDto(topic.getId(), topic.getTitle())).collect(Collectors.toList());
+
+        ListResponseDto responseDto = new ListResponseDto(findCategory.getId(), topicListDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
+
+
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> listAvatar(CustomUserDetails userDetails){
