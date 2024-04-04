@@ -46,6 +46,9 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN) {
 
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllCategory(pageable, useYN);
     }
@@ -80,6 +83,10 @@ public class AdminController {
             @RequestParam(name = "categoryId", required = false) Long id,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllTopic(pageable, id, useYN);
     }
@@ -116,6 +123,10 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
+
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllUserType(pageable, useYN);
     }
@@ -254,6 +265,10 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
+
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllBanner(pageable, useYN);
     }
