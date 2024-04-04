@@ -724,8 +724,8 @@ public class AdminService {
             Banner findBanner = bannerRepository.findById(bannerId).orElseThrow(EntityNotFoundException::new);
             DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
                     findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
-                    findBanner.getLandingPageUrl(), findBanner.getUseYN(), findBanner.getCreatedBy(),
-                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getBannerType(), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+                    findBanner.getLandingPageUrl(), findBanner.getBannerType(), findBanner.getUseYN(), findBanner.getCreatedBy(),
+                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
             );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
