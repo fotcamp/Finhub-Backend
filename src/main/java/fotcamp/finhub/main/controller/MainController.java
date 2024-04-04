@@ -158,17 +158,11 @@ public class MainController {
         return mainService.myScrap(userDetails);
     }
 
-    // 두번째 탭 ( 모든 카테고리 및 토픽 리스트 )
-    @GetMapping("/listTab")
-    public ResponseEntity<ApiResponseWrapper> listTab(){
-        return mainService.listTab();
-    }
-
-    @GetMapping("/listTab/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> listTabOthers(
-            @PathVariable(name = "categoryId") Long categoryId
-    ){
-        return mainService.listTabOthers(categoryId);
+    // 두번째 탭 ( 선택한 카테고리에 대한 전체 토픽 리스트 )
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponseWrapper> listTab(
+            @RequestParam(name = "categoryId") Long categoryId){
+        return mainService.list(categoryId);
     }
 
     // 아바타 목록
