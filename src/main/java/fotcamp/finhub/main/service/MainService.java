@@ -6,14 +6,17 @@ import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
+import fotcamp.finhub.main.dto.process.secondTab.GptContentProcessDto;
+import fotcamp.finhub.main.dto.process.secondTab.UserTypeProcessDto;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
 import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
 import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.dto.response.*;
+import fotcamp.finhub.main.dto.response.firstTab.BannerListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
-import fotcamp.finhub.main.dto.response.secondTab.ListResponseDto;
+import fotcamp.finhub.main.dto.response.secondTab.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import fotcamp.finhub.main.repository.PopularKeywordRepository;
@@ -220,44 +223,43 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success("접수되었습니다."));
     }
 
-    public ResponseEntity<ApiResponseWrapper> detailTopic(CustomUserDetails userDetails, Long categoryId, Long topicId){
-        // 조회 토픽
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
-        // title, summary, definition
-        DetailTopicProcessDto detailTopicProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getDefinition());
 
-        // 로그인 유저 -> 스크랩 정보 + 직업리스트 + gpt content를 설정 직업에 맞게 제공
+    public ResponseEntity<ApiResponseWrapper> topicInfo(CustomUserDetails userDetails, Long topicId){
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
+        // 제목, 요약, 원본
+
         boolean isScrapped = false;
-        Gpt findGpt = null;
-        List<UserType> JobLists = userTypeRepository.findAllJobList(); // 이름순으로 직업 전체 리스트 가져옴
-        List<JobListProcessDto> jobListProcessDtos = JobLists.stream().
-                map(userType -> new JobListProcessDto(userType.getId(), userType.getName())).collect(Collectors.toList());
         if (userDetails != null){
             Long memberId = userDetails.getMemberIdasLong();
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-            // 해당 멤버가 스크랩했는지 확인
+            // 유저가 스크랩했는지 확인
             isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).isPresent();
+        }
 
-            if (member.getUserType() != null){
-                findGpt = gptRepository.findByUserTypeIdAndTopicId(member.getUserType().getId(), topicId);
-            }
-            else {             // 로그인을 한 유저도 직업설정이 안되어있는 경우 존재
-                PageRequest limit = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
-                Page<UserType> firstUserTypePage = userTypeRepository.findFirstByOrderByIdAsc(limit);
-                UserType firstUserType = firstUserTypePage.getContent().get(0);
-                findGpt = gptRepository.findByUserTypeIdAndTopicId(firstUserType.getId(), topicId);
-            }
-        }
-        // 비로그인 유저 -> 스크랩 false + 직업리스트 + 첫 번째 직업의 content 제공
-        else{
-            PageRequest limit = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
-            Page<UserType> firstUserTypePage = userTypeRepository.findFirstByOrderByIdAsc(limit);
-            UserType firstUserType = firstUserTypePage.getContent().get(0);
-            findGpt = gptRepository.findByUserTypeIdAndTopicId(firstUserType.getId(), topicId);
-        }
-        // 다음 토픽
+        DetailTopicProcessDto topicInfoProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getDefinition(), isScrapped);
+        return ResponseEntity.ok(ApiResponseWrapper.success(new TopicInfoResponseDto(topicInfoProcessDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> usertypeList(){
+        List<UserType> JobList = userTypeRepository.findAllByOrderByIdAsc();
+        List<UserTypeProcessDto> processDto = JobList.stream().map(
+                userType -> new UserTypeProcessDto(
+                        userType.getId(),
+                        userType.getName(),
+                        awsS3Service.combineWithBaseUrl(userType.getAvatarImgPath()))).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new UserTypeListResponseDto(processDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> gptContent(Long categoryId, Long topicId, Long usertypeId){
+        UserType userType = userTypeRepository.findById(usertypeId).orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
+        Gpt findGpt = gptRepository.findByUserTypeIdAndCategoryAndTopicId(usertypeId, categoryId, topicId);
+        GptContentProcessDto gptProcessDto = new GptContentProcessDto(userType.getName(), findGpt.getContent());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new GptContentResponseDto(gptProcessDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> nextTopic(Long categoryId, Long topicId){
         PageRequest request = PageRequest.of(0, 1);
-        // categoryId로 topicList 중에서 topicId 다음걸 찾아야함
+        // 같은 category의 다음 topic 찾기
         Page<Topic> nextTopicPage = topicRepository.findNextTopicInSameCategory(categoryId, topicId, request);
         DetailNextTopicProcessDto nextTopicProcessDto = null;
         // 만약 다음 토픽이 존재하지 않는다면
@@ -267,9 +269,7 @@ public class MainService {
         }else {
             nextTopicProcessDto = new DetailNextTopicProcessDto(0L, "");
         }
-
-        DetailTopicResponseDto responseDto = new DetailTopicResponseDto(detailTopicProcessDto, nextTopicProcessDto, isScrapped, jobListProcessDtos, findGpt.getContent());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new NextTopicResponseDto(nextTopicProcessDto)));
     }
 
     public ResponseEntity<ApiResponseWrapper> menu(CustomUserDetails userDetails){
@@ -324,7 +324,7 @@ public class MainService {
         if (member.getUserType().getName() != null) {
             defaultJob =member.getUserType().getName();
         }
-        List<UserType> allJobList = userTypeRepository.findAllJobList();
+        List<UserType> allJobList = userTypeRepository.findAllByOrderByIdAsc();
         List<JobListProcessDto> jobListProcessDtos = allJobList.stream().map(UserType -> new JobListProcessDto(UserType.getId(), UserType.getName())).collect(Collectors.toList());
         SettingJobResponseDto responseDto = new SettingJobResponseDto(defaultJob, jobListProcessDtos);
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
