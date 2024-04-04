@@ -259,9 +259,9 @@ public class AdminController {
         return adminService.getDetailBanner(bannerId);
     }
 
-    @PostMapping(value = "/cancel")
+    @PostMapping(value = "/img/delete")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "생성/수정 취소", description = "s3에 저장한 이미지 삭제")
+    @Operation(summary = "생성/수정 취소 시 이미지 삭제", description = "s3에 저장한 이미지 삭제")
     public ResponseEntity<ApiResponseWrapper> deleteImg(@RequestBody DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
         return adminService.deleteS3Image(deleteS3ImageRequestDto);
     }
@@ -300,13 +300,6 @@ public class AdminController {
         return adminService.getUserAvatar();
     }
 
-    @DeleteMapping(value = "/userAvatar/{id}")
-    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "유저 아바타 삭제", description = "유저 아바타 삭제")
-    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(@PathVariable(name = "id") Long id) {
-        return adminService.deleteUserAvatar(id);
-    }
-
     @PostMapping(value = "/calendarEmoticon")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "달력 이모티콘 생성", description = "달력 이모티콘 생성하기")
@@ -320,13 +313,6 @@ public class AdminController {
     @Operation(summary = "달력 이모티콘 전체 조회", description = "달력 이모티콘 전체 조회")
     public ResponseEntity<ApiResponseWrapper> getCalendarEmoticon() {
         return adminService.getCalendarEmoticon();
-    }
-
-    @DeleteMapping(value = "/calendarEmoticon/{id}")
-    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "달력 이모티콘 삭제", description = "달력 이모티콘 삭제")
-    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(@PathVariable(name = "id") Long id) {
-        return adminService.deleteCalendarEmoticon(id);
     }
 
     @PostMapping(value = "/gpt-column/content")

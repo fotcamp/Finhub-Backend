@@ -805,15 +805,6 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
     }
 
-    // 유저아바타 삭제
-    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(Long id) {
-        UserAvatar userAvatar = userAvatarRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저아바타"));
-        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()));
-        userAvatarRepository.delete(userAvatar);
-
-        return ResponseEntity.ok(ApiResponseWrapper.success());
-    }
-
     // 달력 이모티콘 생성
     public ResponseEntity<ApiResponseWrapper> createCalendarEmoticon(CreateCalendarEmoticonRequestDto createCalendarEmoticonRequestDto, CustomUserDetails userDetails) {
         try {
@@ -844,15 +835,6 @@ public class AdminService {
 
         AllCalendarEmoticonResponseDto resultDto = new AllCalendarEmoticonResponseDto(resultList);
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
-    }
-
-    // 달력 이모티콘 삭제
-    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(Long id) {
-        CalendarEmoticon calendarEmoticon = calendarEmoticonRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 달력 이모티콘"));
-        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path()));
-        calendarEmoticonRepository.delete(calendarEmoticon);
-
-        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     // 토픽 요약 gpt 내용 생성 및 반환
