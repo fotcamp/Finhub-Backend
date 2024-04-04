@@ -265,7 +265,7 @@ public class MainService {
         // title, summary, definition
         DetailTopicProcessDto detailTopicProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getDefinition());
 
-        // 로그인 유저 -> 스크랩 정보 + 직업리스트 + gpt content 설정 직업에 맞게 제공
+        // 로그인 유저 -> 스크랩 정보 + 직업리스트 + gpt content를 설정 직업에 맞게 제공
         boolean isScrapped = false;
         Gpt findGpt = null;
         List<UserType> JobLists = userTypeRepository.findAllJobList(); // 이름순으로 직업 전체 리스트 가져옴
