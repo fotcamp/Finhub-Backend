@@ -22,9 +22,4 @@ public class TopicListProcessDto {
         this.isScrapped = isScrapped;
         this.categoryName = categoryName;
     }
-
-    public TopicListProcessDto(Long topicId, String title) {
-        this.topicId = topicId;
-        this.title = title;
-    }
 }

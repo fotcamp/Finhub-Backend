@@ -5,6 +5,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
+import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
 import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,38 +54,26 @@ public class MainController {
         return mainService.searchTopic(userDetails, method, keyword, size,page);
     }
 
-    @GetMapping("/home")
-    public ResponseEntity<ApiResponseWrapper> home(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){return mainService.home(userDetails, size);}
-
-    @GetMapping("/home/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> otherCategories(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){
-        return mainService.otherCategories(userDetails, categoryId, size);
+    @GetMapping("/home/categoryList")
+    public ResponseEntity<ApiResponseWrapper> categoryList(){
+        return mainService.categoryList();
     }
 
-    @GetMapping("/home/more/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> more(
+    @GetMapping("/home/topicList")
+    public ResponseEntity<ApiResponseWrapper> topicList(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @RequestParam(name = "cursorId") Long cursorId,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){
-        return mainService.more(userDetails, categoryId, cursorId, size);
+            @RequestParam(name = "categoryId", defaultValue = "1") Long categoryId,
+            @RequestParam(name = "cursorId", defaultValue = "1") Long cursorId,
+            @RequestParam(name = "size", defaultValue = "7") int size){
+        return mainService.topicList(userDetails, categoryId, cursorId, size);
     }
 
-    @GetMapping("/home/scrap/{topicId}")
+    @PostMapping("/scrap")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> scrapTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "topicId") Long topicId
-    ){
-        return mainService.scrapTopic(userDetails, topicId);
+            @RequestBody ScrapTopicRequestDto dto){
+        return mainService.scrapTopic(userDetails, dto);
     }
 
     @PreAuthorize("hasRole('USER')")

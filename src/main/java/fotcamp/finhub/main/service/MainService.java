@@ -8,8 +8,11 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
+import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
 import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.dto.response.*;
+import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
+import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import fotcamp.finhub.main.repository.PopularKeywordRepository;
@@ -52,34 +55,38 @@ public class MainService {
     private final GptColumnRepository gptColumnRepository;
 
     private final AwsS3Service awsS3Service;
+
+    // 전체 카테고리 리스트
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> home(CustomUserDetails userDetails, int size){
-
-        // 전체 카테고리리스트
+    public ResponseEntity<ApiResponseWrapper> categoryList(){
         List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
-        List<CategoryListProcessDto> categoryListDtos = allCategories.stream()
+        List<CategoryListProcessDto> categoryList = allCategories.stream()
                 .map(category -> new CategoryListProcessDto(category.getId(), category.getName())).collect(Collectors.toList());
+        CategoryListResponseDto responseDto = new CategoryListResponseDto(categoryList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
 
-        // 첫번째 카테고리의 토픽 7개
-        Category firstCategory = categoryRepository.findFirstByOrderByIdAsc();
-        List<Topic> topicTop7 = topicRepository.findByCategoryAndIdGreaterThan(firstCategory, 0L, PageRequest.of(0, size));
+    // 토픽 리스트
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponseWrapper> topicList(CustomUserDetails userDetails, Long categoryId, Long cursorId, int size){
+        // 요청받은 카테고리의 토픽 7개
+        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("카테고리가 존재하지 않습니다."));
+        List<Topic> topicTop7 = topicRepository.findByCategoryAndIdGreaterThan(findCategory, cursorId, PageRequest.of(0, size));
 
-        // 비로그인은 스크랩  전부 false
-        //스크랩 유무 정보 제공
+        // 로그인 유무에 따라서 스크랩 정보 추가
         List<TopicListProcessDto> topicListProcessDtoList = new ArrayList<>();
-        for (Topic topic : topicTop7) {
+
+        for(Topic topic : topicTop7){
             boolean isScrapped = false;
-            if (userDetails != null) {
-                // 로그인한 사용자의 경우, 스크랩 여부 확인
+            if(userDetails != null){
                 Long memberId = userDetails.getMemberIdasLong();
                 isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId()).isPresent();
             }
+            String categoryName = findCategory.getName();
             // TopicListProcessDto 객체 생성 및 리스트에 추가
-            topicListProcessDtoList.add(new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(), isScrapped, firstCategory.getName()));
+            topicListProcessDtoList.add(new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(), isScrapped, categoryName));
         }
-
-        HomeResponseDto homeResponseDto = new HomeResponseDto(categoryListDtos, topicListProcessDtoList);
-        return ResponseEntity.ok(ApiResponseWrapper.success(homeResponseDto));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new TopicListResponseDto(topicListProcessDtoList)));
     }
     
     public ResponseEntity<ApiResponseWrapper> changeNickname(CustomUserDetails userDetails , ChangeNicknameRequestDto dto){
@@ -156,64 +163,17 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
-    @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> otherCategories(CustomUserDetails userDetails, Long categoryId, int size){
-        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(
-                () -> new EntityNotFoundException("카테고리가 존재하지 않습니다.")
-        );
-        //선택한 카테고리의 상위 토픽 7개
-        List<Topic> topicTop7 = topicRepository.findByCategoryAndIdGreaterThan(findCategory, 0L, PageRequest.of(0, size));
-
-        // 로그인 유무에 따라서 스크랩 정보 추가
-        List<TopicListProcessDto> topicListProcessDtoList = new ArrayList<>();
-
-        for(Topic topic : topicTop7){
-            boolean isScrapped = false;
-            if(userDetails != null){
-                Long memberId = userDetails.getMemberIdasLong();
-                isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId()).isPresent();
-            }
-            String categoryName = findCategory.getName();
-            // TopicListProcessDto 객체 생성 및 리스트에 추가
-            topicListProcessDtoList.add(new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(), isScrapped, categoryName));
-        }
-
-        OtherCategoriesResponseDto responseDto = new OtherCategoriesResponseDto(topicListProcessDtoList);
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
-
-    @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> more(CustomUserDetails userDetails, Long categoryId, Long cursorId, int size){
-        Category findCategory = categoryRepository.findById(categoryId).orElseThrow(
-                () -> new EntityNotFoundException("카테고리가 존재하지 않습니다.")
-        );
-        // cursorId부터 다음 7개 토픽
-        List<Topic> topicTop7 = topicRepository.findByCategoryAndIdGreaterThan(findCategory, cursorId, PageRequest.of(0, size));
-
-        // 로그인 유무에 따라서 스크랩 정보 추가
-        List<TopicListProcessDto> topicListProcessDtoList = new ArrayList<>();
-
-        for(Topic topic : topicTop7){
-            boolean isScrapped = false;
-            if(userDetails != null){
-                Long memberId = userDetails.getMemberIdasLong();
-                isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId()).isPresent();
-            }
-            String categoryName = findCategory.getName();
-            // TopicListProcessDto 객체 생성 및 리스트에 추가
-            topicListProcessDtoList.add(new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(), isScrapped, categoryName));
-        }
-        HomeMoreResponseDto responseDto = new HomeMoreResponseDto(topicListProcessDtoList);
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
-
-    public ResponseEntity<ApiResponseWrapper> scrapTopic(CustomUserDetails userDetails, Long topicId){
+    public ResponseEntity<ApiResponseWrapper> scrapTopic(CustomUserDetails userDetails, ScrapTopicRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
-        memberScrapRepository.save(new MemberScrap(member,topic));
-
-        return ResponseEntity.ok(ApiResponseWrapper.success("스크랩 성공"));
+        Topic topic = topicRepository.findById(dto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
+        // memberScrap table에 기록이 없으면 스크랩 설정 <-> table에 기록이 있다면 스크랩 해제
+        Optional<MemberScrap> optionalMemberScrap = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId());
+        optionalMemberScrap.ifPresentOrElse(
+                memberScrapRepository::delete, // 스크랩 기록이 있으면 삭제 (스크랩 해제)
+                () -> memberScrapRepository.save(new MemberScrap(member, topic)) // 스크랩 기록이 없으면 저장 (스크랩 설정)
+        );
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     public ResponseEntity<ApiResponseWrapper> recentSearch(CustomUserDetails userDetails){
