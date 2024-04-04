@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class FirstTopicListProcessDto {
+public class TopicListOnlyNameProcessDto {
 
     private Long topicId;
     private String title;
 
-    public FirstTopicListProcessDto(Long topicId, String title) {
+    public TopicListOnlyNameProcessDto(Long topicId, String title) {
         this.topicId = topicId;
         this.title = title;
     }

@@ -5,6 +5,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
 import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
+import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
 import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.Path;
 
 @Tag(name = "main", description = "main api")
 @RestController
@@ -42,50 +42,38 @@ public class MainController {
         return mainService.membershipResign(userDetails);
     }
 
-    // 검색
-    @GetMapping("/search/{method}")
-    @Operation(summary = "세 번째 탭 검색", description = "제목만, 내용만, 제목+내용")
-    public ResponseEntity<ApiResponseWrapper> search(
+    // 단어 검색
+    @GetMapping("/search/topic/{method}")
+    @Operation(summary = "세 번째 탭 단어 검색", description = "제목만, 내용만, 제목+내용")
+    public ResponseEntity<ApiResponseWrapper> searchTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
-            @RequestParam(name = "size", defaultValue = "4") int size,
+            @RequestParam(name = "size", defaultValue = "3") int size,
             @RequestParam(name = "page", defaultValue = "0") int page ){
-        return mainService.search(userDetails, method, keyword, size,page);
+        return mainService.searchTopic(userDetails, method, keyword, size,page);
     }
 
-    @GetMapping("/home")
-    public ResponseEntity<ApiResponseWrapper> home(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){return mainService.home(userDetails, size);}
-
-    @GetMapping("/home/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> otherCategories(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){
-        return mainService.otherCategories(userDetails, categoryId, size);
+    @GetMapping("/home/categoryList")
+    public ResponseEntity<ApiResponseWrapper> categoryList(){
+        return mainService.categoryList();
     }
 
-    @GetMapping("/home/more/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> more(
+    @GetMapping("/home/topicList")
+    public ResponseEntity<ApiResponseWrapper> topicList(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @RequestParam(name = "cursorId") Long cursorId,
-            @RequestParam(name = "size", defaultValue = "7") int size
-    ){
-        return mainService.more(userDetails, categoryId, cursorId, size);
+            @RequestParam(name = "categoryId", defaultValue = "1") Long categoryId,
+            @RequestParam(name = "cursorId", defaultValue = "1") Long cursorId,
+            @RequestParam(name = "size", defaultValue = "7") int size){
+        return mainService.topicList(userDetails, categoryId, cursorId, size);
     }
 
-    @GetMapping("/home/scrap/{topicId}")
+    @PostMapping("/scrap")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> scrapTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "topicId") Long topicId
-    ){
-        return mainService.scrapTopic(userDetails, topicId);
+            @RequestBody ScrapTopicRequestDto dto){
+        return mainService.scrapTopic(userDetails, dto);
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -127,6 +115,7 @@ public class MainController {
         return mainService.requestKeyword(userDetails, dto);
     }
 
+    // 토픽 상세보기
     @GetMapping("/detail/{categoryId}/{topicId}")
     public ResponseEntity<ApiResponseWrapper> detailTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -169,17 +158,11 @@ public class MainController {
         return mainService.myScrap(userDetails);
     }
 
-    // 두번째 탭 ( 모든 카테고리 및 토픽 리스트 )
-    @GetMapping("/listTab")
-    public ResponseEntity<ApiResponseWrapper> listTab(){
-        return mainService.listTab();
-    }
-
-    @GetMapping("/listTab/{categoryId}")
-    public ResponseEntity<ApiResponseWrapper> listTabOthers(
-            @PathVariable(name = "categoryId") Long categoryId
-    ){
-        return mainService.listTabOthers(categoryId);
+    // 두번째 탭 ( 선택한 카테고리에 대한 전체 토픽 리스트 )
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponseWrapper> listTab(
+            @RequestParam(name = "categoryId") Long categoryId){
+        return mainService.list(categoryId);
     }
 
     // 아바타 목록
@@ -221,5 +204,17 @@ public class MainController {
         return mainService.bannerList();
     }
 
+
+    // 컬럼 검색
+    @GetMapping("/search/column/{method}")
+    @Operation(summary = "세 번째 탭 컬럼 검색", description = "제목만, 내용만, 제목+내용")
+    public ResponseEntity<ApiResponseWrapper> searchColumn(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "method") String method,
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "size", defaultValue = "2") int size,
+            @RequestParam(name = "page", defaultValue = "0") int page ){
+        return mainService.searchColumn(userDetails, method, keyword, size,page);
+    }
 }
 

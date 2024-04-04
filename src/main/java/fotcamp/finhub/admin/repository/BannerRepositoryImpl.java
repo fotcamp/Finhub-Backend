@@ -54,6 +54,14 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     }
 
     private BooleanExpression useYNEq(String useYN) {
-        return StringUtils.hasText(useYN) ? banner.useYN.eq(useYN) : null;
+        if (StringUtils.hasText(useYN)) {
+            if ("Y".equals(useYN) || "N".equals(useYN)) {
+                return banner.useYN.eq(useYN);
+            } else {
+                // 유효하지 않은 값이 입력될 경우 예외 발생 또는 다른 처리
+                throw new IllegalArgumentException("Invalid useYN value: " + useYN);
+            }
+        }
+        return null; // useYN이 null이거나 비어있는 경우 모든 카테고리를 반환
     }
 }

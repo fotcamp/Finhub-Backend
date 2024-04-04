@@ -577,12 +577,8 @@ public class AdminService {
 
     // 퀴즈 월별 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(Long year, Long month) {
-        // 월에 대한 범위 검사
-        if (month < 1 || month > 12) {
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
-        }
-        LocalDate startDate = DateUtil.convertToDate(year, month, 1L);
+    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(String year, String month) {
+        LocalDate startDate = DateUtil.convertToDate(Long.parseLong(year), Long.parseLong(month), 1L);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
         List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate).stream().map(QuizProcessDto::new).toList();
         GetMonthlyQuizResponseDto resultDto = new GetMonthlyQuizResponseDto(quizProcessDtos);
@@ -592,16 +588,9 @@ public class AdminService {
 
     // 퀴즈 일 상세 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(Long year, Long month, Long day) {
-        // 월과 일에 대한 범위 검사
-        if (month < 1 || month > 12) {
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("월은 1에서 12 사이의 값이어야 합니다."));
-        }
-        if (day < 1 || day > 31) {
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("일은 1에서 31 사이의 값이어야 합니다."));
-        }
+    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(String year, String month, String day) {
         try {
-            LocalDate targetDate = DateUtil.convertToDate(year, month, day);
+            LocalDate targetDate = DateUtil.convertToDate(Long.parseLong(year), Long.parseLong(month), Long.parseLong(day));
             Quiz quiz = quizRepository.findByTargetDate(targetDate).orElseThrow(EntityNotFoundException::new);
             GetDailyQuizResponseDto resultDto = new GetDailyQuizResponseDto(quiz);
 
@@ -724,8 +713,8 @@ public class AdminService {
             Banner findBanner = bannerRepository.findById(bannerId).orElseThrow(EntityNotFoundException::new);
             DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
                     findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
-                    findBanner.getLandingPageUrl(), findBanner.getUseYN(), findBanner.getCreatedBy(),
-                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getBannerType(), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+                    findBanner.getLandingPageUrl(), findBanner.getBannerType(), findBanner.getUseYN(), findBanner.getCreatedBy(),
+                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
             );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
@@ -805,15 +794,6 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
     }
 
-    // 유저아바타 삭제
-    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(Long id) {
-        UserAvatar userAvatar = userAvatarRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저아바타"));
-        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()));
-        userAvatarRepository.delete(userAvatar);
-
-        return ResponseEntity.ok(ApiResponseWrapper.success());
-    }
-
     // 달력 이모티콘 생성
     public ResponseEntity<ApiResponseWrapper> createCalendarEmoticon(CreateCalendarEmoticonRequestDto createCalendarEmoticonRequestDto, CustomUserDetails userDetails) {
         try {
@@ -844,15 +824,6 @@ public class AdminService {
 
         AllCalendarEmoticonResponseDto resultDto = new AllCalendarEmoticonResponseDto(resultList);
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
-    }
-
-    // 달력 이모티콘 삭제
-    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(Long id) {
-        CalendarEmoticon calendarEmoticon = calendarEmoticonRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 달력 이모티콘"));
-        awsS3Service.deleteImageFromS3(awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path()));
-        calendarEmoticonRepository.delete(calendarEmoticon);
-
-        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     // 토픽 요약 gpt 내용 생성 및 반환

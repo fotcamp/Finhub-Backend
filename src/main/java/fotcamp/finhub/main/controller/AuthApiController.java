@@ -30,15 +30,15 @@ public class AuthApiController {
         return authService.login(code);
     }
 
-    @PostMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
+    @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
             HttpServletRequest request){
         return authService.validRefreshToken(request);
     }
 
     // 자동로그인
-    @PostMapping("/autoLogin")
-    public ResponseEntity<ApiResponseWrapper> autoLogin(@RequestBody @Valid AutoLoginRequestDto autoLoginRequestDto){
-        return authService.autoLogin(autoLoginRequestDto);
+    @GetMapping("/autoLogin")
+    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
+        return authService.autoLogin(request);
     }
 }

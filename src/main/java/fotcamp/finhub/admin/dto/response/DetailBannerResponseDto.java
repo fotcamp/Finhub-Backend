@@ -1,6 +1,5 @@
 package fotcamp.finhub.admin.dto.response;
 
-import fotcamp.finhub.common.domain.Banner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

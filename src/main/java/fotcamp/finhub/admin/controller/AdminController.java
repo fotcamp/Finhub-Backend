@@ -46,6 +46,9 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN) {
 
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllCategory(pageable, useYN);
     }
@@ -80,6 +83,10 @@ public class AdminController {
             @RequestParam(name = "categoryId", required = false) Long id,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllTopic(pageable, id, useYN);
     }
@@ -116,6 +123,10 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
+
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllUserType(pageable, useYN);
     }
@@ -202,17 +213,23 @@ public class AdminController {
     @GetMapping(value = "/quiz/{year}/{month}")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "퀴즈 월 전체 조회", description = "퀴즈 월 전체 조회 기능")
-    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(@PathVariable(name = "year") Long year,
-                                                             @PathVariable(name = "month") Long month) {
+    public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(@PathVariable(name = "year") String year,
+                                                             @PathVariable(name = "month") String month) {
+        if (!(year.length() == 4) || !(1 <= month.length() && month.length() <= 2) || Long.parseLong(month) < 1 || Long.parseLong(month) > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("날짜 형식을 확인해주세요"));
+        }
         return adminService.getMonthlyQuiz(year, month);
     }
 
-    @GetMapping(value = "/quiz/{year}/{month}/{day}")
+    @GetMapping(value = "/dailyQuiz/{year}/{month}/{day}")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "퀴즈 일 상세 조회", description = "퀴즈 일 상세 조회 기능")
-    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(@PathVariable(name = "year") Long year,
-                                                           @PathVariable(name = "month") Long month,
-                                                           @PathVariable(name = "day") Long day) {
+    public ResponseEntity<ApiResponseWrapper> getDailyQuiz(@PathVariable(name = "year") String year,
+                                                           @PathVariable(name = "month") String month,
+                                                           @PathVariable(name = "day") String day) {
+        if (!(year.length() == 4) || !(1 <= month.length() && month.length() <= 2) || !(1 <= day.length() && day.length() <= 2) || Long.parseLong(month) < 1 || Long.parseLong(month) > 12 || Long.parseLong(day) < 1 || Long.parseLong(day) > 31) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("날짜 형식을 확인해주세요"));
+        }
         return adminService.getDailyQuiz(year, month, day);
     }
 
@@ -248,6 +265,10 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
+        if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
+        }
+
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getAllBanner(pageable, useYN);
     }
@@ -259,9 +280,9 @@ public class AdminController {
         return adminService.getDetailBanner(bannerId);
     }
 
-    @PostMapping(value = "/cancel")
+    @PostMapping(value = "/img/delete")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "생성/수정 취소", description = "s3에 저장한 이미지 삭제")
+    @Operation(summary = "생성/수정 취소 시 이미지 삭제", description = "s3에 저장한 이미지 삭제")
     public ResponseEntity<ApiResponseWrapper> deleteImg(@RequestBody DeleteS3ImageRequestDto deleteS3ImageRequestDto) {
         return adminService.deleteS3Image(deleteS3ImageRequestDto);
     }
@@ -285,7 +306,7 @@ public class AdminController {
         return adminService.checkNoWord(checkNoWordRequestDto);
     }
 
-    @PostMapping(value = "/userAvatar")
+    @PostMapping(value = "/user-avatar")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "유저 아바타 생성", description = "유저 아바타 생성하기")
     public ResponseEntity<ApiResponseWrapper> createUserAvatar(@RequestBody CreateUserAvatarRequestDto createUserAvatarRequestDto,
@@ -293,21 +314,14 @@ public class AdminController {
         return adminService.createUserAvatar(createUserAvatarRequestDto, userDetails);
     }
 
-    @GetMapping(value = "/userAvatar")
+    @GetMapping(value = "/user-avatar")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "유저 아바타 전체 조회", description = "유저 아바타 전체 조회")
     public ResponseEntity<ApiResponseWrapper> getUserAvatar() {
         return adminService.getUserAvatar();
     }
 
-    @DeleteMapping(value = "/userAvatar/{id}")
-    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "유저 아바타 삭제", description = "유저 아바타 삭제")
-    public ResponseEntity<ApiResponseWrapper> deleteUserAvatar(@PathVariable(name = "id") Long id) {
-        return adminService.deleteUserAvatar(id);
-    }
-
-    @PostMapping(value = "/calendarEmoticon")
+    @PostMapping(value = "/calendar-emoticon")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "달력 이모티콘 생성", description = "달력 이모티콘 생성하기")
     public ResponseEntity<ApiResponseWrapper> createCalendarEmoticon(@RequestBody CreateCalendarEmoticonRequestDto createCalendarEmoticonRequestDto,
@@ -315,18 +329,11 @@ public class AdminController {
         return adminService.createCalendarEmoticon(createCalendarEmoticonRequestDto, userDetails);
     }
 
-    @GetMapping(value = "/calendarEmoticon")
+    @GetMapping(value = "/calendar-emoticon")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "달력 이모티콘 전체 조회", description = "달력 이모티콘 전체 조회")
     public ResponseEntity<ApiResponseWrapper> getCalendarEmoticon() {
         return adminService.getCalendarEmoticon();
-    }
-
-    @DeleteMapping(value = "/calendarEmoticon/{id}")
-    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "달력 이모티콘 삭제", description = "달력 이모티콘 삭제")
-    public ResponseEntity<ApiResponseWrapper> deleteCalendarEmoticon(@PathVariable(name = "id") Long id) {
-        return adminService.deleteCalendarEmoticon(id);
     }
 
     @PostMapping(value = "/gpt-column/content")

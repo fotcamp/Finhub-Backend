@@ -8,15 +8,19 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
 import fotcamp.finhub.common.security.TokenDto;
+import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.config.KakaoConfig;
-import fotcamp.finhub.main.dto.response.LoginResponseDto;
+import fotcamp.finhub.main.dto.process.login.UserInfoProcessDto;
+import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.KakaoUserInfoProcessDto;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
+import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.repository.TokenRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 
@@ -40,6 +44,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final TokenRepository tokenRepository;
     private final KakaoConfig kakaoConfig;
+    private final AwsS3Service awsS3Service;
 
     public ResponseEntity<ApiResponseWrapper> login(String code) throws JsonProcessingException {
         String kakaoAccessToken = getKakaoAccessToken(code); // 1. 액세스토큰 요청
@@ -47,13 +52,12 @@ public class AuthService {
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
         // 3. 사용자 가입 유무 확인
-        Member member = memberRepository.findByEmail(email).orElseGet(
-                () -> memberRepository.save(new Member(email, name))
-        );
+        Member member = memberRepository.findByEmail(email).orElseGet( () -> memberRepository.save(new Member(email, name)));
 
         // 4. jwt 발급
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
 
+        // 5. 리프레시 토큰 저장
         Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
@@ -64,7 +68,16 @@ public class AuthService {
             // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
             tokenRepository.save(new RefreshToken(member, allTokens.getRefreshToken()));
         }
-        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens.getAccessToken(),allTokens.getRefreshToken() ,member.getName(), member.getEmail());
+        // 6. 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
+        UserInfoProcessDto userInfoProcessDto = UserInfoProcessDto.builder()
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .userType(member.getUserType() != null ? member.getUserType().getName() : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .pushYN(member.isPush_yn())
+                .build();
+        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
     }
 
@@ -116,13 +129,13 @@ public class AuthService {
 
 
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
-        System.out.println("서비스 함수 진입");
         String refreshToken = request.getHeader("refreshToken");
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
             Long memberId = jwtUtil.getUserId(refreshToken);
             String  roleType = jwtUtil.getRoleType(refreshToken);
             String newAccessToken = jwtUtil.createToken(memberId, roleType,"Access");
-            return ResponseEntity.ok(ApiResponseWrapper.success(newAccessToken));
+            UpdateAccessTokenResponseDto updateAccessTokenResponseDto = new UpdateAccessTokenResponseDto(newAccessToken);
+            return ResponseEntity.ok(ApiResponseWrapper.success(updateAccessTokenResponseDto));
         }
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("액세스토큰 갱신에 실패했습니다."));
@@ -130,9 +143,9 @@ public class AuthService {
     }
 
     // 자동로그인
-    public ResponseEntity<ApiResponseWrapper> autoLogin(AutoLoginRequestDto autoLoginRequestDto){
-        String accessToken = autoLoginRequestDto.getAccessToken();
-        String refreshToken = autoLoginRequestDto.getRefreshToken();
+    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
+        String accessToken = request.getHeader("Authorization");
+        String refreshToken = request.getHeader("refreshToken");
 
         if(jwtUtil.validateTokenServiceLayer(accessToken)){
             // 액세스토큰 유효할 때
@@ -168,8 +181,16 @@ public class AuthService {
             // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
             tokenRepository.save(new RefreshToken(member, allTokens.getRefreshToken()));
         }
-        return new LoginResponseDto(allTokens.getAccessToken(), allTokens.getRefreshToken(), member.getName(), member.getEmail());
+        // 응답 데이터 : 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
+        UserInfoProcessDto userInfoProcessDto = UserInfoProcessDto.builder()
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .userType(member.getUserType() != null ? member.getUserType().getName() : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .pushYN(member.isPush_yn())
+                .build();
+        return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
 
 }
-// https://iamipro.tistory.com/143
