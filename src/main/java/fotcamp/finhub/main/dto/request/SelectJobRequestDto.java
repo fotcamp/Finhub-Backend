@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SelectJobRequestDto {
 
-    private String job;
+    private Long jobId;
 
-    public SelectJobRequestDto(String job) {
-        this.job = job;
+    public SelectJobRequestDto(Long jobId) {
+        this.jobId = jobId;
     }
 }

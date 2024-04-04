@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SearchResultListProcessDto {
+public class SearchTopicResultListProcessDto {
 
     private String title;
     private String summary;
 
-    public SearchResultListProcessDto(String title, String summary) {
+    public SearchTopicResultListProcessDto(String title, String summary) {
         this.title = title;
         this.summary = summary;
     }
