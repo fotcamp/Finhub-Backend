@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChangeNicknameRequestDto {
 
-    private String newNickname;
+    private String nickname;
 }

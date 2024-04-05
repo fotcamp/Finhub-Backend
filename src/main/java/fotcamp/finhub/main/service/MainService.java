@@ -7,11 +7,8 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.process.secondTab.GptContentProcessDto;
-import fotcamp.finhub.main.dto.process.secondTab.UserTypeProcessDto;
-import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
-import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
-import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
-import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
+import fotcamp.finhub.main.dto.process.secondTab.UserTypeListProcessDto;
+import fotcamp.finhub.main.dto.request.*;
 import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.dto.response.firstTab.BannerListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
@@ -94,23 +91,23 @@ public class MainService {
     }
     
     public ResponseEntity<ApiResponseWrapper> changeNickname(CustomUserDetails userDetails , ChangeNicknameRequestDto dto){
-        String newNickname = dto.getNewNickname();
+        String newNickname = dto.getNickname();
         if (memberRepository.existsByNickname(newNickname)){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("이미 존재하는 닉네임입니다."));
         }
         Long memberId = userDetails.getMemberIdasLong();
-        Member existingMember = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 요청 데이터가 존재하지 않습니다."));
-        existingMember.updateNickname(newNickname);
-        memberRepository.save(existingMember);
-        return ResponseEntity.ok(ApiResponseWrapper.success("변경 완료"));
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        member.updateNickname(newNickname);
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     public ResponseEntity<ApiResponseWrapper> membershipResign(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
         Member existingMember = memberRepository.findById(memberId).orElseThrow(
-                () -> new EntityNotFoundException("해당 요청 데이터가 존재하지 않습니다."));
+                () -> new EntityNotFoundException("해당 멤버는 존재하지 않습니다."));
         memberRepository.delete(existingMember);
-        return ResponseEntity.ok(ApiResponseWrapper.success("탈퇴 완료"));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     public ResponseEntity<ApiResponseWrapper> searchTopic(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page){
@@ -240,13 +237,16 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new TopicInfoResponseDto(topicInfoProcessDto)));
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> usertypeList(){
         List<UserType> JobList = userTypeRepository.findAllByOrderByIdAsc();
-        List<UserTypeProcessDto> processDto = JobList.stream().map(
-                userType -> new UserTypeProcessDto(
-                        userType.getId(),
-                        userType.getName(),
-                        awsS3Service.combineWithBaseUrl(userType.getAvatarImgPath()))).collect(Collectors.toList());
+        List<UserTypeListProcessDto> processDto = JobList.stream()
+                .map(userType -> UserTypeListProcessDto.builder()
+                        .id(userType.getId())
+                        .name(userType.getName())
+                        .img_path(awsS3Service.combineWithBaseUrl(userType.getAvatarImgPath()))
+                        .build()
+                ).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new UserTypeListResponseDto(processDto)));
     }
 
@@ -257,6 +257,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new GptContentResponseDto(gptProcessDto)));
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> nextTopic(Long categoryId, Long topicId){
         PageRequest request = PageRequest.of(0, 1);
         // 같은 category의 다음 topic 찾기
@@ -272,78 +273,31 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new NextTopicResponseDto(nextTopicProcessDto)));
     }
 
-    public ResponseEntity<ApiResponseWrapper> menu(CustomUserDetails userDetails){
-
-        String defaultAvatar = "";
-        String defaultJob = "직업 없음";
-        String defaultNickname = "닉네임을 입력하세요";
-
-        if(userDetails == null){ // 비로그인
-            return ResponseEntity.ok(ApiResponseWrapper.success("로그인이 필요해요."));
-        }
-
+    public ResponseEntity<ApiResponseWrapper> selectUsertype(CustomUserDetails userDetails, SelectUsertypeRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        defaultAvatar = member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : defaultAvatar;
-
-        if (member.getUserType() != null){
-            UserType userType = userTypeRepository.findById(member.getUserType().getId()).get();
-            defaultJob = userType.getName();
-        }
-
-        MenuResponseDto responseDto = new MenuResponseDto(
-                defaultAvatar, Optional.ofNullable(member.getNickname()).orElse(defaultNickname), defaultJob);
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
-
-    public ResponseEntity<ApiResponseWrapper> profile(CustomUserDetails userDetails){
-
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-
-        if (member.getUserAvatar() != null){
-            UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
-            ProfileResponseDto responseDto = new ProfileResponseDto(
-                    userAvatar.getId(),
-                    awsS3Service.combineWithBaseUrl( userAvatar.getAvatar_img_path()),
-                    member.getEmail());
-            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-        } else {
-            ProfileResponseDto responseDto = new ProfileResponseDto(0L, "", member.getEmail());
-            return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-        }
-    }
-
-
-    public ResponseEntity<ApiResponseWrapper> settingJob(CustomUserDetails userDetails){
-        // 유저의 직업 먼저 확인 후, 없으면 '직업없음'으로 디폴트
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        String defaultJob = "직업 없음"; // 직업이 없으면 현재 직업은 '직업없음'
-
-        if (member.getUserType().getName() != null) {
-            defaultJob =member.getUserType().getName();
-        }
-        List<UserType> allJobList = userTypeRepository.findAllByOrderByIdAsc();
-        List<JobListProcessDto> jobListProcessDtos = allJobList.stream().map(UserType -> new JobListProcessDto(UserType.getId(), UserType.getName())).collect(Collectors.toList());
-        SettingJobResponseDto responseDto = new SettingJobResponseDto(defaultJob, jobListProcessDtos);
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
-
-    public ResponseEntity<ApiResponseWrapper> selectJob(CustomUserDetails userDetails, SelectJobRequestDto dto){
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        UserType userType = userTypeRepository.findById(dto.getJobId()).orElseThrow(() -> new EntityNotFoundException("요청한 직업정보가 존재하지 않습니다."));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        UserType userType = userTypeRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
         member.updateJob(userType);
         memberRepository.save(member);
-        return ResponseEntity.ok(ApiResponseWrapper.success("직업 선택 성공"));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> myScrap(CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> scrapList(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getCategory().getId(), MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
+        // List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
+        List<MemberScrap> scrapList = memberScrapRepository.findByMember(member);
+        List<MyScrapProcessDto> responseDto = scrapList.stream().map(
+                memberScrap -> MyScrapProcessDto.builder()
+                        .categoryId(memberScrap.getTopic().getCategory().getId())
+                        .topicId(memberScrap.getTopic().getId())
+                        .title(memberScrap.getTopic().getTitle())
+                        .definition(memberScrap.getTopic().getDefinition())
+                        .build())
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
@@ -365,59 +319,39 @@ public class MainService {
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
 
-        String defaultAvatarUrl = "";
-        if (member.getUserAvatar() != null) {
-            UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId()).get();
-            defaultAvatarUrl = awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path());
-        }
         List<UserAvatar> avatarList = userAvatarRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
         List<UserAvatarProcessDto> avatarProcessDtoList = avatarList.stream()
-                .map(UserAvatar -> new UserAvatarProcessDto(
-                        UserAvatar.getId(),
-                        awsS3Service.combineWithBaseUrl(UserAvatar.getAvatar_img_path())))
+                .map(userAvatar -> UserAvatarProcessDto.builder()
+                        .id(userAvatar.getId())
+                        .imgUrl(awsS3Service.combineWithBaseUrl( userAvatar.getAvatar_img_path()))
+                        .build())
                 .collect(Collectors.toList());
 
-        AvatarListResponseDto responseDto = new AvatarListResponseDto(defaultAvatarUrl, avatarProcessDtoList);
+        AvatarListResponseDto responseDto = new AvatarListResponseDto(avatarProcessDtoList);
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
-    public ResponseEntity<ApiResponseWrapper> selectAvatar(CustomUserDetails userDetails, Long avatarId){
+    public ResponseEntity<ApiResponseWrapper> selectAvatar(CustomUserDetails userDetails, SelectAvatarRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        UserAvatar userAvatar = userAvatarRepository.findById(avatarId).orElseThrow(() -> new EntityNotFoundException("아바타ID 존재하지 않습니다."));
+        UserAvatar userAvatar = userAvatarRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("아바타ID 존재하지 않습니다."));
         member.updateAvatar(userAvatar);
         memberRepository.save(member);
-        return ResponseEntity.ok(ApiResponseWrapper.success("변경 완료"));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> scrapOff(CustomUserDetails userDetails, Long topicId){
 
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-
-        MemberScrap memberScrap = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 스크랩 정보입니다."));
-        memberScrapRepository.delete(memberScrap);
-        member.removeScrap(memberScrap);
-        memberRepository.save(member);
-
-        List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(MemberScrap -> new MyScrapProcessDto(MemberScrap.getTopic().getCategory().getId(), MemberScrap.getTopic().getId(), MemberScrap.getTopic().getTitle(), MemberScrap.getTopic().getDefinition())).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-
-    }
-
-    public ResponseEntity<ApiResponseWrapper> avatarOff(CustomUserDetails userDetails){
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        if (member.getUserType() == null) {
-            throw new EntityNotFoundException("아바타 설정 정보가 없습니다.");
+        if (member.getUserAvatar() == null) {
+            return ResponseEntity.ok(ApiResponseWrapper.success());
         }
         UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId())
                 .orElseThrow(() -> new EntityNotFoundException("아바타ID가 존재하지 않습니다."));
         member.removeUserAvatar(userAvatar);
         memberRepository.save(member);
-
-        return ResponseEntity.ok(ApiResponseWrapper.success("아바타 지우기 성공"));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     // 배너 리스트
