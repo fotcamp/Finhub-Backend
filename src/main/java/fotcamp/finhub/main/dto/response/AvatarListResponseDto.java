@@ -11,11 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 public class AvatarListResponseDto {
 
-    private String defaultAvatar;
     private List<UserAvatarProcessDto> avatarList;
 
-    public AvatarListResponseDto(String defaultAvatar, List<UserAvatarProcessDto> avatarList) {
-        this.defaultAvatar = defaultAvatar;
+    public AvatarListResponseDto(List<UserAvatarProcessDto> avatarList) {
         this.avatarList = avatarList;
     }
 }
