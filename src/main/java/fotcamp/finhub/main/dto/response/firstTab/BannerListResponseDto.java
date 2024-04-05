@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.dto.response;
+package fotcamp.finhub.main.dto.response.firstTab;
 
 import fotcamp.finhub.main.dto.process.BannerListProcessDto;
 

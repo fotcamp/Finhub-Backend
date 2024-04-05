@@ -76,6 +76,34 @@ public class MainController {
         return mainService.scrapTopic(userDetails, dto);
     }
 
+    @GetMapping("/topicInfo")
+    public ResponseEntity<ApiResponseWrapper> topicInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(name = "topicId") Long topicId) {
+            return mainService.topicInfo(userDetails, topicId);
+    }
+
+    @GetMapping("/usertypeList")
+    public ResponseEntity<ApiResponseWrapper> usertypeList(){
+        return mainService.usertypeList();
+    }
+
+    @GetMapping("/gptContent")
+    public ResponseEntity<ApiResponseWrapper> gptContent(
+         @RequestParam(name = "categoryId") Long categoryId,
+         @RequestParam(name = "topicId") Long topicId,
+         @RequestParam(name = "usertypeId") Long usertypeId ){
+        return mainService.gptContent(categoryId, topicId, usertypeId);
+    }
+
+    @GetMapping("/nextTopic/{categoryId}/{topicId}")
+    public ResponseEntity<ApiResponseWrapper> nextTopic(
+            @PathVariable(name = "categoryId") Long categoryId,
+            @PathVariable(name = "topicId") Long topicId
+    ){
+        return mainService.nextTopic(categoryId, topicId);
+    }
+
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/thirdTab/recent")
     public ResponseEntity<ApiResponseWrapper> recentSearch(
@@ -115,15 +143,6 @@ public class MainController {
         return mainService.requestKeyword(userDetails, dto);
     }
 
-    // 토픽 상세보기
-    @GetMapping("/detail/{categoryId}/{topicId}")
-    public ResponseEntity<ApiResponseWrapper> detailTopic(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @PathVariable(name = "topicId") Long topicId
-    ){
-        return mainService.detailTopic(userDetails, categoryId, topicId);
-    }
 
     // 네 번째 탭 진입시
     @GetMapping("/menu")
