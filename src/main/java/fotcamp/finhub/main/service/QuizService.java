@@ -1,5 +1,6 @@
 package fotcamp.finhub.main.service;
 
+import fotcamp.finhub.admin.dto.process.QuizTopicProcessDto;
 import fotcamp.finhub.admin.repository.MemberQuizRepository;
 import fotcamp.finhub.admin.repository.QuizRepository;
 import fotcamp.finhub.admin.repository.TopicQuizRepository;
@@ -8,13 +9,11 @@ import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.MemberQuiz;
 import fotcamp.finhub.common.domain.Quiz;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.main.dto.response.quiz.QuizInfoProcessDto;
-import fotcamp.finhub.main.dto.response.quiz.QuizInfoResponseDto;
+import fotcamp.finhub.main.dto.response.quiz.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,43 +71,38 @@ public class QuizService {
         return checkExistingMemberQuiz.isPresent();
     }
 
-//    // 오늘의 퀴즈 보여주기
-//    @Transactional(readOnly = true)
-//    public ResponseEntity<ApiResponseWrapper> todayQuiz() {
-//        LocalDate today = LocalDate.now();
-//        Quiz quiz = quizRepository.findByTargetDate(today).orElseThrow(() -> new EntityNotFoundException("오늘의 퀴즈가 없습니다."));
-//
-//        return ResponseEntity.ok(ApiResponseWrapper.success(new TodayQuizResponseDto(quiz.getId(), quiz.getQuestion())));
-//    }
-//
-//    // 오늘의 퀴즈 문제풀기
-//    public ResponseEntity<ApiResponseWrapper> solveQuiz(SolveQuizRequestDto solveQuizRequestDto, CustomUserDetails userDetails) {
-//        Member member = memberRepository.findById(userDetails.getMemberIdasLong()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저"));
-//        Quiz quiz = quizRepository.findById(solveQuizRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 퀴즈"));
-//
-//        // 동일한 Member와 Quiz 조합이 있는지 확인
-//        Optional<MemberQuiz> existingMemberQuiz = memberQuizRepository.findByMemberAndQuiz(member, quiz);
-//        if (existingMemberQuiz.isPresent()) {
-//            // 이미 존재하는 경우, 예외 처리나 적절한 로직을 수행
-//            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("이미 푼 문제입니다."));
-//        }
-//        String correctYN = "Y";
-//        MemberQuiz memberQuiz = MemberQuiz.builder()
-//                .member(member)
-//                .quiz(quiz)
-//                .build();
-//
-//        if (quiz.getAnswer().equals(solveQuizRequestDto.answer())) {
-//            memberQuiz.addAnswerYn("Y");
-//        } else {
-//            memberQuiz.addAnswerYn("N");
-//            correctYN = "N";
-//        }
-//        memberQuizRepository.save(memberQuiz);
-//        member.addMemberQuiz(memberQuiz);
-//
-//        List<QuizTopicProcessDto> quizTopicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
-//        return ResponseEntity.ok(ApiResponseWrapper.success(new SolveQuizResponseDto(correctYN, quiz.getComment(), quizTopicList)));
-//
-//    }
+    // 오늘 or 지난 날짜 문제풀기 api
+    public ResponseEntity<ApiResponseWrapper> solveQuiz(CustomUserDetails userDetails, SolveQuizRequestDto solveQuizRequestDto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저"));
+        Quiz quiz = quizRepository.findById(solveQuizRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 퀴즈"));
+
+        // 이미 존재하는 경우, 예외 처리나 적절한 로직을 수행
+        if (checkExistingMemberQuiz(userDetails, quiz)) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("이미 푼 문제입니다."));
+        }
+        if (!solveQuizRequestDto.answer().equals("O") && !solveQuizRequestDto.answer().equals("X")) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("ANSWER 형식 오류"));
+        }
+
+        MemberQuiz memberQuiz = MemberQuiz.builder()
+                .member(member)
+                .quiz(quiz)
+                .build();
+
+        if (quiz.getAnswer().equals(solveQuizRequestDto.answer())) {
+            memberQuiz.addAnswerYn("Y");
+        } else {
+            memberQuiz.addAnswerYn("N");
+        }
+        memberQuizRepository.save(memberQuiz);
+        member.addMemberQuiz(memberQuiz);
+
+        List<QuizTopicProcessDto> quizTopicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new SolveQuizResponseDto(new SolveQuizProcessDto(memberQuiz.getAnswerYn(), quiz.getComment(), quizTopicList))));
+
+    }
+
 }

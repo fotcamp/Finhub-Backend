@@ -2,6 +2,7 @@ package fotcamp.finhub.common.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,11 @@ public class MemberQuiz {
     @CreatedDate
     private LocalDateTime solvedTime;
 
-    private String answerYN;
+    private String answerYn;
+
+    public void addAnswerYn(String answerYN) {
+        this.answerYn = answerYN;
+        this.solvedTime = LocalDateTime.now().withNano(0);
+    }
 
 }

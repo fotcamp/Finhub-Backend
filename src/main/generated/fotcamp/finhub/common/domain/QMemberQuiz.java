@@ -22,7 +22,7 @@ public class QMemberQuiz extends EntityPathBase<MemberQuiz> {
 
     public static final QMemberQuiz memberQuiz = new QMemberQuiz("memberQuiz");
 
-    public final StringPath answerYN = createString("answerYN");
+    public final StringPath answerYn = createString("answerYn");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
