@@ -22,7 +22,8 @@ public class QuizController {
     @Operation(summary = "퀴즈 가져오기", description = "오늘의 퀴즈, 놓친 퀴즈 가져오기")
     public ResponseEntity<ApiResponseWrapper> findQuiz(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(name = "date", required = false) String date){
+            @RequestParam(name = "date", required = false) String date
+    ) {
         return quizService.findQuiz(userDetails, date);
     }
 
@@ -33,6 +34,20 @@ public class QuizController {
             @RequestBody SolveQuizRequestDto solveQuizRequestDto
     ) {
         return quizService.solveQuiz(userDetails, solveQuizRequestDto);
+    }
+
+    @GetMapping("/{year}/{month}")
+    @Operation(summary = "퀴즈 달력 가져오기", description = "퀴즈 달력 가져오기")
+    public ResponseEntity<ApiResponseWrapper> findCalendarQuiz(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "year") String year,
+            @PathVariable(name = "month") String month
+    ) {
+        if (!(year.length() == 4) || !(1 <= month.length() && month.length() <= 2) || Long.parseLong(month) < 1 || Long.parseLong(month) > 12) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("날짜 형식을 확인해주세요"));
+        }
+
+        return quizService.findCalendarQuiz(userDetails, year,month);
     }
 
 
