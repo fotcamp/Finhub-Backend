@@ -302,7 +302,9 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> getAllUserType(Pageable pageable, String useYN) {
         Page<UserType> userTypes = userTypeRepositoryCustom.searchAllUserTypeFilterList(pageable, useYN);
-        List<UserTypeProcessDto> userTypeProcessDtos = userTypes.getContent().stream().map(UserTypeProcessDto::new).toList();
+        List<UserTypeProcessDto> userTypeProcessDtos = userTypes.getContent().stream().map(userType -> {
+            return new UserTypeProcessDto(userType.getId(), userType.getName(), userType.getUseYN(), awsS3Service.combineWithBaseUrl(userType.getAvatarImgPath()));
+        }).toList();
         PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(userTypes);
         AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos, pageInfoProcessDto);
 

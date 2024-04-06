@@ -213,5 +213,7 @@ public class MainController {
             @RequestParam(name = "page", defaultValue = "0") int page ){
         return mainService.searchColumn(userDetails, method, keyword, size,page);
     }
+
+
 }
 

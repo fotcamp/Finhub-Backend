@@ -1,6 +1,5 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.request.ModifyUserTypeRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
