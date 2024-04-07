@@ -3,6 +3,7 @@ package fotcamp.finhub.admin.repository;
 import fotcamp.finhub.common.domain.Quiz;
 import fotcamp.finhub.main.dto.response.quiz.QuizInfoDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +17,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     boolean existsByTargetDate(LocalDate targetDate);
 
     // 해당 날짜 사이에 있는 Quiz 데이터 리스트 형태로 반환
-    List<Quiz> findByTargetDateBetween(LocalDate startDate, LocalDate endDate);
+    List<Quiz> findByTargetDateBetween(LocalDate startDate, LocalDate endDate, Sort sort);
 
     Optional<Quiz> findByTargetDate(LocalDate targetDate);
 

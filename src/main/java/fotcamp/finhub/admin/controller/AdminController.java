@@ -221,7 +221,7 @@ public class AdminController {
         return adminService.getMonthlyQuiz(year, month);
     }
 
-    @GetMapping(value = "/dailyQuiz/{year}/{month}/{day}")
+    @GetMapping(value = "/quiz/{year}/{month}/{day}")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "퀴즈 일 상세 조회", description = "퀴즈 일 상세 조회 기능")
     public ResponseEntity<ApiResponseWrapper> getDailyQuiz(@PathVariable(name = "year") String year,

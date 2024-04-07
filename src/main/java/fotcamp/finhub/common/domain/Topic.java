@@ -1,6 +1,5 @@
 package fotcamp.finhub.common.domain;
 
-import fotcamp.finhub.admin.dto.request.ModifyTopicRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,10 +42,15 @@ public class Topic extends BaseEntity {
     private String createdBy;
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
-    private final List<Gpt> gptList = new ArrayList<>();
+    private List<Gpt> gptList = new ArrayList<>();
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private List<MemberScrap> memberScraps = new ArrayList<>();
+
+    // gpt list 변경
+    public void changeGptList(List<Gpt> newGptList) {
+        this.gptList = newGptList;
+    }
 
     // 토픽 카테고리 변경
     public void changeCategory(Category newCategory) {

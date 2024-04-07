@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GptProcessDto {
     private Long gptId;
+    private Long usertypeId;
     private String content;
     private String useYN;
 
     public GptProcessDto(Gpt gpt) {
         this.gptId = gpt.getId();
+        this.usertypeId = gpt.getUserType().getId();
         this.content = gpt.getContent();
         this.useYN = gpt.getUseYN();
     }
