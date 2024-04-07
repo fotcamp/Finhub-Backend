@@ -1,7 +1,7 @@
 package fotcamp.finhub.main.dto.response;
 
 
-import fotcamp.finhub.main.dto.process.SearchColumnResultListProcessDto;
+import fotcamp.finhub.main.dto.process.thirdTab.SearchColumnResultListProcessDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

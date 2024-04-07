@@ -12,9 +12,9 @@ import java.util.Optional;
 
 public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long> {
 
-    @Query("SELECT r FROM RecentSearch r WHERE r.member.id = :memberId ORDER BY r.localDateTime DESC")
-    List<RecentSearch> findByMember_IdOrderByLocalDateTimeDesc(@Param("memberId") Long memberId, Pageable pageable);
+//    @Query("SELECT r FROM RecentSearch r WHERE r.member.id = :memberId ORDER BY r.localDateTime DESC")
+    List<RecentSearch> findByMemberOrderByLocalDateTimeDesc(Member member);
 
-    Optional<RecentSearch> findByMember_memberIdAndKeyword(Long memberId, String keyword);
+    Optional<RecentSearch> findByMemberAndKeyword(Member member, String keyword);
     void deleteByMember_memberId(Long memberId);
 }
