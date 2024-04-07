@@ -11,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
 @Tag(name = "main quiz", description = "main quiz api")
 @RestController
 @RequestMapping("/api/v1/main/quiz")
@@ -50,5 +54,30 @@ public class QuizController {
         return quizService.findCalendarQuiz(userDetails, year,month);
     }
 
+    @GetMapping("/missed")
+    @Operation(summary = "놓친 퀴즈 가져오기", description = "놓친 퀴즈 리스트 가져오기")
+    public ResponseEntity<ApiResponseWrapper> missedQuizList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(value = "date", required = false) Optional<String> date,
+            @RequestParam(value = "limit", defaultValue = "3") int limit
+    ) {
+        // dateStringOptional이 비어 있으면 오늘 날짜를 문자열로 설정
+        String dateString = date.orElseGet(() -> LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        LocalDate cursorDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return quizService.missedQuizList(userDetails, cursorDate, limit);
+    }
+
+    @GetMapping("/solved")
+    @Operation(summary = "풀었던 퀴즈 가져오기", description = "풀었던 퀴즈 리스트 가져오기")
+    public ResponseEntity<ApiResponseWrapper> solvedQuizList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(value = "date", required = false) Optional<String> date,
+            @RequestParam(value = "limit", defaultValue = "3") int limit
+    ) {
+        // dateStringOptional이 비어 있으면 오늘 날짜를 문자열로 설정
+        String dateString = date.orElseGet(() -> LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        LocalDate cursorDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return quizService.solvedQuizList(userDetails, cursorDate, limit);
+    }
 
 }

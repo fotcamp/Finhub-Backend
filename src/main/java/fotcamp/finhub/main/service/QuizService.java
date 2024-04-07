@@ -19,6 +19,7 @@ import fotcamp.finhub.main.dto.response.quiz.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,5 +166,26 @@ public class QuizService {
 
         // ApiResponseWrapper에 결과 DTO를 담아 반환
         return ResponseEntity.ok(ApiResponseWrapper.success(new CalendarQuizResponseDto(emoticonImgPath, quizDayStatusList)));
+    }
+
+    // 놓친 퀴즈 리스트 가져오기 api
+    public ResponseEntity<ApiResponseWrapper> missedQuizList(CustomUserDetails userDetails, LocalDate cursorDate, int limit) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        List<QuizInfoDto> missedQuizList = quizRepository.findMissedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, PageRequest.of(0, limit));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new SolvedQuizListResponseDto(missedQuizList)));
+    }
+
+    // 풀었던 퀴즈 리스트 가져오기 api
+    public ResponseEntity<ApiResponseWrapper> solvedQuizList(CustomUserDetails userDetails, LocalDate cursorDate, int limit) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+
+        List<QuizInfoDto> solvedQuizList = memberQuizRepository.findSolvedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, PageRequest.of(0, limit));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new SolvedQuizListResponseDto(solvedQuizList)));
+
+
     }
 }
