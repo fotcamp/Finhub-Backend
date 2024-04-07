@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 public class ErrorMessageResponseDto {
 
-    private ApiStatus apiStatus;
-    private String errMsg;
+    private ApiStatus status;
+    private String errorMsg;
     private Object data;
 }
