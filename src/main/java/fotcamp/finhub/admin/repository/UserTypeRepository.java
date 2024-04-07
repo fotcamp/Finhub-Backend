@@ -14,9 +14,10 @@ import java.util.Optional;
 public interface UserTypeRepository extends JpaRepository<UserType, Long> {
     Optional<UserType> findByName(String name);
 
-    @Query("SELECT m FROM UserType m ORDER BY m.id ")
-    List<UserType> findAllJobList();
+//    @Query("SELECT m FROM UserType m ORDER BY m.id ")
+//    List<UserType> findAllJobListOrderById();
 
+    List<UserType> findAllByOrderByIdAsc();
     Page<UserType> findFirstByOrderByIdAsc(Pageable pageable);
 
 }

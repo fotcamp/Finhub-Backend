@@ -3,10 +3,7 @@ package fotcamp.finhub.main.controller;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.main.dto.request.ChangeNicknameRequestDto;
-import fotcamp.finhub.main.dto.request.NewKeywordRequestDto;
-import fotcamp.finhub.main.dto.request.ScrapTopicRequestDto;
-import fotcamp.finhub.main.dto.request.SelectJobRequestDto;
+import fotcamp.finhub.main.dto.request.*;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,22 +22,7 @@ public class MainController {
 
     private final MainService mainService;
 
-    @PostMapping("/menu/setting/nickname")
-    @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 닉네임 변경", description = "nickname change")
-    public ResponseEntity<ApiResponseWrapper> changeNickname(
-            @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
-        return mainService.changeNickname(userDetails, dto);
-    }
 
-    @GetMapping("/menu/setting/resign")
-    @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 회원탈퇴", description = "membership resign")
-    public ResponseEntity<ApiResponseWrapper> resignMembership(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
-        return mainService.membershipResign(userDetails);
-    }
 
     // 단어 검색
     @GetMapping("/search/topic/{method}")
@@ -74,6 +56,35 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody ScrapTopicRequestDto dto){
         return mainService.scrapTopic(userDetails, dto);
+    }
+
+    @GetMapping("/topicInfo")
+    public ResponseEntity<ApiResponseWrapper> topicInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(name = "topicId") Long topicId) {
+            return mainService.topicInfo(userDetails, topicId);
+    }
+
+    @GetMapping("/usertypeList")
+    public ResponseEntity<ApiResponseWrapper> usertypeList(){
+        return mainService.usertypeList();
+    }
+
+    @GetMapping("/gptContent")
+    public ResponseEntity<ApiResponseWrapper> gptContent(
+         @RequestParam(name = "categoryId") Long categoryId,
+         @RequestParam(name = "topicId") Long topicId,
+         @RequestParam(name = "usertypeId") Long usertypeId ){
+        return mainService.gptContent(categoryId, topicId, usertypeId);
+    }
+
+    // 다음 토픽
+    @GetMapping("/nextTopic/{categoryId}/{topicId}")
+    public ResponseEntity<ApiResponseWrapper> nextTopic(
+            @PathVariable(name = "categoryId") Long categoryId,
+            @PathVariable(name = "topicId") Long topicId
+    ){
+        return mainService.nextTopic(categoryId, topicId);
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -115,47 +126,27 @@ public class MainController {
         return mainService.requestKeyword(userDetails, dto);
     }
 
-    // 토픽 상세보기
-    @GetMapping("/detail/{categoryId}/{topicId}")
-    public ResponseEntity<ApiResponseWrapper> detailTopic(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "categoryId") Long categoryId,
-            @PathVariable(name = "topicId") Long topicId
-    ){
-        return mainService.detailTopic(userDetails, categoryId, topicId);
-    }
-
-    // 네 번째 탭 진입시
-    @GetMapping("/menu")
-    public ResponseEntity<ApiResponseWrapper> menu(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return mainService.menu(userDetails);
-    }
-
-    // 프로필 진입했을 때
-    @GetMapping("/menu/profile")
-    public ResponseEntity<ApiResponseWrapper> profile(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return mainService.profile(userDetails);
+    // 닉네임 설정
+    @PostMapping("/menu/setting/nickname")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "설정 - 닉네임 변경", description = "nickname change")
+    public ResponseEntity<ApiResponseWrapper> changeNickname(
+            @AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangeNicknameRequestDto dto){
+        return mainService.changeNickname(userDetails, dto);
     }
 
     // 직업목록
-    @GetMapping("/menu/setting/job")
+    @GetMapping("/menu/setting/usertype")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> settingJob(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return mainService.settingJob(userDetails);
+    public ResponseEntity<ApiResponseWrapper> settingUsertype(){
+        return mainService.usertypeList();
     }
 
     // 직업 설정
-    @PostMapping("/menu/setting/job")
+    @PostMapping("/menu/setting/usertype")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> selectJob(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody SelectJobRequestDto dto){
-        return mainService.selectJob(userDetails, dto);
-    }
-
-    // 나의 스크랩 모음
-    @GetMapping("/menu/myscrap")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> myScrap(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return mainService.myScrap(userDetails);
+    public ResponseEntity<ApiResponseWrapper> selectJob(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody SelectUsertypeRequestDto dto){
+        return mainService.selectUsertype(userDetails, dto);
     }
 
     // 두번째 탭 ( 선택한 카테고리에 대한 전체 토픽 리스트 )
@@ -171,32 +162,38 @@ public class MainController {
     public ResponseEntity<ApiResponseWrapper> listAvatar(@AuthenticationPrincipal CustomUserDetails userDetails){
         return mainService.listAvatar(userDetails);
     }
+
     // 아바타 선택
-    @PostMapping("/menu/setting/avatar/{avatarId}")
+    @PostMapping("/menu/setting/avatar")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> selectAvatar(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "avatarId") Long avatarId){
-        return mainService.selectAvatar(userDetails, avatarId);
+            @RequestBody SelectAvatarRequestDto dto){
+        return mainService.selectAvatar(userDetails, dto);
     }
 
-    // 스크랩 해제
-    @DeleteMapping("/menu/myscrap/{topicId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> scrapOff(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable(name = "topicId") Long topicId){
-        return mainService.scrapOff(userDetails, topicId);
-    }
-
-    // 프로필 아바타 해제
+    // 아바타 지우기
     @DeleteMapping("/menu/setting/avatar")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseWrapper> avatarOff(
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return mainService.avatarOff(userDetails);
+        return mainService.deleteAvatar(userDetails);
+    }
+    // 스크랩 모음
+    @GetMapping("/menu/myscrap")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper> scrapList(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.scrapList(userDetails);
     }
 
+    @GetMapping("/menu/setting/resign")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "설정 - 회원탈퇴", description = "membership resign")
+    public ResponseEntity<ApiResponseWrapper> resignMembership(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.membershipResign(userDetails);
+    }
 
     // 배너 리스트
     @GetMapping("/home/banner")
@@ -216,5 +213,7 @@ public class MainController {
             @RequestParam(name = "page", defaultValue = "0") int page ){
         return mainService.searchColumn(userDetails, method, keyword, size,page);
     }
+
+
 }
 

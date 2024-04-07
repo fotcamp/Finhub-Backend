@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SelectJobRequestDto {
+public class SelectAvatarRequestDto {
 
-    private Long jobId;
+    private Long id;
 
-    public SelectJobRequestDto(Long jobId) {
-        this.jobId = jobId;
+    public SelectAvatarRequestDto(Long id) {
+        this.id = id;
     }
 }

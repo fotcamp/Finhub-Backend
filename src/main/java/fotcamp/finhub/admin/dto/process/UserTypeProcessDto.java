@@ -8,10 +8,12 @@ public class UserTypeProcessDto {
     private final Long id;
     private final String name;
     private final String useYN;
+    private final String avatarImgPath;
 
-    public UserTypeProcessDto(UserType userType) {
-        this.id = userType.getId();
-        this.name = userType.getName();
-        this.useYN = userType.getUseYN();
+    public UserTypeProcessDto(Long id, String name, String useYN, String avatarImgPath) {
+        this.id = id;
+        this.name = name;
+        this.useYN = useYN;
+        this.avatarImgPath = avatarImgPath;
     }
 }
