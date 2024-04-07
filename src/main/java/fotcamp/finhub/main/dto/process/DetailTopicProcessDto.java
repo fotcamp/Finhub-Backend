@@ -11,12 +11,14 @@ public class DetailTopicProcessDto {
 
     private Long id;
     private String title;
+    private String summary;
     private String definition;
     private boolean isScrapped;
 
-    public DetailTopicProcessDto(Long id, String title, String definition, boolean isScrapped) {
+    public DetailTopicProcessDto(Long id, String title, String summary, String definition, boolean isScrapped) {
         this.id = id;
         this.title = title;
+        this.summary = summary;
         this.definition = definition;
         this.isScrapped = isScrapped;
     }

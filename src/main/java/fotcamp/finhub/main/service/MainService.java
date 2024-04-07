@@ -233,7 +233,7 @@ public class MainService {
             isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).isPresent();
         }
 
-        DetailTopicProcessDto topicInfoProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getDefinition(), isScrapped);
+        DetailTopicProcessDto topicInfoProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(),topic.getDefinition(), isScrapped);
         return ResponseEntity.ok(ApiResponseWrapper.success(new TopicInfoResponseDto(topicInfoProcessDto)));
     }
 
