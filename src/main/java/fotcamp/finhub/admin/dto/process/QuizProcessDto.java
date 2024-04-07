@@ -17,7 +17,7 @@ public class QuizProcessDto {
     private String answer;
     private String comment;
     private String createdBy;
-    private List<String> topicList;
+    private List<QuizTopicProcessDto> topicList;
 
     public QuizProcessDto(Quiz quiz) {
         this.id = quiz.getId();
@@ -26,7 +26,7 @@ public class QuizProcessDto {
         this.comment = quiz.getComment();
         this.targetDate = quiz.getTargetDate();
         this.createdBy = quiz.getCreatedBy();
-        this.topicList = quiz.getTopicList().stream().map(e -> e.getTopic().getTitle()).toList();
+        this.topicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
 
     }
 }

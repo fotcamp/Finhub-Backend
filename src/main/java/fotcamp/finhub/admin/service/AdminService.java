@@ -36,6 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -229,7 +231,9 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getDetailTopic(Long topicId) {
         try {
             Topic findTopic = topicRepository.findById(topicId).orElseThrow(EntityNotFoundException::new);
-            List<DetailTopicProcessDto> detailTopicProcessDtos = findTopic.getGptList().stream().map(DetailTopicProcessDto::new).toList();
+            List<DetailTopicProcessDto> detailTopicProcessDtos = findTopic.getGptList().stream()
+                    .sorted(Comparator.comparing(gpt -> gpt.getUserType().getId()))
+                    .map(DetailTopicProcessDto::new).toList();
             DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic.getCategory().getId(), findTopic.getId(),
                     findTopic.getTitle(), findTopic.getDefinition(), findTopic.getSummary(), findTopic.getShortDefinition(),
                     awsS3Service.combineWithBaseUrl(findTopic.getThumbnailImgPath()), findTopic.getUseYN(), detailTopicProcessDtos);
@@ -277,14 +281,35 @@ public class AdminService {
                     modifyTopicRequestDto.getShortDefinition(),awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
                     category, userDetails.getRole());
 
+            List<Gpt> updateGptList = new ArrayList<>();
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
             for (GptProcessDto gptProcessDto : gptProcessDtoList) {
                 if (!("Y".equals(gptProcessDto.getUseYN()) || "N".equals(gptProcessDto.getUseYN()))) {
                     throw new IllegalArgumentException();
                 }
-                gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
-                    gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole());
-                });
+                // gpt id null 일 때 gpt save 추가
+                if (gptProcessDto.getGptId() == null) {
+                    UserType userType = userTypeRepository.findById(gptProcessDto.getUsertypeId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저타입"));
+                    Gpt newGpt = Gpt.builder()
+                            .categoryId(modifyTopicRequestDto.getCategoryId())
+                            .topic(topic)
+                            .userType(userType)
+                            .content(gptProcessDto.getContent())
+                            .useYN(gptProcessDto.getUseYN())
+                            .createdBy(userDetails.getRole())
+                            .build();
+                    gptRepository.save(newGpt);
+                    updateGptList.add(newGpt);
+                }
+                if (gptProcessDto.getGptId() != null) {
+                    // gpt entity 내용 수정
+                    gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
+                        gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole());
+                        updateGptList.add(gpt);
+                    });
+                }
+                topic.changeGptList(updateGptList);
+
             }
             return ResponseEntity.ok(ApiResponseWrapper.success());
         } catch (EntityNotFoundException e) {
@@ -482,7 +507,11 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getGptPrompt() {
         try {
             GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(EntityNotFoundException::new);
-            RecentPromptResponseDto recentPromptResponseDto = new RecentPromptResponseDto(gptPrompt, promiseCategory, promiseTopic, promiseUsertype);
+            List<RecentPromptProcessDto> promiseList = new ArrayList<>();
+            promiseList.add(new RecentPromptProcessDto("category", promiseCategory));
+            promiseList.add(new RecentPromptProcessDto("topic", promiseTopic));
+            promiseList.add(new RecentPromptProcessDto("usertype", promiseUsertype));
+            RecentPromptResponseDto recentPromptResponseDto = new RecentPromptResponseDto(gptPrompt, promiseList);
 
             return ResponseEntity.ok(ApiResponseWrapper.success(recentPromptResponseDto));
         } catch (EntityNotFoundException e) {
@@ -582,7 +611,9 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getMonthlyQuiz(String year, String month) {
         LocalDate startDate = DateUtil.convertToDate(Long.parseLong(year), Long.parseLong(month), 1L);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-        List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate).stream().map(QuizProcessDto::new).toList();
+        // targetDate 기준으로 오름차순 정렬
+        Sort sort = Sort.by("targetDate").ascending();
+        List<QuizProcessDto> quizProcessDtos = quizRepository.findByTargetDateBetween(startDate, endDate, sort).stream().map(QuizProcessDto::new).toList();
         GetMonthlyQuizResponseDto resultDto = new GetMonthlyQuizResponseDto(quizProcessDtos);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
@@ -596,7 +627,7 @@ public class AdminService {
             Quiz quiz = quizRepository.findByTargetDate(targetDate).orElseThrow(EntityNotFoundException::new);
             GetDailyQuizResponseDto resultDto = new GetDailyQuizResponseDto(quiz);
 
-            return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
+            return ResponseEntity.ok(ApiResponseWrapper.success(new DailyQuizResponseDto(resultDto)));
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail("퀴즈가 존재하지 않는 날입니다"));
