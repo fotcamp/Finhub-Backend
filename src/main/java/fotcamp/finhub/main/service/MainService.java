@@ -414,5 +414,14 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
     }
 
+    public ResponseEntity<ApiResponseWrapper> push(CustomUserDetails userDetails, PushYNRequestDto dto){
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+
+
+        member.updatePushYN(dto.isYn());
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
 
 }
