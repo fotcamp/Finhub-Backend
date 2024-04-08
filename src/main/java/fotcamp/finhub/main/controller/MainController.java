@@ -3,12 +3,16 @@ package fotcamp.finhub.main.controller;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.main.dto.process.thirdTab.SearchTopicResultListProcessDto;
 import fotcamp.finhub.main.dto.request.*;
+import fotcamp.finhub.main.dto.response.SearchTopicResponseDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,9 +35,13 @@ public class MainController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
-            @RequestParam(name = "size", defaultValue = "3") int size,
+            @RequestParam(name = "size", defaultValue = "3") int pageSize,
             @RequestParam(name = "page", defaultValue = "0") int page ){
-        return mainService.searchTopic(userDetails, method, keyword, size,page);
+
+        // 검색결과
+        PageRequest pageable = PageRequest.of(page, pageSize);
+        SearchTopicResponseDto searchTopicResult = mainService.searchTopic(userDetails, method, keyword, pageable);
+        return ResponseEntity.ok(ApiResponseWrapper.success(searchTopicResult));
     }
 
     @GetMapping("/home/categoryList")
@@ -88,20 +96,20 @@ public class MainController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/thirdTab/recent")
+    @GetMapping("/recentKeyword")
     public ResponseEntity<ApiResponseWrapper> recentSearch(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
         return mainService.recentSearch(userDetails);
     }
 
-    @GetMapping("/thirdTab/popular")
+    @GetMapping("/popularKeyword")
     public ResponseEntity<ApiResponseWrapper> popularKeyword(
     ){
         return mainService.popularKeyword();
     }
 
-    @GetMapping("/thirdTab/delete/{searchId}")
+    @DeleteMapping("/recentKeyword")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -110,7 +118,7 @@ public class MainController {
         return mainService.deleteRecentKeyword(userDetails, searchId);
     }
 
-    @GetMapping("/thirdTab/deleteall")
+    @DeleteMapping("/recentKeywordAll")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseWrapper> deleteAllRecentKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails

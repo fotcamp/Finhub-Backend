@@ -8,6 +8,9 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.process.secondTab.GptContentProcessDto;
 import fotcamp.finhub.main.dto.process.secondTab.UserTypeListProcessDto;
+import fotcamp.finhub.main.dto.process.thirdTab.SearchColumnResultListProcessDto;
+import fotcamp.finhub.main.dto.process.thirdTab.SearchPageInfoProcessDto;
+import fotcamp.finhub.main.dto.process.thirdTab.SearchTopicResultListProcessDto;
 import fotcamp.finhub.main.dto.request.*;
 import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.dto.response.firstTab.BannerListResponseDto;
@@ -56,6 +59,8 @@ public class MainService {
     private final GptColumnRepository gptColumnRepository;
 
     private final AwsS3Service awsS3Service;
+
+    private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
     @Transactional(readOnly = true)
@@ -110,59 +115,60 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> searchTopic(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page){
-        Pageable pageable = PageRequest.of(page, pageSize);
+    public SearchTopicResponseDto searchTopic(CustomUserDetails userDetails, String method, String keyword, Pageable pageable){
         Page<Topic> pageResult = null;
         switch (method) {
             case "title" -> {
                 pageResult = topicRepository.findByTitleContaining(keyword, pageable);
-                break;
             }
             case "summary" -> {
                 pageResult = topicRepository.findBySummaryContaining(keyword, pageable);
-                break;
             }
             case "both" -> {
                 pageResult = topicRepository.findByTitleContainingOrSummaryContaining(keyword,keyword, pageable);
-                break;
             }
             default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
         }
-        if(userDetails != null && page == 0){
-            // 로그인 유저 최근검색어 데이터 추가 ( 중복되는 검색어는 최신으로 덮어쓰기, 최근검색어는 최대 10개까지만 저장하기 )
-            Long memberId = userDetails.getMemberIdasLong();
-            Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-            RecentSearch findRecord = recentSearchRepository.findByMember_memberIdAndKeyword(memberId, keyword).orElse(new RecentSearch(member, keyword, LocalDateTime.now()));
-            findRecord.updateRecord(LocalDateTime.now());
-            recentSearchRepository.save(findRecord);
-
-            // pagesize 11개로 요청 -> 11개가 온다면 제일 오래된 하나를 삭제
-            PageRequest limit = PageRequest.of(0, 11, Sort.by(Sort.Direction.DESC, "localDateTime"));
-            List<RecentSearch> recentSearchList = recentSearchRepository.findByMember_IdOrderByLocalDateTimeDesc(memberId, limit);
-            if (recentSearchList.size() == 11){
-                RecentSearch oldSearchData = recentSearchList.get(recentSearchList.size() - 1);
-                System.out.println(oldSearchData.getKeyword());
-                recentSearchRepository.delete(oldSearchData);
-            }
+        // 인기검색어 카운트 기능 ( 해당 키워드로 첫 검색 상황 )
+        if (pageable.getPageNumber() == 0){
+            incrementPopularKeyword(keyword);
+        }
+        // 최근검색 기능 ( 로그인 유저 + 해당 키워드로 첫 검색 상황 )
+        if (userDetails != null && pageable.getPageNumber() == 0) {
+            handleRecentSearch(userDetails.getMemberIdasLong(), keyword);
         }
 
-        List<Topic> resultList = pageResult.getContent();
-        if(resultList.isEmpty()){ // 인기검색어 데이터는 검색 결과가 있을 때만 저장
-            return ResponseEntity.ok(ApiResponseWrapper.success(resultList));
-        }
-
-        if (page == 0){ // 더보기 요청시엔 인기검색 횟수 카운트 제외
-            // 인기검색어 저장 로직
-            PopularSearch popularSearch = popularKeywordRepository.findByKeyword(keyword).orElse(new PopularSearch(keyword));
-            popularSearch.plusFrequency();
-            popularKeywordRepository.save(popularSearch);
-        }
-
-        List<SearchTopicResultListProcessDto> response = resultList.stream()
-                .map(topic -> new SearchTopicResultListProcessDto(topic.getTitle(), topic.getSummary())).collect(Collectors.toList());
-        SearchTopicResponseDto responseDto = new SearchTopicResponseDto(response, page, pageResult.getTotalPages(), pageResult.getTotalElements());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        List<SearchTopicResultListProcessDto> searchResultProcessDto = pageResult.stream().map(topic -> SearchTopicResultListProcessDto.builder()
+                .id(topic.getId())
+                .title(topic.getTitle())
+                .summary(topic.getSummary())
+                .build()).collect(Collectors.toList());
+        SearchPageInfoProcessDto pageInfoProcessDto = SearchPageInfoProcessDto.builder()
+                .currentPage(pageable.getPageNumber())
+                .totalPages(pageResult.getTotalPages())
+                .totalResults(pageResult.getTotalElements()).build();
+        return new SearchTopicResponseDto(searchResultProcessDto, pageInfoProcessDto);
     }
+
+    public void handleRecentSearch(Long memberId, String keyword){
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        RecentSearch recentSearch = recentSearchRepository.findByMemberAndKeyword(member, keyword)
+                    .orElse(new RecentSearch(member, keyword, LocalDateTime.now()));
+        recentSearch.updateRecord(LocalDateTime.now());
+        recentSearchRepository.save(recentSearch);
+
+        List<RecentSearch> recentSearchList = recentSearchRepository.findByMemberOrderByLocalDateTimeDesc(member);
+        if (recentSearchList.size() > MAX_RECENT_SEARCHES){ // 최대 10개까지만 최근검색키워드 저장
+            recentSearchRepository.delete(recentSearchList.get(recentSearchList.size() - 1));
+        }
+    }
+
+    public void incrementPopularKeyword(String keyword){
+        PopularSearch popularSearch = popularKeywordRepository.findByKeyword(keyword).orElse(new PopularSearch(keyword));
+        popularSearch.plusFrequency();
+        popularKeywordRepository.save(popularSearch);
+    }
+
 
     public ResponseEntity<ApiResponseWrapper> scrapTopic(CustomUserDetails userDetails, ScrapTopicRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
@@ -179,16 +185,20 @@ public class MainService {
 
     public ResponseEntity<ApiResponseWrapper> recentSearch(CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
-        memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        Pageable limit = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "localDateTime"));
-        List<RecentSearch> recentSearchList = recentSearchRepository.findByMember_IdOrderByLocalDateTimeDesc(memberId, limit);
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        List<RecentSearch> recentSearchList = recentSearchRepository.findByMemberOrderByLocalDateTimeDesc(member);
         List<RecentSearchResponseDto> responseDto = recentSearchList.stream()
-                .map(recentSearch -> new RecentSearchResponseDto(recentSearch.getId(), recentSearch.getKeyword())).collect(Collectors.toList());
+                .map(recentSearch -> RecentSearchResponseDto.builder()
+                        .id(recentSearch.getId())
+                        .keyword(recentSearch.getKeyword())
+                        .build())
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
     public ResponseEntity<ApiResponseWrapper> popularKeyword(){
-        // order by frequency로 7개만 가져오기
+        // order by frequency로 7개만 가져오기 -> 수정필요
         List<PopularSearch> popularSearchList = popularKeywordRepository.findTop7ByOrderByFrequencyDesc();
         List<PopularKeywordResponseDto> responseDto = popularSearchList.stream()
                 .map(popularSearch -> new PopularKeywordResponseDto(popularSearch.getKeyword())).collect(Collectors.toList());

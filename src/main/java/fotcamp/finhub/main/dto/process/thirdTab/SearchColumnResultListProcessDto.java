@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.dto.process;
+package fotcamp.finhub.main.dto.process.thirdTab;
 
 
 import lombok.Getter;
