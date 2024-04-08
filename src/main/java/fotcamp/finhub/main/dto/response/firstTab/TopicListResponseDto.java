@@ -1,6 +1,6 @@
 package fotcamp.finhub.main.dto.response.firstTab;
 
-import fotcamp.finhub.main.dto.process.TopicListProcessDto;
+import fotcamp.finhub.main.dto.process.secondTab.TopicListProcessDto;
 import lombok.Getter;
 
 import java.util.List;

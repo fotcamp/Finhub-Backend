@@ -6,8 +6,7 @@ import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.dto.process.*;
-import fotcamp.finhub.main.dto.process.secondTab.GptContentProcessDto;
-import fotcamp.finhub.main.dto.process.secondTab.UserTypeListProcessDto;
+import fotcamp.finhub.main.dto.process.secondTab.*;
 import fotcamp.finhub.main.dto.process.thirdTab.SearchColumnResultListProcessDto;
 import fotcamp.finhub.main.dto.process.thirdTab.SearchPageInfoProcessDto;
 import fotcamp.finhub.main.dto.process.thirdTab.SearchTopicResultListProcessDto;
@@ -17,6 +16,10 @@ import fotcamp.finhub.main.dto.response.firstTab.BannerListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
 import fotcamp.finhub.main.dto.response.secondTab.*;
+import fotcamp.finhub.main.dto.response.thirdTab.PopularKeywordResponseDto;
+import fotcamp.finhub.main.dto.response.thirdTab.RecentSearchResponseDto;
+import fotcamp.finhub.main.dto.response.thirdTab.SearchColumnResponseDto;
+import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import fotcamp.finhub.main.repository.PopularKeywordRepository;
@@ -169,6 +172,37 @@ public class MainService {
         popularKeywordRepository.save(popularSearch);
     }
 
+    // 컬럼 검색
+    public ResponseEntity<ApiResponseWrapper> searchColumn(String method, String keyword, Pageable pageable) {
+        Page<GptColumn> pageResult = null;
+        switch (method) {
+            case "title" -> {
+                pageResult = gptColumnRepository.findByTitleContaining(keyword, pageable);
+            }
+            case "content" -> {
+                pageResult = gptColumnRepository.findByContentContaining(keyword, pageable);
+            }
+            case "both" -> {
+                pageResult = gptColumnRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+            }
+            default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
+        }
+        List<GptColumn> resultList = pageResult.getContent();
+        List<SearchColumnResultListProcessDto> processDtoList = resultList.stream()
+                .map(gptColumn -> SearchColumnResultListProcessDto.builder()
+                        .id(gptColumn.getId())
+                        .title(gptColumn.getTitle())
+                        .content(gptColumn.getContent())
+                        .build())
+                .collect(Collectors.toList());
+
+        SearchPageInfoProcessDto pageInfoProcessDto = SearchPageInfoProcessDto.builder()
+                .currentPage(pageable.getPageNumber())
+                .totalPages(pageResult.getTotalPages())
+                .totalResults(pageResult.getTotalElements()).build();
+        SearchColumnResponseDto responseDto = new SearchColumnResponseDto(processDtoList, pageInfoProcessDto);
+        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+    }
 
     public ResponseEntity<ApiResponseWrapper> scrapTopic(CustomUserDetails userDetails, ScrapTopicRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
@@ -205,29 +239,28 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
-    public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(CustomUserDetails userDetails, Long searchId){
+    public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(CustomUserDetails userDetails, DeleteRecentKeywordRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        RecentSearch recentSearch = recentSearchRepository.findById(searchId).orElseThrow(() -> new EntityNotFoundException("최근검색 ID가 존재하지 않습니다."));
+        RecentSearch recentSearch = recentSearchRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("최근검색 ID가 존재하지 않습니다."));
         recentSearchRepository.delete(recentSearch);
-        return ResponseEntity.ok(ApiResponseWrapper.success("삭제 성공"));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> deleteAllRecentKeyword(CustomUserDetails userDetails){
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        recentSearchRepository.deleteByMember_memberId(memberId);
-        return ResponseEntity.ok(ApiResponseWrapper.success("삭제 성공"));
-    }
-
-    public ResponseEntity<ApiResponseWrapper> requestKeyword(CustomUserDetails userDetails, NewKeywordRequestDto dto){
+    public ResponseEntity<ApiResponseWrapper> requestKeyword(CustomUserDetails userDetails, KeywordRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         if (topicRequestRepository.existsByTerm(dto.getKeyword()) ){
             return ResponseEntity.ok(ApiResponseWrapper.success("이미 요청처리 된 단어입니다."));
         }
-        topicRequestRepository.save(new TopicRequest(dto.getKeyword(), member.getName(), LocalDateTime.now()));
-        return ResponseEntity.ok(ApiResponseWrapper.success("접수되었습니다."));
+        TopicRequest topicRequest = TopicRequest.builder()
+                .term(dto.getKeyword())
+                .requester(member.getEmail())
+                .requestedAt(LocalDateTime.now())
+                .build();
+
+        topicRequestRepository.save(topicRequest);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
 
@@ -381,36 +414,5 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
     }
 
-    // 컬럼 검색
-    public ResponseEntity<ApiResponseWrapper> searchColumn(CustomUserDetails userDetails, String method, String keyword, int pageSize, int page) {
-        Pageable pageable = PageRequest.of(page, pageSize);
-        Page<GptColumn> pageResult = null;
-        switch (method) {
-            case "title" -> {
-                pageResult = gptColumnRepository.findByTitleContaining(keyword, pageable);
-                gptColumnRepository.findByTitleContaining(keyword, pageable);
-                break;
-            }
-            case "content" -> {
-                pageResult = gptColumnRepository.findByContentContaining(keyword, pageable);
-                break;
-            }
-            case "both" -> {
-                pageResult = gptColumnRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
-                break;
-            }
-            default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
-        }
-        List<GptColumn> resultList = pageResult.getContent();
-        List<SearchColumnResultListProcessDto> processDtoList = resultList.stream()
-                .map(gptColumn ->
-                        new SearchColumnResultListProcessDto(
-                                gptColumn.getTitle(),
-                                gptColumn.getContent(),
-                                awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl())))
-                .collect(Collectors.toList());
 
-        SearchColumnResponseDto responseDto = new SearchColumnResponseDto(processDtoList, page, pageResult.getTotalPages(), pageResult.getTotalElements());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
-    }
 }
