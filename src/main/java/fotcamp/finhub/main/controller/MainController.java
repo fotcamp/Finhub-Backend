@@ -232,5 +232,15 @@ public class MainController {
     public ResponseEntity<ApiResponseWrapper> bannerList() {
         return mainService.bannerList();
     }
+
+    // 알람 허용 및 해제
+    @PatchMapping("/menu/push")
+    @Operation(summary = "메뉴 - 알람 - 푸시 허용여부", description = "푸시알림")
+    public ResponseEntity<ApiResponseWrapper> push(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody PushYNRequestDto dto
+    ){
+        return mainService.push(userDetails, dto);
+    }
 }
 
