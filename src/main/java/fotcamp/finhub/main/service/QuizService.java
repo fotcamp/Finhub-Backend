@@ -6,6 +6,7 @@ import fotcamp.finhub.admin.repository.MemberQuizRepository;
 import fotcamp.finhub.admin.repository.QuizRepository;
 import fotcamp.finhub.admin.repository.TopicQuizRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.CalendarEmoticon;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.MemberQuiz;
 import fotcamp.finhub.common.domain.Quiz;
@@ -24,10 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -150,14 +148,22 @@ public class QuizService {
             quizCompletionStatus.put(solvedDate, "Y");
         }
 
+
         // quizCompletionStatus를 기반으로 resultDto 구성
         List<QuizDayStatusDto> quizDayStatusList = quizCompletionStatus.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey()) // 날짜별로 오름차순 정렬
                 .map(entry -> new QuizDayStatusDto(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
 
+        // 이모티콘 리스트 전달
+        List<EmoticonDto> emoticonList = new ArrayList<>();
+        List<CalendarEmoticon> allEmoticon = calendarEmoticonRepository.findAll();
+        for (CalendarEmoticon calendarEmoticon : allEmoticon) {
+            emoticonList.add(new EmoticonDto(calendarEmoticon.getId(), awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path())));
+        }
+
         // ApiResponseWrapper에 결과 DTO를 담아 반환
-        return ResponseEntity.ok(ApiResponseWrapper.success(new CalendarQuizResponseDto(emoticonImgPath, quizDayStatusList)));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new CalendarQuizResponseDto(emoticonImgPath, emoticonList, quizDayStatusList)));
     }
 
     // 놓친 퀴즈 리스트 가져오기 api
@@ -177,5 +183,17 @@ public class QuizService {
 
         List<QuizInfoDto> solvedQuizList = memberQuizRepository.findSolvedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, PageRequest.of(0, limit));
         return ResponseEntity.ok(ApiResponseWrapper.success(new SolvedQuizListResponseDto(solvedQuizList)));
+    }
+
+    // 달력 이모티콘 저장하기
+    public ResponseEntity<ApiResponseWrapper> emoticonSave(CustomUserDetails userDetails, EmoticonSaveRequestDto emoticonSaveRequestDto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저."));
+        CalendarEmoticon calendarEmoticon = calendarEmoticonRepository.findById(emoticonSaveRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 이모티콘."));
+        member.updateCalendarEmoticon(calendarEmoticon);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

@@ -112,4 +112,8 @@ public class Member {
         System.out.println("-------------"+ isYN);
         this.push_yn = isYN;
     }
+
+    public void updateCalendarEmoticon(CalendarEmoticon calendarEmoticon) {
+        this.calendarEmoticon = calendarEmoticon;
+    }
 }

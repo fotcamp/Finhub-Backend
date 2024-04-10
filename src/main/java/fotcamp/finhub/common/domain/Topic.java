@@ -29,7 +29,6 @@ public class Topic extends BaseEntity {
     private String definition;
 
     // 새로 생성 ( 요약 내용 칼럼 추가)
-    @Column(nullable = false)
     private String summary;
 
     private String shortDefinition;

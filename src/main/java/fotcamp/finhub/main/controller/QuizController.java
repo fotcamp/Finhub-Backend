@@ -2,10 +2,12 @@ package fotcamp.finhub.main.controller;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.main.dto.response.quiz.EmoticonSaveRequestDto;
 import fotcamp.finhub.main.dto.response.quiz.SolveQuizRequestDto;
 import fotcamp.finhub.main.service.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -80,4 +82,12 @@ public class QuizController {
         return quizService.solvedQuizList(userDetails, cursorDate, limit);
     }
 
+    @PostMapping("/calendar-emoticon")
+    @Operation(summary = "캘린더 이모티콘 저장하기", description = "캘린더 이모티콘 저장하기")
+    public ResponseEntity<ApiResponseWrapper> solvedQuizList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody EmoticonSaveRequestDto emoticonSaveRequestDto
+    ) {
+        return quizService.emoticonSave(userDetails, emoticonSaveRequestDto);
+    }
 }
