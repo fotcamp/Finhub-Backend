@@ -42,22 +42,22 @@ public class FcmConfig {
      * GoogleCredentials : OAuth2를 이용해 GoogleApi 호출을 승인하기 위한 객체
      */
 
-    @PostConstruct
-    public void firebaseInit() {
-        try {
-            ClassPathResource serviceAccount = new ClassPathResource(firebaseConfigPath);
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount.getInputStream())
-                            .createScoped(Collections.singleton(scope)))
-                    .build();
-
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
-                log.info("Firebase init start");
-            }
-        } catch(IOException e) {
-            throw new FcmException("firebase init fail!!");
-        }
-    }
+//    @PostConstruct
+//    public void firebaseInit() {
+//        try {
+//            ClassPathResource serviceAccount = new ClassPathResource(firebaseConfigPath);
+//
+//            FirebaseOptions options = FirebaseOptions.builder()
+//                    .setCredentials(GoogleCredentials.fromStream(serviceAccount.getInputStream())
+//                            .createScoped(Collections.singleton(scope)))
+//                    .build();
+//
+//            if (FirebaseApp.getApps().isEmpty()) {
+//                FirebaseApp.initializeApp(options);
+//                log.info("Firebase init start");
+//            }
+//        } catch(IOException e) {
+//            throw new FcmException("firebase init fail!!");
+//        }
+//    }
 }
