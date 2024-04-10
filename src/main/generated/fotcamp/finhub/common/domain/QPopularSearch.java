@@ -19,6 +19,8 @@ public class QPopularSearch extends EntityPathBase<PopularSearch> {
 
     public static final QPopularSearch popularSearch = new QPopularSearch("popularSearch");
 
+    public final DatePath<java.time.LocalDate> date = createDate("date", java.time.LocalDate.class);
+
     public final NumberPath<Long> frequency = createNumber("frequency", Long.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

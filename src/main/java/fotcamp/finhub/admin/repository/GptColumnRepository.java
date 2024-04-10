@@ -1,7 +1,6 @@
 package fotcamp.finhub.admin.repository;
 
 import fotcamp.finhub.common.domain.GptColumn;
-import fotcamp.finhub.common.domain.Topic;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -13,24 +13,22 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class PopularSearch {
+public class WeekPopularSearch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String keyword;
-    private Long frequency;
-    private LocalDate date;
+    private LocalDate analysisDate; // 분석 날짜
+    private String keyword; // 키워드
+    private String trend; // 트렌드: New, Increased, Decreased
 
     @Builder
-    public PopularSearch(String keyword) {
+    public WeekPopularSearch(String keyword, String trend) {
+        this.analysisDate = LocalDate.now();
         this.keyword = keyword;
-        this.frequency = 1L;
-        this.date = LocalDate.now();
+        this.trend = trend;
     }
 
-    public void plusFrequency(){
-        this.frequency += 1L;
-    }
+
 }
