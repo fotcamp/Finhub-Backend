@@ -23,7 +23,7 @@ public class ModifyTopicRequestDto {
     private String definition;
     @NotBlank
     private String summary;
-    @NotBlank
+
     private String s3ImgUrl;
 
     private List<GptProcessDto> gptList;
