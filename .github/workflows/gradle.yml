@@ -29,6 +29,11 @@ jobs:
       - run: echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
       - run: cat ./src/main/resources/application.yaml
 
+
+      - run: touch ./src/main/resources/finhub-firebase-adminsdk.json
+      - run: echo "${{ secrets.FCM_SETTING }}" > ./src/main/resources/finhub-firebase-adminsdk.json
+      - run: cat ./src/main/resources/finhub-firebase-adminsdk.json
+
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
 
