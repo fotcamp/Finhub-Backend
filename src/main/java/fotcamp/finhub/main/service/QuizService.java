@@ -1,14 +1,11 @@
 package fotcamp.finhub.main.service;
 
-import fotcamp.finhub.admin.dto.process.QuizProcessDto;
 import fotcamp.finhub.admin.dto.process.QuizTopicProcessDto;
-import fotcamp.finhub.admin.dto.response.GetMonthlyQuizResponseDto;
 import fotcamp.finhub.admin.repository.CalendarEmoticonRepository;
 import fotcamp.finhub.admin.repository.MemberQuizRepository;
 import fotcamp.finhub.admin.repository.QuizRepository;
 import fotcamp.finhub.admin.repository.TopicQuizRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.domain.CalendarEmoticon;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.MemberQuiz;
 import fotcamp.finhub.common.domain.Quiz;
@@ -19,13 +16,13 @@ import fotcamp.finhub.main.dto.response.quiz.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class QuizService {
     private final QuizRepository quizRepository;
@@ -120,7 +118,6 @@ public class QuizService {
 
         List<QuizTopicProcessDto> quizTopicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(new SolveQuizResponseDto(new SolveQuizProcessDto(quiz.getId(), memberQuiz.getAnswerYn(), quiz.getComment(), quizTopicList))));
-
     }
 
     // 달력 퀴즈 데이터 가져오기 api
@@ -132,20 +129,16 @@ public class QuizService {
         Member member = memberRepository.findById(userDetails.getMemberIdasLong()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저."));
         String emoticonImgPath;
         if (member.getCalendarEmoticon() == null) {
-            // TO-BE 후속 처리 필요. (
-            CalendarEmoticon firstCalendarEmoticon = calendarEmoticonRepository.findFirstByOrderByIdAsc().orElseThrow(() -> new EntityNotFoundException("이모티콘이 존재하지 않음."));
-            emoticonImgPath = awsS3Service.combineWithBaseUrl(firstCalendarEmoticon.getEmoticon_img_path());
+            emoticonImgPath = null;
         } else {
             emoticonImgPath = awsS3Service.combineWithBaseUrl(member.getCalendarEmoticon().getEmoticon_img_path());
         }
 
         LocalDate startDate = DateUtil.convertToDate(Long.parseLong(year), Long.parseLong(month), 1L);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-        LocalDateTime startDateTime = startDate.atStartOfDay(); // 하루의 시작 시간
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59, 999999999); // 하루의 끝 시간
 
         List<MemberQuiz> solvedQuizzes = memberQuizRepository.findAllByMemberAndSolvedTimeBetween(
-                member.getMemberId(), startDateTime, endDateTime);
+                member.getMemberId(), startDate, endDate);
 
         Map<LocalDate, String> quizCompletionStatus = new HashMap<>();
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
@@ -153,10 +146,9 @@ public class QuizService {
         }
 
         for (MemberQuiz solvedQuiz : solvedQuizzes) {
-            LocalDate solvedDate = solvedQuiz.getSolvedTime().toLocalDate();
+            LocalDate solvedDate = solvedQuiz.getQuiz().getTargetDate();
             quizCompletionStatus.put(solvedDate, "Y");
         }
-
 
         // quizCompletionStatus를 기반으로 resultDto 구성
         List<QuizDayStatusDto> quizDayStatusList = quizCompletionStatus.entrySet().stream()
@@ -185,7 +177,5 @@ public class QuizService {
 
         List<QuizInfoDto> solvedQuizList = memberQuizRepository.findSolvedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, PageRequest.of(0, limit));
         return ResponseEntity.ok(ApiResponseWrapper.success(new SolvedQuizListResponseDto(solvedQuizList)));
-
-
     }
 }

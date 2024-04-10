@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,12 +18,13 @@ import java.util.Optional;
 public interface MemberQuizRepository extends JpaRepository<MemberQuiz, Long> {
     Optional<MemberQuiz> findByMemberAndQuiz(Member member, Quiz quiz);
 
-    @Query("SELECT mq FROM MemberQuiz mq WHERE mq.member.memberId = :memberId AND mq.solvedTime BETWEEN :startDateTime AND :endDateTime")
+    @Query("SELECT mq FROM MemberQuiz mq WHERE mq.member.memberId = :memberId AND mq.quiz.targetDate BETWEEN :startDate AND :endDate")
     List<MemberQuiz> findAllByMemberAndSolvedTimeBetween(
             @Param("memberId") Long memberId,
-            @Param("startDateTime") LocalDateTime startDateTime,
-            @Param("endDateTime") LocalDateTime endDateTime
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
+
 
     @Query("SELECT new fotcamp.finhub.main.dto.response.quiz.QuizInfoDto(q.id, q.question, q.targetDate) FROM MemberQuiz mq JOIN mq.quiz q WHERE mq.member.memberId = :memberId AND q.targetDate < :cursorDate ORDER BY q.targetDate DESC")
     List<QuizInfoDto> findSolvedQuizInfoByMemberId(@Param("memberId") Long memberId, @Param("cursorDate") LocalDate cursorDate, Pageable pageable);
