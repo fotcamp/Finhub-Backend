@@ -15,7 +15,6 @@ public class DetailTopicResponseDto {
     private final String title;
     private final String definition;
     private final String summary;
-    private final String shortDefinition;
     private final String thumbnailImgPath;
     private final String useYN;
     private final List<DetailTopicProcessDto> gptList;
@@ -26,7 +25,6 @@ public class DetailTopicResponseDto {
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();
         this.summary = topic.getSummary();
-        this.shortDefinition = topic.getShortDefinition();
         this.thumbnailImgPath = topic.getThumbnailImgPath();
         this.useYN = topic.getUseYN();
         this.gptList = gptList;
