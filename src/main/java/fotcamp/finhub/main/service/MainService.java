@@ -15,15 +15,14 @@ import fotcamp.finhub.main.dto.response.*;
 import fotcamp.finhub.main.dto.response.firstTab.BannerListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.CategoryListResponseDto;
 import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
+import fotcamp.finhub.main.dto.response.popularSearch.PopularSearchDto;
+import fotcamp.finhub.main.dto.response.popularSearch.PopularSearchResponseDto;
 import fotcamp.finhub.main.dto.response.secondTab.*;
 import fotcamp.finhub.main.dto.response.thirdTab.PopularKeywordResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.RecentSearchResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchColumnResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
-import fotcamp.finhub.main.repository.MemberRepository;
-import fotcamp.finhub.main.repository.MemberScrapRepository;
-import fotcamp.finhub.main.repository.PopularKeywordRepository;
-import fotcamp.finhub.main.repository.RecentSearchRepository;
+import fotcamp.finhub.main.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +60,7 @@ public class MainService {
     private final UserAvatarRepository userAvatarRepository;
     private final BannerRepository bannerRepository;
     private final GptColumnRepository gptColumnRepository;
+    private final WeekPopularKeywordRepository weekPopularKeywordRepository;
 
     private final AwsS3Service awsS3Service;
 
@@ -167,9 +168,15 @@ public class MainService {
     }
 
     public void incrementPopularKeyword(String keyword){
-        PopularSearch popularSearch = popularKeywordRepository.findByKeyword(keyword).orElse(new PopularSearch(keyword));
-        popularSearch.plusFrequency();
-        popularKeywordRepository.save(popularSearch);
+        Optional<PopularSearch> popularSearch = popularKeywordRepository.findByKeyword(keyword);
+        if (popularSearch.isPresent()) {
+            popularSearch.get().plusFrequency();
+        } else {
+            PopularSearch newKeyword = PopularSearch.builder()
+                    .keyword(keyword)
+                    .build();
+            popularKeywordRepository.save(newKeyword);
+        }
     }
 
     // 컬럼 검색
@@ -232,11 +239,15 @@ public class MainService {
     }
 
     public ResponseEntity<ApiResponseWrapper> popularKeyword(){
-        // order by frequency로 7개만 가져오기 -> 수정필요
-        List<PopularSearch> popularSearchList = popularKeywordRepository.findTop7ByOrderByFrequencyDesc();
-        List<PopularKeywordResponseDto> responseDto = popularSearchList.stream()
-                .map(popularSearch -> new PopularKeywordResponseDto(popularSearch.getKeyword())).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        int rank = 1;
+        List<PopularSearchDto> popularSearchDtoList = new ArrayList<>();
+        List<WeekPopularSearch> weekPopularSearchList = weekPopularKeywordRepository.findAllByOrderByIdAsc();
+        for (WeekPopularSearch weekPopularSearch : weekPopularSearchList) {
+            popularSearchDtoList.add(new PopularSearchDto(rank, weekPopularSearch.getKeyword(), weekPopularSearch.getTrend()));
+            rank += 1;
+        }
+        return ResponseEntity.ok(ApiResponseWrapper.success(new PopularSearchResponseDto(LocalDate.now(), popularSearchDtoList)));
+
     }
 
     public ResponseEntity<ApiResponseWrapper> deleteRecentKeyword(CustomUserDetails userDetails, DeleteRecentKeywordRequestDto dto){

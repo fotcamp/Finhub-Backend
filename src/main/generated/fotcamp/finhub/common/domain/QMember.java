@@ -28,6 +28,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final StringPath fcmToken = createString("fcmToken");
 
+    public final DateTimePath<java.time.LocalDateTime> fcmTokenCreatedAt = createDateTime("fcmTokenCreatedAt", java.time.LocalDateTime.class);
+
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
     public final ListPath<MemberNotification, QMemberNotification> memberNotificationList = this.<MemberNotification, QMemberNotification>createList("memberNotificationList", MemberNotification.class, QMemberNotification.class, PathInits.DIRECT2);
@@ -38,7 +40,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public final StringPath nickname = createString("nickname");
 
-    public final BooleanPath push_yn = createBoolean("push_yn");
+    public final BooleanPath pushYn = createBoolean("pushYn");
 
     public final ListPath<MemberQuiz, QMemberQuiz> quizList = this.<MemberQuiz, QMemberQuiz>createList("quizList", MemberQuiz.class, QMemberQuiz.class, PathInits.DIRECT2);
 
