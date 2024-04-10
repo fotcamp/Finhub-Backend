@@ -24,8 +24,6 @@ public class MainController {
 
     private final MainService mainService;
 
-
-
     // 단어 검색
     @GetMapping("/search/topic/{method}")
     @Operation(summary = "세 번째 탭 단어 검색", description = "제목만, 내용만, 제목+내용")

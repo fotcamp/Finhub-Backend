@@ -92,6 +92,11 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
     }
 
+    @ExceptionHandler(FcmException.class)
+    public ResponseEntity<ApiResponseWrapper> handleFcmException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+    }
+
 }
 
 
