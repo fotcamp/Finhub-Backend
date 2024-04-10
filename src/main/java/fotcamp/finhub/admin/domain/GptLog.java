@@ -27,8 +27,8 @@ public class GptLog extends BaseEntity {
     @Column(nullable = false)
     private String question;
 
+    @Column(columnDefinition = "BLOB", nullable = false)
     @Lob
-    @Column(nullable = false)
     private String answer;
 
     private String createdBy;
