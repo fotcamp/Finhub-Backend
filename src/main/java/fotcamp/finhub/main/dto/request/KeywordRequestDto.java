@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class NewKeywordRequestDto {
+public class KeywordRequestDto {
 
     private String keyword;
 }
