@@ -11,6 +11,7 @@ import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.dto.process.login.UserInfoProcessDto;
+import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.login.KakaoUserInfoProcessDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
@@ -73,7 +74,7 @@ public class AuthService {
                 .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
-                .pushYN(member.isPush_yn())
+                .pushYN(member.isPushYn())
                 .build();
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -141,7 +142,7 @@ public class AuthService {
     }
 
     // 자동로그인
-    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
+    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request, AutoLoginRequestDto dto){
         String accessToken = request.getHeader("Authorization");
         String refreshToken = request.getHeader("refreshToken");
 
@@ -150,7 +151,7 @@ public class AuthService {
             Long memberId = jwtUtil.getUserId(accessToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-
+            member.updateFcmToken(dto.getToken());
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
         }
@@ -159,7 +160,7 @@ public class AuthService {
             Long memberId = jwtUtil.getUserId(refreshToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-
+            member.updateFcmToken(dto.getToken());
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
         }
@@ -186,10 +187,11 @@ public class AuthService {
                 .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
-                .pushYN(member.isPush_yn())
+                .pushYN(member.isPushYn())
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
+
 
 
 }

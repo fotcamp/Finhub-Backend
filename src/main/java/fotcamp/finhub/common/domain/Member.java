@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +32,9 @@ public class Member {
     private String name;
 
     private String nickname;
-    private boolean push_yn;
+    private boolean pushYn;
     private String fcmToken;
+    private LocalDateTime fcmTokenCreatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
@@ -69,13 +71,19 @@ public class Member {
         this.role = RoleType.ROLE_USER;
     }
 
+    public void updateFcmToken(String fcmToken){
+
+        this.fcmToken = fcmToken;
+        this.fcmTokenCreatedAt = LocalDateTime.now();
+    }
+
     @Builder
-    public Member(UserType userType, String email, String name, String nickname, boolean push_yn, String fcmToken, RoleType role, UserAvatar userAvatar, List<MemberNotification> memberNotificationList, List<MemberScrap> memberScrapList, List<RecentSearch> recentSearchList) {
+    public Member(UserType userType, String email, String name, String nickname, boolean pushYn, String fcmToken, RoleType role, UserAvatar userAvatar, List<MemberNotification> memberNotificationList, List<MemberScrap> memberScrapList, List<RecentSearch> recentSearchList) {
         this.userType = userType;
         this.email = email;
         this.name = name;
         this.nickname = nickname;
-        this.push_yn = push_yn;
+        this.pushYn = pushYn;
         this.fcmToken = fcmToken;
         this.role = RoleType.ROLE_USER;
         this.userAvatar = userAvatar;
@@ -110,7 +118,7 @@ public class Member {
 
     public void updatePushYN(boolean isYN){
         System.out.println("-------------"+ isYN);
-        this.push_yn = isYN;
+        this.pushYn = isYN;
     }
 
     public void updateCalendarEmoticon(CalendarEmoticon calendarEmoticon) {

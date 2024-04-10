@@ -64,6 +64,10 @@ dependencies {
 
 	// OAuth2.0 client lib
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// FCM
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
 }
 
 def querydslSrcDir = 'src/main/generated'
