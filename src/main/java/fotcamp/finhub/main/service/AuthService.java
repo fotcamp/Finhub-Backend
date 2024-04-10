@@ -12,15 +12,13 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.dto.process.login.UserInfoProcessDto;
 import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
-import fotcamp.finhub.main.dto.process.KakaoUserInfoProcessDto;
-import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
+import fotcamp.finhub.main.dto.process.login.KakaoUserInfoProcessDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.repository.TokenRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 
@@ -192,5 +190,6 @@ public class AuthService {
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
+
 
 }

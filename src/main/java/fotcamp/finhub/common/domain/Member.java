@@ -107,4 +107,9 @@ public class Member {
     public void addMemberQuiz(MemberQuiz memberQuiz) {
         quizList.add(memberQuiz);
     }
+
+    public void updatePushYN(boolean isYN){
+        System.out.println("-------------"+ isYN);
+        this.push_yn = isYN;
+    }
 }

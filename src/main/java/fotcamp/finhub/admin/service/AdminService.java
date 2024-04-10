@@ -235,7 +235,7 @@ public class AdminService {
                     .sorted(Comparator.comparing(gpt -> gpt.getUserType().getId()))
                     .map(DetailTopicProcessDto::new).toList();
             DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic.getCategory().getId(), findTopic.getId(),
-                    findTopic.getTitle(), findTopic.getDefinition(), findTopic.getSummary(), findTopic.getShortDefinition(),
+                    findTopic.getTitle(), findTopic.getDefinition(), findTopic.getSummary(),
                     awsS3Service.combineWithBaseUrl(findTopic.getThumbnailImgPath()), findTopic.getUseYN(), detailTopicProcessDtos);
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailTopicResponseDto));
@@ -254,7 +254,6 @@ public class AdminService {
                     .title(createTopicRequestDto.title())
                     .definition(createTopicRequestDto.definition())
                     .summary(createTopicRequestDto.summary())
-                    .shortDefinition(createTopicRequestDto.shortDefinition())
                     .thumbnailImgPath(awsS3Service.extractPathFromUrl(createTopicRequestDto.s3ImgUrl()))
                     .createdBy(userDetails.getRole())
                     .build();
@@ -277,8 +276,8 @@ public class AdminService {
             Topic topic = topicRepository.findById(modifyTopicRequestDto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
             Category category = categoryRepository.findById(modifyTopicRequestDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리"));
             // 토픽 내용 수정
-            topic.modifyTopic(modifyTopicRequestDto.getTitle(), modifyTopicRequestDto.getDefinition(), modifyTopicRequestDto.getSummary(),
-                    modifyTopicRequestDto.getShortDefinition(),awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
+            topic.modifyTopic(modifyTopicRequestDto.getTitle(), modifyTopicRequestDto.getDefinition(), modifyTopicRequestDto.getSummary()
+                    ,awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
                     category, userDetails.getRole());
 
             List<Gpt> updateGptList = new ArrayList<>();

@@ -1,20 +1,22 @@
-package fotcamp.finhub.main.dto.process;
+package fotcamp.finhub.main.dto.process.thirdTab;
 
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
 public class SearchColumnResultListProcessDto {
 
+    private Long id;
     private String title;
     private String content;
-    private String url;
 
-    public SearchColumnResultListProcessDto(String title, String content, String url) {
+    public SearchColumnResultListProcessDto(Long id, String title, String content) {
+        this.id = id;
         this.title = title;
         this.content = content;
-        this.url = url;
     }
 }

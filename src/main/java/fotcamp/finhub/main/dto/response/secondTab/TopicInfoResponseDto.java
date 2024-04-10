@@ -1,7 +1,7 @@
 package fotcamp.finhub.main.dto.response.secondTab;
 
 
-import fotcamp.finhub.main.dto.process.DetailTopicProcessDto;
+import fotcamp.finhub.main.dto.process.secondTab.DetailTopicProcessDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

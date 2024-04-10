@@ -25,8 +25,7 @@ public class ModifyTopicRequestDto {
     private String summary;
     @NotBlank
     private String s3ImgUrl;
-    @NotBlank
-    private String shortDefinition;
+
     private List<GptProcessDto> gptList;
 
     public ModifyTopicRequestDto(Topic topic, List<GptProcessDto> gptList) {
@@ -35,7 +34,6 @@ public class ModifyTopicRequestDto {
         this.title = topic.getTitle();
         this.definition = topic.getDefinition();
         this.summary = topic.getSummary();
-        this.shortDefinition = topic.getShortDefinition();
         this.gptList = gptList;
     }
 }
