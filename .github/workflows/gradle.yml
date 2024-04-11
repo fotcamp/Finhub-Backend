@@ -36,8 +36,7 @@ jobs:
         with:
           name: "finhub-firebase-adminsdk.json"
           json: ${{ secrets.FCM_SETTING }}
-      - name: Move JSON file
-        run: mv finhub-firebase-adminsdk.json ./src/main/resources/finhub-firebase-adminsdk.json
+          dir: './src/main/resources/'
 
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
