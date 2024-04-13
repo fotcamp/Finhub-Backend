@@ -1,9 +1,7 @@
 package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.admin.dto.process.GptColumnTopicProcessDto;
-import fotcamp.finhub.admin.dto.process.QuizTopicProcessDto;
 import fotcamp.finhub.common.domain.GptColumn;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

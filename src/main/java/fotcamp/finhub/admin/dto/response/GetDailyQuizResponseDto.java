@@ -1,6 +1,6 @@
 package fotcamp.finhub.admin.dto.response;
 
-import fotcamp.finhub.admin.dto.process.QuizTopicProcessDto;
+import fotcamp.finhub.admin.dto.process.TopicIdTitleDto;
 import fotcamp.finhub.common.domain.Quiz;
 import lombok.Getter;
 
@@ -18,7 +18,7 @@ public class GetDailyQuizResponseDto {
     private final String createdBy;
     private final LocalDateTime createdTime;
     private final LocalDateTime modifiedTime;
-    private final List<QuizTopicProcessDto> topicList;
+    private final List<TopicIdTitleDto> topicList;
 
     public GetDailyQuizResponseDto(Quiz quiz) {
         this.id = quiz.getId();
@@ -29,6 +29,6 @@ public class GetDailyQuizResponseDto {
         this.createdBy = quiz.getCreatedBy();
         this.createdTime = quiz.getCreatedTime();
         this.modifiedTime = quiz.getModifiedTime();
-        this.topicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
+        this.topicList = quiz.getTopicList().stream().map(TopicIdTitleDto::new).toList();
     }
 }

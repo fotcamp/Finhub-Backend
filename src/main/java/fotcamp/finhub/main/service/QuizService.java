@@ -1,6 +1,6 @@
 package fotcamp.finhub.main.service;
 
-import fotcamp.finhub.admin.dto.process.QuizTopicProcessDto;
+import fotcamp.finhub.admin.dto.process.TopicIdTitleDto;
 import fotcamp.finhub.admin.repository.CalendarEmoticonRepository;
 import fotcamp.finhub.admin.repository.MemberQuizRepository;
 import fotcamp.finhub.admin.repository.QuizRepository;
@@ -71,7 +71,7 @@ public class QuizService {
         if (checkExistingMemberQuiz(userDetails, prevQuiz)) {
             Member member = memberRepository.findById(userDetails.getMemberIdasLong()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저."));
             MemberQuiz memberQuiz = memberQuizRepository.findByMemberAndQuiz(member, prevQuiz).get();
-            List<QuizTopicProcessDto> quizTopicList = prevQuiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
+            List<TopicIdTitleDto> quizTopicList = prevQuiz.getTopicList().stream().map(TopicIdTitleDto::new).toList();
             return ResponseEntity.ok(ApiResponseWrapper.success(new SolveQuizResponseDto(new SolveQuizProcessDto(prevQuiz.getId(), memberQuiz.getAnswerYn(), prevQuiz.getComment(), quizTopicList))));
         }
         // 유저가 풀지 않은 문제일 경우, 문제만 return
@@ -114,7 +114,7 @@ public class QuizService {
         memberQuizRepository.save(memberQuiz);
         member.addMemberQuiz(memberQuiz);
 
-        List<QuizTopicProcessDto> quizTopicList = quiz.getTopicList().stream().map(QuizTopicProcessDto::new).toList();
+        List<TopicIdTitleDto> quizTopicList = quiz.getTopicList().stream().map(TopicIdTitleDto::new).toList();
         return ResponseEntity.ok(ApiResponseWrapper.success(new SolveQuizResponseDto(new SolveQuizProcessDto(quiz.getId(), memberQuiz.getAnswerYn(), quiz.getComment(), quizTopicList))));
     }
 
