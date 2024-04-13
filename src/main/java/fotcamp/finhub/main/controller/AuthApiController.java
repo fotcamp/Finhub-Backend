@@ -37,7 +37,7 @@ public class AuthApiController {
     }
 
     // 자동로그인
-    @GetMapping("/autoLogin")
+    @PostMapping("/autoLogin")
     public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request, @RequestBody AutoLoginRequestDto dto){
         return authService.autoLogin(request, dto);
     }
