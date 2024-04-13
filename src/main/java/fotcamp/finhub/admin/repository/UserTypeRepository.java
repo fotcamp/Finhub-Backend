@@ -4,7 +4,6 @@ import fotcamp.finhub.common.domain.UserType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,7 +16,7 @@ public interface UserTypeRepository extends JpaRepository<UserType, Long> {
 //    @Query("SELECT m FROM UserType m ORDER BY m.id ")
 //    List<UserType> findAllJobListOrderById();
 
-    List<UserType> findAllByOrderByIdAsc();
+    List<UserType> findAllByUseYNOrderByIdAsc(String useYN);
     Page<UserType> findFirstByOrderByIdAsc(Pageable pageable);
 
 }
