@@ -60,6 +60,7 @@ public class MainService {
     private final BannerRepository bannerRepository;
     private final GptColumnRepository gptColumnRepository;
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
+    private final MemberGptColumnRepository memberGptColumnRepository;
 
     private final AwsS3Service awsS3Service;
 
@@ -355,20 +356,38 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> scrapList(CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> scrapList(CustomUserDetails userDetails, String type){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        List<MemberScrap> scrapList = memberScrapRepository.findByMember(member);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(
-                memberScrap -> MyScrapProcessDto.builder()
-                        .categoryId(memberScrap.getTopic().getCategory().getId())
-                        .topicId(memberScrap.getTopic().getId())
-                        .title(memberScrap.getTopic().getTitle())
-                        .definition(memberScrap.getTopic().getDefinition())
-                        .build())
-                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        switch (type){
+            case "topic" -> {
+                List<MemberScrap> scrapList = memberScrapRepository.findByMember(member);
+                List<MyScrapTopicProcessDto> responseDto = scrapList.stream().map(
+                                memberScrap -> MyScrapTopicProcessDto.builder()
+                                        .categoryId(memberScrap.getTopic().getCategory().getId())
+                                        .topicId(memberScrap.getTopic().getId())
+                                        .title(memberScrap.getTopic().getTitle())
+                                        .definition(memberScrap.getTopic().getDefinition())
+                                        .build())
+                        .collect(Collectors.toList());
+
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+            }
+            case "column" -> {
+                List<MemberGptColumn> scrapList = memberGptColumnRepository.findByMember(member);
+                List<MyScrapColumnProcessDto> responseDto = scrapList.stream().map(
+                                memberGptColumn -> MyScrapColumnProcessDto.builder()
+                                        .columnId(memberGptColumn.getId())
+                                        .title(memberGptColumn.getGptColumn().getTitle())
+                                        .summary(memberGptColumn.getGptColumn().getSummary())
+                                        .build())
+                        .collect(Collectors.toList());
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+            }
+            default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
+        }
+
     }
 
     @Transactional(readOnly = true)
