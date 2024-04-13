@@ -18,7 +18,6 @@ import fotcamp.finhub.main.dto.response.firstTab.TopicListResponseDto;
 import fotcamp.finhub.main.dto.response.popularSearch.PopularSearchDto;
 import fotcamp.finhub.main.dto.response.popularSearch.PopularSearchResponseDto;
 import fotcamp.finhub.main.dto.response.secondTab.*;
-import fotcamp.finhub.main.dto.response.thirdTab.PopularKeywordResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.RecentSearchResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchColumnResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
@@ -61,6 +60,7 @@ public class MainService {
     private final BannerRepository bannerRepository;
     private final GptColumnRepository gptColumnRepository;
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
+    private final MemberGptColumnRepository memberGptColumnRepository;
 
     private final AwsS3Service awsS3Service;
 
@@ -69,7 +69,7 @@ public class MainService {
     // 전체 카테고리 리스트
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> categoryList(){
-        List<Category> allCategories = categoryRepository.findAllByOrderByIdAsc();
+        List<Category> allCategories = categoryRepository.findAllByUseYNOrderByIdAsc("Y");
         List<CategoryListProcessDto> categoryList = allCategories.stream()
                 .map(category -> new CategoryListProcessDto(category.getId(), category.getName())).collect(Collectors.toList());
         CategoryListResponseDto responseDto = new CategoryListResponseDto(categoryList);
@@ -94,7 +94,14 @@ public class MainService {
             }
             String categoryName = findCategory.getName();
             // TopicListProcessDto 객체 생성 및 리스트에 추가
-            topicListProcessDtoList.add(new TopicListProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(), isScrapped, categoryName));
+            TopicListProcessDto processDto = TopicListProcessDto.builder()
+                    .topicId(topic.getId())
+                    .title(topic.getTitle())
+                    .summary(topic.getSummary())
+                    .categoryName(categoryName)
+                    .isScrapped(isScrapped)
+                    .img_path(awsS3Service.combineWithBaseUrl(topic.getThumbnailImgPath())).build();
+            topicListProcessDtoList.add(processDto);
         }
         return ResponseEntity.ok(ApiResponseWrapper.success(new TopicListResponseDto(topicListProcessDtoList)));
     }
@@ -123,13 +130,13 @@ public class MainService {
         Page<Topic> pageResult = null;
         switch (method) {
             case "title" -> {
-                pageResult = topicRepository.findByTitleContaining(keyword, pageable);
+                pageResult = topicRepository.findByUseYNAndTitleContaining("Y", keyword, pageable);
             }
             case "summary" -> {
-                pageResult = topicRepository.findBySummaryContaining(keyword, pageable);
+                pageResult = topicRepository.findByUseYNAndSummaryContaining("Y", keyword, pageable);
             }
             case "both" -> {
-                pageResult = topicRepository.findByTitleContainingOrSummaryContaining(keyword,keyword, pageable);
+                pageResult = topicRepository.findByUseYNAndTitleContainingOrSummaryContaining("Y", keyword,keyword, pageable);
             }
             default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
         }
@@ -184,13 +191,13 @@ public class MainService {
         Page<GptColumn> pageResult = null;
         switch (method) {
             case "title" -> {
-                pageResult = gptColumnRepository.findByTitleContaining(keyword, pageable);
+                pageResult = gptColumnRepository.findByUseYNAndTitleContaining("Y", keyword, pageable);
             }
             case "content" -> {
-                pageResult = gptColumnRepository.findByContentContaining(keyword, pageable);
+                pageResult = gptColumnRepository.findByUseYNAndContentContaining("Y", keyword, pageable);
             }
             case "both" -> {
-                pageResult = gptColumnRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+                pageResult = gptColumnRepository.findByUseYNAndTitleContainingOrContentContaining("Y", keyword, keyword, pageable);
             }
             default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
         }
@@ -286,14 +293,21 @@ public class MainService {
             // 유저가 스크랩했는지 확인
             isScrapped = memberScrapRepository.findByMemberIdAndTopicId(memberId, topicId).isPresent();
         }
+        DetailTopicProcessDto topicInfoProcessDto = DetailTopicProcessDto.builder()
+                .id(topic.getId())
+                .title(topic.getTitle())
+                .summary(topic.getSummary())
+                .definition(topic.getDefinition())
+                .isScrapped(isScrapped)
+                .img_path(awsS3Service.combineWithBaseUrl(topic.getThumbnailImgPath()))
+                .build();
 
-        DetailTopicProcessDto topicInfoProcessDto = new DetailTopicProcessDto(topic.getId(), topic.getTitle(), topic.getSummary(),topic.getDefinition(), isScrapped);
         return ResponseEntity.ok(ApiResponseWrapper.success(new TopicInfoResponseDto(topicInfoProcessDto)));
     }
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> usertypeList(){
-        List<UserType> JobList = userTypeRepository.findAllByOrderByIdAsc();
+        List<UserType> JobList = userTypeRepository.findAllByUseYNOrderByIdAsc("Y");
         List<UserTypeListProcessDto> processDto = JobList.stream()
                 .map(userType -> UserTypeListProcessDto.builder()
                         .id(userType.getId())
@@ -320,9 +334,12 @@ public class MainService {
         // 만약 다음 토픽이 존재하지 않는다면
         if(!nextTopicPage.isEmpty()){
             Topic nextTopic = nextTopicPage.getContent().get(0);
-            nextTopicProcessDto = new DetailNextTopicProcessDto(nextTopic.getId(), nextTopic.getTitle());
+            nextTopicProcessDto= DetailNextTopicProcessDto.builder()
+                    .id(nextTopic.getId())
+                    .title(nextTopic.getTitle())
+                    .img_path(awsS3Service.combineWithBaseUrl(nextTopic.getThumbnailImgPath())).build();
         }else {
-            nextTopicProcessDto = new DetailNextTopicProcessDto(0L, "");
+            nextTopicProcessDto = new DetailNextTopicProcessDto(0L, "", "");
         }
         return ResponseEntity.ok(ApiResponseWrapper.success(new NextTopicResponseDto(nextTopicProcessDto)));
     }
@@ -335,30 +352,48 @@ public class MainService {
                 .orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
         member.updateJob(userType);
         memberRepository.save(member);
+
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> scrapList(CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> scrapList(CustomUserDetails userDetails, String type){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        // List<MemberScrap> scrapList = memberScrapRepository.findByMember_memberId(memberId);
-        List<MemberScrap> scrapList = memberScrapRepository.findByMember(member);
-        List<MyScrapProcessDto> responseDto = scrapList.stream().map(
-                memberScrap -> MyScrapProcessDto.builder()
-                        .categoryId(memberScrap.getTopic().getCategory().getId())
-                        .topicId(memberScrap.getTopic().getId())
-                        .title(memberScrap.getTopic().getTitle())
-                        .definition(memberScrap.getTopic().getDefinition())
-                        .build())
-                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+        switch (type){
+            case "topic" -> {
+                List<MemberScrap> scrapList = memberScrapRepository.findByMember(member);
+                List<MyScrapTopicProcessDto> responseDto = scrapList.stream().map(
+                                memberScrap -> MyScrapTopicProcessDto.builder()
+                                        .categoryId(memberScrap.getTopic().getCategory().getId())
+                                        .topicId(memberScrap.getTopic().getId())
+                                        .title(memberScrap.getTopic().getTitle())
+                                        .definition(memberScrap.getTopic().getDefinition())
+                                        .build())
+                        .collect(Collectors.toList());
+
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+            }
+            case "column" -> {
+                List<MemberGptColumn> scrapList = memberGptColumnRepository.findByMember(member);
+                List<MyScrapColumnProcessDto> responseDto = scrapList.stream().map(
+                                memberGptColumn -> MyScrapColumnProcessDto.builder()
+                                        .columnId(memberGptColumn.getId())
+                                        .title(memberGptColumn.getGptColumn().getTitle())
+                                        .summary(memberGptColumn.getGptColumn().getSummary())
+                                        .build())
+                        .collect(Collectors.toList());
+                return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
+            }
+            default -> throw new IllegalArgumentException("검색방법이 잘못되었습니다.");
+        }
+
     }
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> list(Long categoryId){
         Category findCategory = categoryRepository.findById(categoryId).orElseThrow( () -> new EntityNotFoundException("카테고리ID가 존재하지 않습니다."));
-        List<Topic> topicList = topicRepository.findByCategory(findCategory);
+        List<Topic> topicList = topicRepository.findByUseYNAndCategory("Y", findCategory);
         List<TopicListOnlyNameProcessDto> topicListDto = topicList.stream()
                 .map(topic -> new TopicListOnlyNameProcessDto(topic.getId(), topic.getTitle())).collect(Collectors.toList());
 
