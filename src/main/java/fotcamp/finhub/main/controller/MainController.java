@@ -208,11 +208,14 @@ public class MainController {
         return mainService.deleteAvatar(userDetails);
     }
     // 스크랩 모음
-    @GetMapping("/menu/myscrap")
+    @GetMapping("/menu/myscrap/{type}")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "스크랩 모음 요청", description = "스크랩 모음")
-    public ResponseEntity<ApiResponseWrapper> scrapList(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return mainService.scrapList(userDetails);
+    public ResponseEntity<ApiResponseWrapper> scrapList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "type") String type
+    ){
+        return mainService.scrapList(userDetails, type);
     }
 
     @GetMapping("/menu/setting/resign")
