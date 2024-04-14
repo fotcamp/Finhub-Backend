@@ -21,4 +21,9 @@ public class PostsLike extends BaseEntity{
     @JoinColumn(name = "member_id")
     private Member member;
 
+    public PostsLike(GptColumn gptColumn, Member member) {
+        this.member = member;
+        this.gptColumn = gptColumn;
+    }
+
 }

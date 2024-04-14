@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class MemberGptColumn {
+public class MemberGptColumn extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,5 @@ public class MemberGptColumn {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gpt_column_id")
     private GptColumn gptColumn;
-
-    private LocalDateTime like_time;
 
 }

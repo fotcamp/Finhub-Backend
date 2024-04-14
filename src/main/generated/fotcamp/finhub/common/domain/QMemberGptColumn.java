@@ -22,13 +22,19 @@ public class QMemberGptColumn extends EntityPathBase<MemberGptColumn> {
 
     public static final QMemberGptColumn memberGptColumn = new QMemberGptColumn("memberGptColumn");
 
+    public final QBaseEntity _super = new QBaseEntity(this);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
+
     public final QGptColumn gptColumn;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final DateTimePath<java.time.LocalDateTime> like_time = createDateTime("like_time", java.time.LocalDateTime.class);
-
     public final QMember member;
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
     public QMemberGptColumn(String variable) {
         this(MemberGptColumn.class, forVariable(variable), INITS);
