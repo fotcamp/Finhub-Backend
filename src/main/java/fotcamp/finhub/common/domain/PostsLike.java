@@ -22,8 +22,8 @@ public class PostsLike extends BaseEntity{
     private Member member;
 
     public PostsLike(GptColumn gptColumn, Member member) {
-        this.member = member;
         this.gptColumn = gptColumn;
+        this.member = member;
     }
 
 }

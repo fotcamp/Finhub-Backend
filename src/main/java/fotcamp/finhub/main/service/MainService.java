@@ -60,7 +60,7 @@ public class MainService {
     private final BannerRepository bannerRepository;
     private final GptColumnRepository gptColumnRepository;
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
-    private final MemberGptColumnRepository memberGptColumnRepository;
+    private final PostsScrapRepository postsScrapRepository;
 
     private final AwsS3Service awsS3Service;
     private final PostsLikeRepository postsLikeRepository;
@@ -231,11 +231,13 @@ public class MainService {
             );
         } else if (dto.getType() == 2) { // gpt column 스크랩
             GptColumn gptColumn = gptColumnRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN ID가 존재하지 않습니다."));
-            Optional<PostsLike> firstByGptColumnAndMember = postsLikeRepository.findFirstByGptColumnAndMember(gptColumn, member);
+            Optional<PostsScrap> firstByGptColumnAndMember = postsScrapRepository.findFirstByGptColumnAndMember(gptColumn, member);
             firstByGptColumnAndMember.ifPresentOrElse(
-                    postsLikeRepository::delete,
-                    () -> postsLikeRepository.save(new PostsLike(gptColumn, member))
+                    postsScrapRepository::delete,
+                    () -> postsScrapRepository.save(new PostsScrap(gptColumn, member))
             );
+        } else {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", dto.getType()));
         }
 
         return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -385,12 +387,12 @@ public class MainService {
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
             }
             case "column" -> {
-                List<MemberGptColumn> scrapList = memberGptColumnRepository.findByMember(member);
+                List<PostsScrap> scrapList = postsScrapRepository.findByMember(member);
                 List<MyScrapColumnProcessDto> responseDto = scrapList.stream().map(
-                                memberGptColumn -> MyScrapColumnProcessDto.builder()
-                                        .columnId(memberGptColumn.getId())
-                                        .title(memberGptColumn.getGptColumn().getTitle())
-                                        .summary(memberGptColumn.getGptColumn().getSummary())
+                                postsScrap -> MyScrapColumnProcessDto.builder()
+                                        .columnId(postsScrap.getId())
+                                        .title(postsScrap.getGptColumn().getTitle())
+                                        .summary(postsScrap.getGptColumn().getSummary())
                                         .build())
                         .collect(Collectors.toList());
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));

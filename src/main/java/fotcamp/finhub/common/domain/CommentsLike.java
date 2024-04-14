@@ -21,4 +21,9 @@ public class CommentsLike extends BaseEntity{
     @JoinColumn(name = "member_id")
     private Member member;
 
+    public CommentsLike(Comments comment, Member member) {
+        this.comment = comment;
+        this.member = member;
+    }
+
 }

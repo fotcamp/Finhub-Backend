@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QMemberGptColumn is a Querydsl query type for MemberGptColumn
+ * QPostsScrap is a Querydsl query type for PostsScrap
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QMemberGptColumn extends EntityPathBase<MemberGptColumn> {
+public class QPostsScrap extends EntityPathBase<PostsScrap> {
 
-    private static final long serialVersionUID = -724121218L;
+    private static final long serialVersionUID = 3961415L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QMemberGptColumn memberGptColumn = new QMemberGptColumn("memberGptColumn");
+    public static final QPostsScrap postsScrap = new QPostsScrap("postsScrap");
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
@@ -36,23 +36,23 @@ public class QMemberGptColumn extends EntityPathBase<MemberGptColumn> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
-    public QMemberGptColumn(String variable) {
-        this(MemberGptColumn.class, forVariable(variable), INITS);
+    public QPostsScrap(String variable) {
+        this(PostsScrap.class, forVariable(variable), INITS);
     }
 
-    public QMemberGptColumn(Path<? extends MemberGptColumn> path) {
+    public QPostsScrap(Path<? extends PostsScrap> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QMemberGptColumn(PathMetadata metadata) {
+    public QPostsScrap(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QMemberGptColumn(PathMetadata metadata, PathInits inits) {
-        this(MemberGptColumn.class, metadata, inits);
+    public QPostsScrap(PathMetadata metadata, PathInits inits) {
+        this(PostsScrap.class, metadata, inits);
     }
 
-    public QMemberGptColumn(Class<? extends MemberGptColumn> type, PathMetadata metadata, PathInits inits) {
+    public QPostsScrap(Class<? extends PostsScrap> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.gptColumn = inits.isInitialized("gptColumn") ? new QGptColumn(forProperty("gptColumn")) : null;
         this.member = inits.isInitialized("member") ? new QMember(forProperty("member"), inits.get("member")) : null;
