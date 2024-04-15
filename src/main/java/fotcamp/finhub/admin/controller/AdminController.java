@@ -380,7 +380,33 @@ public class AdminController {
         return adminService.modifyGptColumn(modifyGptColumnRequestDto, userDetails);
     }
 
+    @PostMapping("/announce")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "공지사항 생성", description = "공지사항")
+    public ResponseEntity<ApiResponseWrapper> createAnnouncement(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody CreateAnnounceRequestDto dto)
+    {
+        return adminService.createAnnouncement(userDetails, dto);
+    }
 
+    @PutMapping("/announce")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "공지사항 수정", description = "공지사항")
+    public ResponseEntity<ApiResponseWrapper> updateAnnouncement(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody ModifyAnnounceRequestDto dto
+    ){
+        return adminService.updateAnnouncement(userDetails, dto);
+    }
 
-
+    @DeleteMapping("/announce")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "공지사항 삭제", description = "공지사항")
+    public ResponseEntity<ApiResponseWrapper> deleteAnnouncement(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody DeleteAnnounceRequestDto dto
+    ){
+        return adminService.deleteAnnouncement(userDetails, dto);
+    }
 }

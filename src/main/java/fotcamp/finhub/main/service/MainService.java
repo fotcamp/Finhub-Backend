@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +62,7 @@ public class MainService {
     private final GptColumnRepository gptColumnRepository;
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
     private final PostsScrapRepository postsScrapRepository;
+    private final AnnouncementRepository announcementRepository;
 
     private final AwsS3Service awsS3Service;
     private final PostsLikeRepository postsLikeRepository;
@@ -481,5 +483,22 @@ public class MainService {
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
+
+    public ResponseEntity<ApiResponseWrapper> announcement(Long cursorId, int size){
+        if (cursorId == null || cursorId == 0){
+            cursorId = Long.MAX_VALUE;
+        }
+
+        List<Announcement> announcementList = announcementRepository.find7Announcement(cursorId, PageRequest.of(0, size));
+        List<AnnouncementProcessDto> announcementProcessDto = announcementList.stream().map(
+                announcement -> AnnouncementProcessDto.builder()
+                        .id(announcement.getId())
+                        .title(announcement.getTitle())
+                        .content(announcement.getContent())
+                        .time(LocalDate.from(announcement.getCreatedTime())).build()).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto)));
+    }
+
+
 
 }
