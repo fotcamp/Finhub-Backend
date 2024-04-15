@@ -26,5 +26,16 @@ public class Comments extends BaseEntity{
 
     private String content; // 댓글 내용
 
+    private int totalLike = 0;
+
+    public void upLike() {
+        this.totalLike += 1;
+    }
+
+    public void downLike() {
+        if (this.totalLike > 0) {
+            this.totalLike -= 1;
+        }
+    }
 
 }

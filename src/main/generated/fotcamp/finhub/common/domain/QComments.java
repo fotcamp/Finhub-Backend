@@ -38,6 +38,8 @@ public class QComments extends EntityPathBase<Comments> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
+    public final NumberPath<Integer> totalLike = createNumber("totalLike", Integer.class);
+
     public QComments(String variable) {
         this(Comments.class, forVariable(variable), INITS);
     }

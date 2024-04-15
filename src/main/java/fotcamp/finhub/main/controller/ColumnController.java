@@ -4,6 +4,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.utils.PageableUtil;
 import fotcamp.finhub.main.dto.request.ScrapRequestDto;
+import fotcamp.finhub.main.dto.response.column.CommentRequestDto;
 import fotcamp.finhub.main.service.ColumnService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,4 +49,25 @@ public class ColumnController {
             @RequestBody ScrapRequestDto dto){
         return columnService.like(userDetails, dto);
     }
+
+    @PostMapping("/comment")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "컬럼 댓글 작성", description = "컬럼 댓글 작성")
+    public ResponseEntity<ApiResponseWrapper> comment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody CommentRequestDto dto){
+        return columnService.comment(userDetails, dto);
+    }
+
+    @GetMapping("/comment/{id}/{type}")
+    @Operation(summary = "컬럼 댓글 조회", description = "컬럼 댓글 조회")
+    public ResponseEntity<ApiResponseWrapper> getColumnComment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "id", required = true) Long id,
+            @PathVariable(name = "type", required = true) Long type
+
+    ) {
+        return columnService.getColumnComment(userDetails, id, type);
+    }
+
 }
