@@ -65,10 +65,12 @@ public class ColumnController {
     public ResponseEntity<ApiResponseWrapper> getColumnComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "id", required = true) Long id,
-            @PathVariable(name = "type", required = true) Long type
-
+            @PathVariable(name = "type", required = true) Long type,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "3") int size
     ) {
-        return columnService.getColumnComment(userDetails, id, type);
+        Pageable pageable = PageableUtil.createPageableWithNoSort(page, size);
+        return columnService.getColumnComment(userDetails, id, type, pageable);
     }
 
     @PutMapping("/comment/actions")

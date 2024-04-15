@@ -5,12 +5,13 @@ import fotcamp.finhub.common.domain.GptColumn;
 import fotcamp.finhub.common.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Long> {
-    List<Comments> findByGptColumnAndUseYnOrderByCreatedTimeDesc(GptColumn gptColumn, String useYn); // 최신순
-    List<Comments> findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(GptColumn gptColumn, String useYn); // 인기순
+    Page<Comments> findByGptColumnAndUseYnOrderByCreatedTimeDesc(GptColumn gptColumn, String useYn, Pageable pageable); // 최신순
+    Page<Comments> findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(GptColumn gptColumn, String useYn, Pageable pageable); // 인기순
     Long countByGptColumnAndMember(GptColumn gptColumn, Member member);
 }

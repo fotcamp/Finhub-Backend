@@ -143,19 +143,19 @@ public class ColumnService {
     }
 
     // 컬럼 댓글 조회
-    public ResponseEntity<ApiResponseWrapper> getColumnComment(CustomUserDetails userDetails, Long id, Long type) {
+    public ResponseEntity<ApiResponseWrapper> getColumnComment(CustomUserDetails userDetails, Long id, Long type, Pageable pageable) {
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
-        List<Comments> commentsList;
+        Page<Comments> commentsList;
         if (type == 1) { // 인기순
-            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y");
+            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y", pageable);
         } else if (type == 2) { // 최신순
-            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y");
+            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y", pageable);
         } else {
             return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
         }
-        List<CommentResponseDto> responseList = commentsList.stream()
+        List<CommentResponseDto> responseList = commentsList.getContent().stream()
                 .map(comment -> {
                     String avatarPath = Optional.ofNullable(member.getUserAvatar())
                             .map(UserAvatar::getAvatar_img_path)
@@ -164,8 +164,8 @@ public class ColumnService {
 
                     return new CommentResponseDto(member, comment, avatarPath, comment.getMember().getMemberId().equals(memberId));
                 }).toList();
-
-        return ResponseEntity.ok(ApiResponseWrapper.success(new ColumnResponse(responseList)));
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsList);
+        return ResponseEntity.ok(ApiResponseWrapper.success(new ColumnResponse(responseList, PageInfoProcessDto)));
     }
 
     // 댓글 수정
