@@ -3,6 +3,7 @@ package fotcamp.finhub.main.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "auth", description = "auth api")
@@ -37,8 +39,9 @@ public class AuthApiController {
     }
 
     // 자동로그인
-    @PostMapping("/autoLogin")
-    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request, @RequestBody AutoLoginRequestDto dto){
-        return authService.autoLogin(request, dto);
+    @GetMapping("/autoLogin")
+    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
+        return authService.autoLogin(request);
     }
+
 }
