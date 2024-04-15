@@ -130,6 +130,10 @@ public class ColumnService {
         GptColumn gptColumn = gptColumnRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        if (member.getNickname() == null) {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("닉네임 설정 필요"));
+        }
+
         if (commentsRepository.countByGptColumnAndMember(gptColumn, member) > 4) {
             return ResponseEntity.ok(ApiResponseWrapper.fail("한 게시글에 댓글은 최대 5개입니다."));
         }
