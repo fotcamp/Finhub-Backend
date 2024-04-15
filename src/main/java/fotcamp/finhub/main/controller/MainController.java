@@ -1,6 +1,7 @@
 package fotcamp.finhub.main.controller;
 
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.*;
@@ -242,6 +243,15 @@ public class MainController {
             @RequestBody PushYNRequestDto dto
     ){
         return mainService.push(userDetails, dto);
+    }
+
+    // 공지사항
+    @GetMapping("/announce")
+    public ResponseEntity<ApiResponseWrapper> announcement(
+            @RequestParam(name = "cursorId", required = false) Long cursorId,
+            @RequestParam(name = "size", defaultValue = "7") int size)
+    {
+        return mainService.announcement(cursorId, size);
     }
 }
 
