@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Long> {
-    List<Comments> findByGptColumnOrderByCreatedTimeDesc(GptColumn gptColumn); // 최신순
-    List<Comments> findByGptColumnOrderByTotalLikeDescCreatedTimeDesc(GptColumn gptColumn); // 인기순
+    List<Comments> findByGptColumnAndUseYnOrderByCreatedTimeDesc(GptColumn gptColumn, String useYn); // 최신순
+    List<Comments> findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(GptColumn gptColumn, String useYn); // 인기순
     Long countByGptColumnAndMember(GptColumn gptColumn, Member member);
 }

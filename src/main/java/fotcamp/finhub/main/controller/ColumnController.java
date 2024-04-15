@@ -70,4 +70,30 @@ public class ColumnController {
         return columnService.getColumnComment(userDetails, id, type);
     }
 
+    @PutMapping("/comment/actions")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "컬럼 댓글 수정", description = "컬럼 댓글 수정")
+    public ResponseEntity<ApiResponseWrapper> commentActions(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody CommentRequestDto dto){
+        return columnService.commentPut(userDetails, dto);
+    }
+
+//    @DeleteMapping("/comment/actions")
+//    @PreAuthorize("hasRole('USER')")
+//    @Operation(summary = "컬럼 댓글 삭제", description = "컬럼 댓글 삭제")
+//    public ResponseEntity<ApiResponseWrapper> commentActions(
+//            @AuthenticationPrincipal CustomUserDetails userDetails,
+//            @RequestBody CommentRequestDto dto){
+//        return columnService.commentDelete(userDetails, dto);
+//    }
+//
+//    @PostMapping("/comment/actions")
+//    @PreAuthorize("hasRole('USER')")
+//    @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")
+//    public ResponseEntity<ApiResponseWrapper> commentActions(
+//            @AuthenticationPrincipal CustomUserDetails userDetails,
+//            @RequestBody CommentRequestDto dto){
+//        return columnService.commentComplaint(userDetails, dto);
+//    }
 }

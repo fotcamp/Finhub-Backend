@@ -40,6 +40,8 @@ public class QComments extends EntityPathBase<Comments> {
 
     public final NumberPath<Integer> totalLike = createNumber("totalLike", Integer.class);
 
+    public final StringPath useYn = createString("useYn");
+
     public QComments(String variable) {
         this(Comments.class, forVariable(variable), INITS);
     }

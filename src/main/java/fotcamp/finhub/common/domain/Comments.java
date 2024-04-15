@@ -26,7 +26,11 @@ public class Comments extends BaseEntity{
 
     private String content; // 댓글 내용
 
+    @Builder.Default
     private int totalLike = 0;
+
+    @Builder.Default
+    private String useYn = "Y";
 
     public void upLike() {
         this.totalLike += 1;
@@ -36,6 +40,14 @@ public class Comments extends BaseEntity{
         if (this.totalLike > 0) {
             this.totalLike -= 1;
         }
+    }
+
+    public void modifyContent(String content) {
+        this.content = content;
+    }
+
+    public void modifyUseYn() {
+        this.useYn = "N";
     }
 
 }

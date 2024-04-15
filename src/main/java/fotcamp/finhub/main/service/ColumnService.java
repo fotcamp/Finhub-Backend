@@ -149,9 +149,9 @@ public class ColumnService {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
         List<Comments> commentsList;
         if (type == 1) { // 인기순
-            commentsList = commentsRepository.findByGptColumnOrderByTotalLikeDescCreatedTimeDesc(gptColumn);
+            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y");
         } else if (type == 2) { // 최신순
-            commentsList = commentsRepository.findByGptColumnOrderByCreatedTimeDesc(gptColumn);
+            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y");
         } else {
             return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
         }
@@ -166,5 +166,21 @@ public class ColumnService {
                 }).toList();
 
         return ResponseEntity.ok(ApiResponseWrapper.success(new ColumnResponse(responseList)));
+    }
+
+    // 댓글 수정
+    public ResponseEntity<ApiResponseWrapper> commentPut(CustomUserDetails userDetails, CommentRequestDto dto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Comments comments = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("댓글 ID가 존재하지 않습니다."));
+        if (!comments.getMember().getMemberId().equals(memberId)) {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("자신의 댓글만 수정 할 수 있습니다."));
+        }
+        comments.modifyContent(dto.comment());
+        commentsRepository.save(comments);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
