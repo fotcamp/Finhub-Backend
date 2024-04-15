@@ -18,6 +18,7 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.repository.AnnouncementRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +74,7 @@ public class AdminService {
     private final CalendarEmoticonRepository calendarEmoticonRepository;
     private final GptColumnRepository gptColumnRepository;
     private final TopicGptColumnRepository topicGptColumnRepository;
-
+    private final AnnouncementRepository announcementRepository;
 
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
@@ -1028,5 +1029,35 @@ public class AdminService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    // 공지사항 생성 api
+    public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto){
+
+        Announcement newAnnounce = Announcement.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .createdBy(userDetails.getRole()).build();
+        announcementRepository.save(newAnnounce);
+        return  ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 공지사항 수정 api
+    public ResponseEntity<ApiResponseWrapper> updateAnnouncement(CustomUserDetails userDetails, ModifyAnnounceRequestDto dto) {
+
+        Announcement originAnnounce = announcementRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("공지사항이 존재하지 않습니다."));
+
+        originAnnounce.updateAnnounce(dto);
+        announcementRepository.save(originAnnounce);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+    // 공지사항 삭제 api
+    public ResponseEntity<ApiResponseWrapper> deleteAnnouncement(CustomUserDetails userDetails, DeleteAnnounceRequestDto dto){
+
+        Announcement originAnnounce = announcementRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("공지사항이 존재하지 않습니다."));
+        announcementRepository.delete(originAnnounce);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

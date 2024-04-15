@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -60,10 +61,11 @@ public class MainService {
     private final BannerRepository bannerRepository;
     private final GptColumnRepository gptColumnRepository;
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
-    private final MemberGptColumnRepository memberGptColumnRepository;
+    private final PostsScrapRepository postsScrapRepository;
+    private final AnnouncementRepository announcementRepository;
 
     private final AwsS3Service awsS3Service;
-
+    private final PostsLikeRepository postsLikeRepository;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -218,16 +220,28 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
     }
 
-    public ResponseEntity<ApiResponseWrapper> scrapTopic(CustomUserDetails userDetails, ScrapTopicRequestDto dto){
+    public ResponseEntity<ApiResponseWrapper> scrap(CustomUserDetails userDetails, ScrapRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        Topic topic = topicRepository.findById(dto.getTopicId()).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
-        // memberScrap table에 기록이 없으면 스크랩 설정 <-> table에 기록이 있다면 스크랩 해제
-        Optional<MemberScrap> optionalMemberScrap = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId());
-        optionalMemberScrap.ifPresentOrElse(
-                memberScrapRepository::delete, // 스크랩 기록이 있으면 삭제 (스크랩 해제)
-                () -> memberScrapRepository.save(new MemberScrap(member, topic)) // 스크랩 기록이 없으면 저장 (스크랩 설정)
-        );
+        if (dto.getType() == 1) { // 토픽 스크랩
+            Topic topic = topicRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("토픽ID가 존재하지 않습니다."));
+            // memberScrap table에 기록이 없으면 스크랩 설정 <-> table에 기록이 있다면 스크랩 해제
+            Optional<MemberScrap> optionalMemberScrap = memberScrapRepository.findByMemberIdAndTopicId(memberId, topic.getId());
+            optionalMemberScrap.ifPresentOrElse(
+                    memberScrapRepository::delete, // 스크랩 기록이 있으면 삭제 (스크랩 해제)
+                    () -> memberScrapRepository.save(new MemberScrap(member, topic)) // 스크랩 기록이 없으면 저장 (스크랩 설정)
+            );
+        } else if (dto.getType() == 2) { // gpt column 스크랩
+            GptColumn gptColumn = gptColumnRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN ID가 존재하지 않습니다."));
+            Optional<PostsScrap> firstByGptColumnAndMember = postsScrapRepository.findFirstByGptColumnAndMember(gptColumn, member);
+            firstByGptColumnAndMember.ifPresentOrElse(
+                    postsScrapRepository::delete,
+                    () -> postsScrapRepository.save(new PostsScrap(gptColumn, member))
+            );
+        } else {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", dto.getType()));
+        }
+
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
@@ -375,12 +389,12 @@ public class MainService {
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
             }
             case "column" -> {
-                List<MemberGptColumn> scrapList = memberGptColumnRepository.findByMember(member);
+                List<PostsScrap> scrapList = postsScrapRepository.findByMember(member);
                 List<MyScrapColumnProcessDto> responseDto = scrapList.stream().map(
-                                memberGptColumn -> MyScrapColumnProcessDto.builder()
-                                        .columnId(memberGptColumn.getId())
-                                        .title(memberGptColumn.getGptColumn().getTitle())
-                                        .summary(memberGptColumn.getGptColumn().getSummary())
+                                postsScrap -> MyScrapColumnProcessDto.builder()
+                                        .columnId(postsScrap.getId())
+                                        .title(postsScrap.getGptColumn().getTitle())
+                                        .summary(postsScrap.getGptColumn().getSummary())
                                         .build())
                         .collect(Collectors.toList());
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
@@ -469,5 +483,22 @@ public class MainService {
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
+
+    public ResponseEntity<ApiResponseWrapper> announcement(Long cursorId, int size){
+        if (cursorId == null || cursorId == 0){
+            cursorId = Long.MAX_VALUE;
+        }
+
+        List<Announcement> announcementList = announcementRepository.find7Announcement(cursorId, PageRequest.of(0, size));
+        List<AnnouncementProcessDto> announcementProcessDto = announcementList.stream().map(
+                announcement -> AnnouncementProcessDto.builder()
+                        .id(announcement.getId())
+                        .title(announcement.getTitle())
+                        .content(announcement.getContent())
+                        .time(LocalDate.from(announcement.getCreatedTime())).build()).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto)));
+    }
+
+
 
 }

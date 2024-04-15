@@ -1,6 +1,7 @@
 package fotcamp.finhub.main.controller;
 
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.*;
@@ -70,11 +71,11 @@ public class MainController {
 
     @PostMapping("/scrap")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "토픽 스크랩 설정 및 해제", description = "토픽 스크랩 설정 및 해제")
-    public ResponseEntity<ApiResponseWrapper> scrapTopic(
+    @Operation(summary = "스크랩 설정 및 해제(1: 토픽, 2: gpt column)", description = "스크랩 설정 및 해제")
+    public ResponseEntity<ApiResponseWrapper> scrap(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody ScrapTopicRequestDto dto){
-        return mainService.scrapTopic(userDetails, dto);
+            @RequestBody ScrapRequestDto dto){
+        return mainService.scrap(userDetails, dto);
     }
 
     @GetMapping("/topicInfo")
@@ -242,6 +243,15 @@ public class MainController {
             @RequestBody PushYNRequestDto dto
     ){
         return mainService.push(userDetails, dto);
+    }
+
+    // 공지사항
+    @GetMapping("/announce")
+    public ResponseEntity<ApiResponseWrapper> announcement(
+            @RequestParam(name = "cursorId", required = false) Long cursorId,
+            @RequestParam(name = "size", defaultValue = "7") int size)
+    {
+        return mainService.announcement(cursorId, size);
     }
 }
 

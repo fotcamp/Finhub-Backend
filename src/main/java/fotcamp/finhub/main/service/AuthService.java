@@ -142,7 +142,7 @@ public class AuthService {
     }
 
     // 자동로그인
-    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request, AutoLoginRequestDto dto){
+    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
         String accessToken = request.getHeader("Authorization");
         String refreshToken = request.getHeader("refreshToken");
 
@@ -151,7 +151,6 @@ public class AuthService {
             Long memberId = jwtUtil.getUserId(accessToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-            member.updateFcmToken(dto.getToken());
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
         }
@@ -160,11 +159,9 @@ public class AuthService {
             Long memberId = jwtUtil.getUserId(refreshToken);
             Member member = memberRepository.findById(memberId).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-            member.updateFcmToken(dto.getToken());
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("로그인이 필요합니다"));
     }
 
@@ -191,7 +188,5 @@ public class AuthService {
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
-
-
 
 }
