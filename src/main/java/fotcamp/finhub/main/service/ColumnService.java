@@ -174,7 +174,7 @@ public class ColumnService {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
         }
         Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         Comments comments = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("댓글 ID가 존재하지 않습니다."));
         if (!comments.getMember().getMemberId().equals(memberId)) {
             return ResponseEntity.ok(ApiResponseWrapper.fail("자신의 댓글만 수정 할 수 있습니다."));
@@ -182,5 +182,25 @@ public class ColumnService {
         comments.modifyContent(dto.comment());
         commentsRepository.save(comments);
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 댓글 삭제
+    public ResponseEntity<ApiResponseWrapper> commentDelete(CustomUserDetails userDetails, CommentDeleteRequestDto dto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Long memberId = userDetails.getMemberIdasLong();
+        memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Comments comments = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("댓글 ID가 존재하지 않습니다."));
+        if (!comments.getMember().getMemberId().equals(memberId)) {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("자신의 댓글만 삭제 할 수 있습니다."));
+        }
+        if ("N".equals(comments.getUseYn())) {
+            return ResponseEntity.ok(ApiResponseWrapper.fail("이미 삭제한 댓글입니다."));
+        }
+        comments.modifyUseYn(); // 삭제처리 -> useYN "N"
+        commentsRepository.save(comments);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+
     }
 }
