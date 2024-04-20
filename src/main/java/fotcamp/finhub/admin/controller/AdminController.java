@@ -1,7 +1,10 @@
 package fotcamp.finhub.admin.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
+import fotcamp.finhub.admin.service.FcmService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
@@ -12,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final FcmService fcmService;
     private final AwsS3Service awsS3Service;
 
     @PostMapping("/login")
@@ -433,5 +438,24 @@ public class AdminController {
             @Valid @RequestBody ReportReasonModifyRequestDto dto
     ){
         return adminService.modifyReportReason(dto);
+    }
+
+    @PostMapping("/fcm-token")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
+    @Operation(summary = "fcmToken 저장하기", description = "fcm 토큰 manager table에 저장하기")
+    public ResponseEntity<ApiResponseWrapper> saveFcmToken(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody SaveFcmTokenRequestDto dto
+    ){
+        return adminService.saveFcmToken(userDetails, dto);
+    }
+
+    @PostMapping("/send-noti")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
+    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송")
+    public ResponseEntity<ApiResponseWrapper> sendNotification(
+            @Valid @RequestBody CreateFcmMessageRequestDto dto
+            ) throws JsonProcessingException {
+        return fcmService.sendFcmNotifications(dto);
     }
 }

@@ -499,6 +499,12 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto)));
     }
 
-
+    public ResponseEntity<ApiResponseWrapper> updateFcmToken(CustomUserDetails userDetails, String fcmToken) {
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        member.updateFcmToken(fcmToken);
+        memberRepository.save(member);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
 
 }

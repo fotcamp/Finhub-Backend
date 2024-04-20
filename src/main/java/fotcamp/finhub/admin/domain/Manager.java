@@ -29,12 +29,20 @@ public class Manager {
     @Column(name = "ROLE", nullable = false)
     private RoleType role;
 
+    @Column(name = "fcm-token")
+    private String fcmToken;
+
     @Builder
-    public Manager(Long memberId, String email, String name, String password) {
+    public Manager(Long memberId, String email, String name, String password, String fcmToken) {
         this.memberId = memberId;
         this.email = email;
         this.name = name;
         this.password = password;
         this.role = RoleType.ROLE_BE;
+        this.fcmToken = fcmToken;
+    }
+
+    public void updateFcmToken(String token){
+        this.fcmToken = token;
     }
 }
