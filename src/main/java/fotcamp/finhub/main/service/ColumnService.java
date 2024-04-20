@@ -36,6 +36,8 @@ public class ColumnService {
     private final MemberRepository memberRepository;
     private final CommonService commonService;
     private final AwsS3Service awsS3Service;
+    private final ReportReasonsRepository reportReasonsRepository;
+    private final CommentsReportRepository commentsReportRepository;
 
 
     // column 리스트 조회
@@ -148,8 +150,17 @@ public class ColumnService {
 
     // 컬럼 댓글 조회
     public ResponseEntity<ApiResponseWrapper> getColumnComment(CustomUserDetails userDetails, Long id, Long type, Pageable pageable) {
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        String loginCheck;
+        Long memberId;
+        if (userDetails == null) {
+            loginCheck = "N";
+            memberId = null;
+        } else {
+            loginCheck = "Y";
+            memberId = userDetails.getMemberIdasLong();
+            Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        }
+
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
         Page<Comments> commentsList;
         if (type == 1) { // 인기순
@@ -161,12 +172,16 @@ public class ColumnService {
         }
         List<CommentResponseDto> responseList = commentsList.getContent().stream()
                 .map(comment -> {
-                    String avatarPath = Optional.ofNullable(member.getUserAvatar())
+                    Member commentWriter = comment.getMember();
+                    String avatarPath = Optional.ofNullable(commentWriter.getUserAvatar())
                             .map(UserAvatar::getAvatar_img_path)
                             .map(awsS3Service::combineWithBaseUrl)
                             .orElse(null); // getUserAvatar()가 null이면 null 반환
-
-                    return new CommentResponseDto(member, comment, avatarPath, comment.getMember().getMemberId().equals(memberId));
+                    if ("Y".equals(loginCheck)) { // 로그인 한 유저면
+                        return new CommentResponseDto(commentWriter, comment, avatarPath, comment.getMember().getMemberId().equals(memberId));
+                    } else { // 로그인 하지않은 유저면
+                        return new CommentResponseDto(commentWriter, comment, avatarPath, false);
+                    }
                 }).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsList);
         return ResponseEntity.ok(ApiResponseWrapper.success(new ColumnResponse(responseList, PageInfoProcessDto)));
@@ -206,5 +221,38 @@ public class ColumnService {
         commentsRepository.save(comments);
         return ResponseEntity.ok(ApiResponseWrapper.success());
 
+    }
+
+    // 댓글 신고 이유 리스트 조회
+    public ResponseEntity<ApiResponseWrapper> commentReasons() {
+        List<ReportReasons> reportReasons = reportReasonsRepository.findAllByUseYnOrderByIdAsc("Y");
+        List<ReportReasonListDto> reasonList = reportReasons.stream().map(reason -> {
+            return new ReportReasonListDto(reason);
+        }).toList();
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(new ReportReasonAnswerDto(reasonList)));
+    }
+
+    // 댓글 신고하기
+    public ResponseEntity<ApiResponseWrapper> commentReport(CustomUserDetails userDetails, CommentReportRequestDto dto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Long memberId = userDetails.getMemberIdasLong();
+        Member reporterMember = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Comments reportedComment = commentsRepository.findById(dto.commentId()).orElseThrow(() -> new EntityNotFoundException("댓글ID 존재하지 않습니다."));
+        Member reportedMember = reportedComment.getMember();
+        ReportReasons reportReason = reportReasonsRepository.findById(dto.reportId()).orElseThrow(() -> new EntityNotFoundException("신고사유ID가 존재하지 않습니다."));
+        if (commentsReportRepository.findByReportedCommentAndReporterMember(reportedComment, reporterMember).isPresent()) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("이미 신고한 댓글입니다."));
+        }
+        CommentsReport commentsReport = CommentsReport.builder()
+                .reportedComment(reportedComment)
+                .reporterMember(reporterMember)
+                .reportedMember(reportedMember)
+                .reportReasons(reportReason)
+                .build();
+        commentsReportRepository.save(commentsReport);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

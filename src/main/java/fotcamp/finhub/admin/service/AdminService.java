@@ -18,7 +18,10 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.dto.response.column.ReportReasonAnswerDto;
+import fotcamp.finhub.main.dto.response.column.ReportReasonListDto;
 import fotcamp.finhub.main.repository.AnnouncementRepository;
+import fotcamp.finhub.main.repository.ReportReasonsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +43,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -75,6 +79,7 @@ public class AdminService {
     private final GptColumnRepository gptColumnRepository;
     private final TopicGptColumnRepository topicGptColumnRepository;
     private final AnnouncementRepository announcementRepository;
+    private final ReportReasonsRepository reportReasonsRepository;
 
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
@@ -1058,6 +1063,41 @@ public class AdminService {
         Announcement originAnnounce = announcementRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("공지사항이 존재하지 않습니다."));
         announcementRepository.delete(originAnnounce);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 신고사유 조회
+    public ResponseEntity<ApiResponseWrapper> commentReasons() {
+        List<ReportReasons> reportReasons = reportReasonsRepository.findAllByOrderByIdAsc();
+        List<ReportReasonsDto> reasonList = reportReasons.stream().map(reason -> {
+            return new ReportReasonsDto(reason);
+        }).toList();
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(new ReportReasonsAnswerDto(reasonList)));
+    }
+
+    // 신고사유 등록
+    public ResponseEntity<ApiResponseWrapper> registerReportReason(ReportReasonRequestDto dto) {
+        Optional<ReportReasons> findReason = reportReasonsRepository.findByReason(dto.reason());
+        if (findReason.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 신고사유"));
+        }
+        ReportReasons reportReasons = ReportReasons.builder()
+                .reason(dto.reason())
+                .build();
+        reportReasonsRepository.save(reportReasons);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 신고사유 수정
+    public ResponseEntity<ApiResponseWrapper> modifyReportReason(ReportReasonModifyRequestDto dto) {
+        ReportReasons reportReasons = reportReasonsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고이유ID가 존재하지 않습니다."));
+        Optional<ReportReasons> findReason = reportReasonsRepository.findByReason(dto.reason());
+        if (findReason.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 신고사유"));
+        }
+        reportReasons.modifyReportReasons(dto);
+        reportReasonsRepository.save(reportReasons);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

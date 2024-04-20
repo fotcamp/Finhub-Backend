@@ -5,6 +5,7 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.utils.PageableUtil;
 import fotcamp.finhub.main.dto.request.ScrapRequestDto;
 import fotcamp.finhub.main.dto.response.column.CommentDeleteRequestDto;
+import fotcamp.finhub.main.dto.response.column.CommentReportRequestDto;
 import fotcamp.finhub.main.dto.response.column.CommentRequestDto;
 import fotcamp.finhub.main.service.ColumnService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,12 +92,19 @@ public class ColumnController {
         return columnService.commentDelete(userDetails, dto);
     }
 
-//    @PostMapping("/comment/actions")
-//    @PreAuthorize("hasRole('USER')")
-//    @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")
-//    public ResponseEntity<ApiResponseWrapper> commentActions(
-//            @AuthenticationPrincipal CustomUserDetails userDetails,
-//            @RequestBody CommentRequestDto dto){
-//        return columnService.commentComplaint(userDetails, dto);
-//    }
+    @GetMapping("/comment/actions")
+    @Operation(summary = "컬럼 댓글 신고 이유 조회", description = "컬럼 댓글 신고 이유 조회")
+    public ResponseEntity<ApiResponseWrapper> commentReasons(){
+        return columnService.commentReasons();
+    }
+
+    @PostMapping("/comment/actions")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")
+    public ResponseEntity<ApiResponseWrapper> commentReport(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody CommentReportRequestDto dto
+    ){
+        return columnService.commentReport(userDetails, dto);
+    }
 }
