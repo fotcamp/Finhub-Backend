@@ -37,6 +37,7 @@ public class ColumnService {
     private final CommonService commonService;
     private final AwsS3Service awsS3Service;
     private final ReportReasonsRepository reportReasonsRepository;
+    private final CommentsReportRepository commentsReportRepository;
 
 
     // column 리스트 조회
@@ -222,7 +223,7 @@ public class ColumnService {
 
     }
 
-    // 댓글 이유 리스트 조회
+    // 댓글 신고 이유 리스트 조회
     public ResponseEntity<ApiResponseWrapper> commentReasons() {
         List<ReportReasons> reportReasons = reportReasonsRepository.findAllByUseYnOrderByIdAsc("Y");
         List<ReportReasonListDto> reasonList = reportReasons.stream().map(reason -> {
@@ -230,5 +231,28 @@ public class ColumnService {
         }).toList();
 
         return ResponseEntity.ok(ApiResponseWrapper.success(new ReportReasonAnswerDto(reasonList)));
+    }
+
+    // 댓글 신고하기
+    public ResponseEntity<ApiResponseWrapper> commentReport(CustomUserDetails userDetails, CommentReportRequestDto dto) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Long memberId = userDetails.getMemberIdasLong();
+        Member reporterMember = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Comments reportedComment = commentsRepository.findById(dto.commentId()).orElseThrow(() -> new EntityNotFoundException("댓글ID 존재하지 않습니다."));
+        Member reportedMember = reportedComment.getMember();
+        ReportReasons reportReason = reportReasonsRepository.findById(dto.reportId()).orElseThrow(() -> new EntityNotFoundException("신고사유ID가 존재하지 않습니다."));
+        if (commentsReportRepository.findByReportedCommentAndReporterMember(reportedComment, reporterMember).isPresent()) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("이미 신고한 댓글입니다."));
+        }
+        CommentsReport commentsReport = CommentsReport.builder()
+                .reportedComment(reportedComment)
+                .reporterMember(reporterMember)
+                .reportedMember(reportedMember)
+                .reportReasons(reportReason)
+                .build();
+        commentsReportRepository.save(commentsReport);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

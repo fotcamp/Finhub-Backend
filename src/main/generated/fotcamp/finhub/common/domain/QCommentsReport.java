@@ -24,17 +24,21 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
-    public final QComments comment;
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final QMember member;
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
+
+    public final QComments reportedComment;
+
+    public final QMember reportedMember;
+
+    public final QMember reporterMember;
+
+    public final QReportReasons reportReasons;
 
     public QCommentsReport(String variable) {
         this(CommentsReport.class, forVariable(variable), INITS);
@@ -54,8 +58,10 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
 
     public QCommentsReport(Class<? extends CommentsReport> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.comment = inits.isInitialized("comment") ? new QComments(forProperty("comment"), inits.get("comment")) : null;
-        this.member = inits.isInitialized("member") ? new QMember(forProperty("member"), inits.get("member")) : null;
+        this.reportedComment = inits.isInitialized("reportedComment") ? new QComments(forProperty("reportedComment"), inits.get("reportedComment")) : null;
+        this.reportedMember = inits.isInitialized("reportedMember") ? new QMember(forProperty("reportedMember"), inits.get("reportedMember")) : null;
+        this.reporterMember = inits.isInitialized("reporterMember") ? new QMember(forProperty("reporterMember"), inits.get("reporterMember")) : null;
+        this.reportReasons = inits.isInitialized("reportReasons") ? new QReportReasons(forProperty("reportReasons")) : null;
     }
 
 }

@@ -15,15 +15,17 @@ public class CommentsReport extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
-    private Comments comment;
+    private Comments reportedComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @JoinColumn(name = "reporter_member_id")
+    private Member reporterMember;
 
-    public CommentsReport(Comments comment, Member member) {
-        this.comment = comment;
-        this.member = member;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reported_member_id")
+    private Member reportedMember;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "report_reason_id")
+    private ReportReasons reportReasons;
 }
