@@ -91,6 +91,12 @@ public class ColumnController {
         return columnService.commentDelete(userDetails, dto);
     }
 
+    @GetMapping("/comment/actions")
+    @Operation(summary = "컬럼 댓글 신고 이유 조회", description = "컬럼 댓글 신고 이유 조회")
+    public ResponseEntity<ApiResponseWrapper> commentReasonse(){
+        return columnService.commentReasons();
+    }
+//
 //    @PostMapping("/comment/actions")
 //    @PreAuthorize("hasRole('USER')")
 //    @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")

@@ -409,4 +409,29 @@ public class AdminController {
     ){
         return adminService.deleteAnnouncement(userDetails, dto);
     }
+
+    @GetMapping("/report/reason")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "신고사유 조회", description = "신고사유 조회")
+    public ResponseEntity<ApiResponseWrapper> commentReasons(){
+        return adminService.commentReasons();
+    }
+
+    @PostMapping("/report/reason")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
+    @Operation(summary = "신고사유 등록", description = "신고사유 등록하기")
+    public ResponseEntity<ApiResponseWrapper> registerReportReason(
+            @Valid @RequestBody ReportReasonRequestDto dto
+    ){
+        return adminService.registerReportReason(dto);
+    }
+
+    @PutMapping("/report/reason")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
+    @Operation(summary = "신고사유 수정", description = "신고사유 수정하기")
+    public ResponseEntity<ApiResponseWrapper> modifyReportReason(
+            @Valid @RequestBody ReportReasonModifyRequestDto dto
+    ){
+        return adminService.modifyReportReason(dto);
+    }
 }
