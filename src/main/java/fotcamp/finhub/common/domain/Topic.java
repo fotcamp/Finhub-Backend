@@ -40,6 +40,7 @@ public class Topic extends BaseEntity {
 
     private String createdBy;
 
+
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private List<Gpt> gptList = new ArrayList<>();
 
@@ -85,4 +86,10 @@ public class Topic extends BaseEntity {
         category.addTopic(this);
     }
 
+    public void removeCategory(){
+        if (this.category != null){
+            this.category.getTopics().remove(this);
+        }
+        this.category = null;
+    }
 }

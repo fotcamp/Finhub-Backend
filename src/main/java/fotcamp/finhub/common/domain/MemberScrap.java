@@ -28,4 +28,11 @@ public class MemberScrap {
         this.member = member;
         this.topic = topic;
     }
+
+    public void removeTopic(){
+        if (this.topic != null){
+            this.topic.getMemberScraps().remove(this);
+        }
+        this.topic = null;
+    }
 }
