@@ -65,13 +65,14 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(String title, String definition, String summary, String thumbnailImgPath, Category category, String role) {
+    public void modifyTopic(String title, String definition, String summary, String thumbnailImgPath, Category category, String role, String useYN) {
         changeCategory(category);
         this.title = title;
         this.definition = definition;
         this.summary = summary;
         this.thumbnailImgPath = thumbnailImgPath;
         this.createdBy = role;
+        this.useYN = useYN;
     }
 
     // 연관관계 편의 메서드

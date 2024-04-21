@@ -286,7 +286,7 @@ public class AdminService {
             // 토픽 내용 수정
             topic.modifyTopic(modifyTopicRequestDto.getTitle(), modifyTopicRequestDto.getDefinition(), modifyTopicRequestDto.getSummary()
                     ,awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
-                    category, userDetails.getRole());
+                    category, userDetails.getRole(), modifyTopicRequestDto.getUseYN());
 
             List<Gpt> updateGptList = new ArrayList<>();
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();

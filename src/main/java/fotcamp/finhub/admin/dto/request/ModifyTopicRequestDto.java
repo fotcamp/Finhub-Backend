@@ -28,6 +28,8 @@ public class ModifyTopicRequestDto {
 
     private List<GptProcessDto> gptList;
 
+    private String useYN;
+
     public ModifyTopicRequestDto(Topic topic, List<GptProcessDto> gptList) {
         this.topicId = topic.getId();
         this.categoryId = topic.getCategory().getId();
