@@ -177,7 +177,7 @@ public class MainService {
     }
 
     public void incrementPopularKeyword(String keyword){
-        Optional<PopularSearch> popularSearch = popularKeywordRepository.findByKeyword(keyword);
+        Optional<PopularSearch> popularSearch = popularKeywordRepository.findByKeywordAndDate(keyword, LocalDate.now());
         if (popularSearch.isPresent()) {
             popularSearch.get().plusFrequency();
         } else {
