@@ -28,6 +28,8 @@ public class QNotification extends EntityPathBase<Notification> {
 
     public final StringPath title = createString("title");
 
+    public final StringPath url = createString("url");
+
     public QNotification(String variable) {
         super(Notification.class, forVariable(variable));
     }

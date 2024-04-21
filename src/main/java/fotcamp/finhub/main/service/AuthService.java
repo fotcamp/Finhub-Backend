@@ -188,5 +188,4 @@ public class AuthService {
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
-
 }

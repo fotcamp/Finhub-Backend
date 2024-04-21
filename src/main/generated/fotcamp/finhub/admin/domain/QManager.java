@@ -21,6 +21,8 @@ public class QManager extends EntityPathBase<Manager> {
 
     public final StringPath email = createString("email");
 
+    public final StringPath fcmToken = createString("fcmToken");
+
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
     public final StringPath name = createString("name");
