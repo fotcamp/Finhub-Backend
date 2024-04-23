@@ -2,6 +2,7 @@ package fotcamp.finhub.main.repository;
 
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.MemberScrap;
+import fotcamp.finhub.common.domain.Topic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,6 @@ public interface MemberScrapRepository extends JpaRepository<MemberScrap, Long> 
 
     // List<MemberScrap> findByMember_memberId(Long memberId);
     List<MemberScrap> findByMember(Member member);
+
+    List<MemberScrap> findByTopic(Topic topic);
 }

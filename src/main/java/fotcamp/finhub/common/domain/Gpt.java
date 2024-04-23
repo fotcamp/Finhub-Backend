@@ -46,6 +46,13 @@ public class Gpt extends BaseEntity {
         topic.addGpt(this);
     }
 
+    public void removeTopic(){
+        if (this.topic != null){
+            this.topic.getGptList().remove(this);
+        }
+        this.topic = null;
+    }
+
     public void setUserType(UserType userType) {
         this.userType = userType;
     }
