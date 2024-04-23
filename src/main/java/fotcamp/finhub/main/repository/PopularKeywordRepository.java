@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface PopularKeywordRepository extends JpaRepository<PopularSearch, Long> {
 
-    Optional<PopularSearch> findByKeyword(String keyword);
+    Optional<PopularSearch> findByKeywordAndDate(String keyword, LocalDate date);
 
     @Query("SELECT p.keyword FROM PopularSearch p WHERE p.date BETWEEN :startDate AND :endDate ORDER BY p.frequency DESC, p.keyword ASC")
     List<String> findTopKeywordsBetweenDates(
