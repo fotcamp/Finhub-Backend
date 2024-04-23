@@ -198,6 +198,7 @@ public class AdminService {
 
             // 토픽 이름, 썸네일, useYN 수정
             category.modifyNameUseYNImg(modifiedDto);
+            categoryRepository.save(category);
 
             // 토픽 카테고리 수정
             List<ModifyTopicCategoryProcessDto> topicList = modifyCategoryRequestDto.topicList();
@@ -205,6 +206,7 @@ public class AdminService {
                 Topic topic = topicRepository.findById(topicDto.topicId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽입니다."));
                 Category afterCategory = categoryRepository.findById(topicDto.categoryId()).orElseThrow(() -> new EntityNotFoundException("변경하려는 카테고리가 존재하지 않습니다."));
                 topic.changeCategory(afterCategory);
+                topicRepository.save(topic);
             }
 
             return ResponseEntity.ok(ApiResponseWrapper.success());
