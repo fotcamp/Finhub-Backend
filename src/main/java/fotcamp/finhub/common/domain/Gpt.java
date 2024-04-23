@@ -26,6 +26,7 @@ public class Gpt extends BaseEntity {
     @JoinColumn(name = "usertype_id")
     private UserType userType;
 
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String content;
 
     @Builder.Default

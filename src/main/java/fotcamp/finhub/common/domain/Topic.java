@@ -25,10 +25,11 @@ public class Topic extends BaseEntity {
     private String title;
 
     // 용도 변경 요약내용 -> 원본내용
-    @Column(nullable = false)
+    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String definition;
 
     // 새로 생성 ( 요약 내용 칼럼 추가)
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String summary;
 
     private String shortDefinition;
