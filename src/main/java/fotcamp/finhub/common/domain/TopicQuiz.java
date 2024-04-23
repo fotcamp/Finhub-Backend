@@ -22,4 +22,8 @@ public class TopicQuiz {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id")
     private Quiz quiz;
+
+    public void removeTopic(){
+        this.topic = null;
+    }
 }

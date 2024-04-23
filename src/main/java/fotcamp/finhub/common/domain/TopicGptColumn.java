@@ -22,4 +22,8 @@ public class TopicGptColumn {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gpt_column_id")
     private GptColumn gptColumn;
+
+    public void removeTopic(){
+        this.topic = null;
+    }
 }

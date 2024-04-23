@@ -1,4 +1,4 @@
-package fotcamp.finhub.main.dto.request;
+package fotcamp.finhub.admin.dto.request;
 
 
 import lombok.Getter;
@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class FcmTokenRequestDto {
+public class SaveFcmTokenRequestDto {
 
     private String token;
 
-    public FcmTokenRequestDto(String token) {
+    public SaveFcmTokenRequestDto(String token) {
         this.token = token;
     }
 }

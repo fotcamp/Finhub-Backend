@@ -16,7 +16,7 @@ public class GptPrompt{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String prompt;
 
     @CreationTimestamp

@@ -2,6 +2,7 @@ package fotcamp.finhub.main.controller;
 
 
 import com.google.protobuf.Api;
+import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.*;
@@ -252,6 +253,15 @@ public class MainController {
             @RequestParam(name = "size", defaultValue = "7") int size)
     {
         return mainService.announcement(cursorId, size);
+    }
+
+    // fcmToken 업데이트
+    @PostMapping("/fcm-token")
+    public ResponseEntity<ApiResponseWrapper> updateFcmToken(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody SaveFcmTokenRequestDto dto
+    ){
+        return mainService.updateFcmToken(userDetails, dto.getToken());
     }
 }
 

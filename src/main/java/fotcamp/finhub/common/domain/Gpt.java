@@ -26,6 +26,7 @@ public class Gpt extends BaseEntity {
     @JoinColumn(name = "usertype_id")
     private UserType userType;
 
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String content;
 
     @Builder.Default
@@ -43,6 +44,13 @@ public class Gpt extends BaseEntity {
     public void setTopic(Topic topic) {
         this.topic = topic;
         topic.addGpt(this);
+    }
+
+    public void removeTopic(){
+        if (this.topic != null){
+            this.topic.getGptList().remove(this);
+        }
+        this.topic = null;
     }
 
     public void setUserType(UserType userType) {

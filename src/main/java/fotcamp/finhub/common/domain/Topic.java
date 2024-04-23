@@ -25,10 +25,11 @@ public class Topic extends BaseEntity {
     private String title;
 
     // 용도 변경 요약내용 -> 원본내용
-    @Column(nullable = false)
+    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String definition;
 
     // 새로 생성 ( 요약 내용 칼럼 추가)
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String summary;
 
     private String shortDefinition;
@@ -39,6 +40,7 @@ public class Topic extends BaseEntity {
     private String useYN = "N";
 
     private String createdBy;
+
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private List<Gpt> gptList = new ArrayList<>();
@@ -65,13 +67,14 @@ public class Topic extends BaseEntity {
     }
 
     // 토픽 수정
-    public void modifyTopic(String title, String definition, String summary, String thumbnailImgPath, Category category, String role) {
+    public void modifyTopic(String title, String definition, String summary, String thumbnailImgPath, Category category, String role, String useYN) {
         changeCategory(category);
         this.title = title;
         this.definition = definition;
         this.summary = summary;
         this.thumbnailImgPath = thumbnailImgPath;
         this.createdBy = role;
+        this.useYN = useYN;
     }
 
     // 연관관계 편의 메서드
@@ -84,4 +87,10 @@ public class Topic extends BaseEntity {
         category.addTopic(this);
     }
 
+    public void removeCategory(){
+        if (this.category != null){
+            this.category.getTopics().remove(this);
+        }
+        this.category = null;
+    }
 }

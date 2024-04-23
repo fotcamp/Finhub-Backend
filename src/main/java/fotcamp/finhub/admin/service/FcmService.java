@@ -1,19 +1,22 @@
-package fotcamp.finhub.main.service;
+package fotcamp.finhub.admin.service;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fotcamp.finhub.admin.domain.Manager;
+import fotcamp.finhub.admin.dto.request.CreateFcmMessageRequestDto;
+import fotcamp.finhub.admin.repository.ManagerRepository;
+import fotcamp.finhub.admin.repository.NotificationRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.Notification;
+import jakarta.transaction.Transactional;
 import org.springframework.http.*;
 import com.google.auth.oauth2.GoogleCredentials;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.exception.FcmException;
-import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.config.FcmConfig;
 import fotcamp.finhub.main.dto.process.FcmMessageProcessDto;
-import fotcamp.finhub.main.dto.request.FcmMessageRequestDto;
 import fotcamp.finhub.main.repository.MemberRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -23,34 +26,75 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class FcmService {
 
+    private final ManagerRepository managerRepository;
     private final MemberRepository memberRepository;
     private final FcmConfig fcmConfig;
     private final ObjectMapper objectMapper;
+    private final NotificationRepository notificationRepository;
 
-    public ResponseEntity<ApiResponseWrapper> newFcmToken(CustomUserDetails userDetails, String fcmToken) {
-        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
-                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
-        member.updateFcmToken(fcmToken);
-        memberRepository.save(member);
+    public ResponseEntity<ApiResponseWrapper> sendFcmNotifications(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
+        String accessToken = getAccessToken(); // 서버 유효한지 검증
+        FcmMessageProcessDto.Apns apns = buildApnsPayload(dto);
+
+        Notification newNotification = Notification.builder()
+                .title(dto.getTitle())
+                .message(dto.getContent())
+                .url(dto.getView())
+                .build();
+        notificationRepository.save(newNotification);
+
+        try {
+            if ("admin".equals(dto.getType())) {
+                sendNotificationsToManagers(accessToken, apns);
+            } else if ("all".equals(dto.getType())) {
+                sendNotificationsToManagers(accessToken, apns);
+                sendNotificationsToMembers(accessToken, apns);
+            } else {
+                return ResponseEntity.ok(ApiResponseWrapper.fail("알람 메세지 타겟 타입 에러"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
+        }
+
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> makeFcmMessage(FcmMessageRequestDto dto) throws JsonProcessingException {
+    private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
+        List<Manager> allManagers = managerRepository.findAll();
+        for (Manager manager : allManagers) {
+            if (manager.getFcmToken() != null) {
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
+                sendFcmMessage(accessToken, message);
+            }
+        }
+    }
+
+    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
-        String accessToken = getAccessToken();
+        for (Member member : activeMembers) {
+            if (member.getFcmToken() != null) {
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns);
+                sendFcmMessage(accessToken, message);
+            }
+        }
+    }
 
-        FcmMessageProcessDto.DataContent dataContent = FcmMessageProcessDto.DataContent.builder()
-                .title(dto.getTitle())
-                .body(dto.getContent())
-                .view(dto.getView())
+    private FcmMessageProcessDto.FcmMessage buildFcmMessage(String token, FcmMessageProcessDto.Apns apns) {
+        return FcmMessageProcessDto.FcmMessage.builder()
+                .token(token)
+                .apns(apns)
                 .build();
+    }
 
+    private FcmMessageProcessDto.Apns buildApnsPayload(CreateFcmMessageRequestDto dto) {
         FcmMessageProcessDto.Alert alert = FcmMessageProcessDto.Alert.builder()
                 .title(dto.getTitle())
                 .body(dto.getContent())
@@ -63,26 +107,9 @@ public class FcmService {
         FcmMessageProcessDto.Payload payload = FcmMessageProcessDto.Payload.builder()
                 .aps(aps).build();
 
-        FcmMessageProcessDto.Apns apns = FcmMessageProcessDto.Apns.builder()
+        return FcmMessageProcessDto.Apns.builder()
                 .payload(payload)
                 .build();
-
-        for(Member member : activeMembers){
-            if(member.getFcmToken() != null){
-                try{
-                    FcmMessageProcessDto.FcmMessage message = FcmMessageProcessDto.FcmMessage.builder()
-                            .token(member.getFcmToken())
-                            .data(dataContent)
-                            .apns(apns)
-                            .build();
-
-                    sendFcmMessage(accessToken, message);
-                }catch (Exception e){
-                    throw new FcmException("fcm message processing error");
-                }
-            }
-        }
-        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     public void sendFcmMessage(String accessToken, FcmMessageProcessDto.FcmMessage message) throws JsonProcessingException {

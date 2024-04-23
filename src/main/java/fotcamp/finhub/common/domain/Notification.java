@@ -21,6 +21,7 @@ public class Notification {
 
     private String title;
     private String message;
+    private String url;
 
     @OneToMany(mappedBy = "notification")
     private List<MemberNotification> memberNotificationList = new ArrayList<>();

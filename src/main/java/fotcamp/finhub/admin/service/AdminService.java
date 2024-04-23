@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.service;
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
@@ -26,6 +27,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -284,7 +286,7 @@ public class AdminService {
             // 토픽 내용 수정
             topic.modifyTopic(modifyTopicRequestDto.getTitle(), modifyTopicRequestDto.getDefinition(), modifyTopicRequestDto.getSummary()
                     ,awsS3Service.extractPathFromUrl(modifyTopicRequestDto.getS3ImgUrl()),
-                    category, userDetails.getRole());
+                    category, userDetails.getRole(), modifyTopicRequestDto.getUseYN());
 
             List<Gpt> updateGptList = new ArrayList<>();
             List<GptProcessDto> gptProcessDtoList = modifyTopicRequestDto.getGptList();
@@ -1098,6 +1100,14 @@ public class AdminService {
         }
         reportReasons.modifyReportReasons(dto);
         reportReasonsRepository.save(reportReasons);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> saveFcmToken(CustomUserDetails userDetails, SaveFcmTokenRequestDto dto){
+        Long managerId = userDetails.getMemberIdasLong();
+        Manager manager = managerRepository.findById(managerId).orElseThrow(() -> new EntityNotFoundException("관리자 id 존재하지 않습니다."));
+        manager.updateFcmToken(dto.getToken());
+        managerRepository.save(manager);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
