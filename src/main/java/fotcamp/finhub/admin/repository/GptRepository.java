@@ -16,4 +16,7 @@ public interface GptRepository extends JpaRepository<Gpt, Long> {
     Gpt findByUserTypeIdAndCategoryAndTopicId(@Param("userTypeId") Long userTypeId, @Param("categoryId") Long categoryId, @Param("topicId") Long topicId);
 
     List<Gpt> findByTopic(Topic topic);
+
+    @Query("SELECT COUNT(g) FROM Gpt g WHERE g.topic.id = :topicId")
+    Long countGptListById(@Param("topicId") Long id);
 }

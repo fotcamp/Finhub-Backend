@@ -10,6 +10,7 @@ import fotcamp.finhub.main.repository.MemberScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,54 +31,33 @@ public class AdminDeleteService {
     private final TopicQuizRepository topicQuizRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
-        /** 코드 다 버려야됨 */
+
         Category category = categoryRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("카테고리 아이디가 존재하지 않습니다."));
-        for (Topic topic : category.getTopics()) {
-            topic.removeCategory();
-            topicRepository.save(topic); // 변경 사항 저장
+        Long count = topicRepository.countTopicsById(category.getId());
+        System.out.println(count);
+        System.out.println(category.getTopics());
+        if (count == 0L){
+            categoryRepository.delete(category);
+            return ResponseEntity.ok(ApiResponseWrapper.success());
         }
-        categoryRepository.delete(category);
-        return ResponseEntity.ok(ApiResponseWrapper.success());
+        else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("해당 카테고리에 토픽이 존재합니다."));
+        }
     }
 
     public ResponseEntity<ApiResponseWrapper> deleteTopic(DeleteTopicRequestDto dto){
 
-        /** 코드 다 버려야됨*/
-
         Topic topic = topicRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("토픽 아이디가 존재하지 않습니다."));
 
-        // 연관된 GPT 테이블 참조 해제
-        List<Gpt> gptList = gptRepository.findByTopic(topic);
-        for (Gpt gpt : gptList){
-            gpt.removeTopic();
-            gptRepository.save(gpt);
+        if (gptRepository.countGptListById(dto.getId()) != 0L){
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("Gpt 테이블에 연관된 토픽이 있습니다."));
+        } else if (memberScrapRepository.countMemberScrapByTopicId(dto.getId()) != 0L) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("MemberScrap 테이블에 연관된 토픽이 있습니다."));
+        } else if (topicGptColumnRepository.countTopicGptColumnByTopicId(dto.getId())!= 0L) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("TopicGptColumn 테이블에 연관된 토픽이 있습니다."));
+        }else{
+            topicRepository.delete(topic);
+            return ResponseEntity.ok(ApiResponseWrapper.success());
         }
-
-        // 연관된 TOPIC SCRAP 테이블 참조 해제
-        List<MemberScrap> memberScrapList = memberScrapRepository.findByTopic(topic);
-        for (MemberScrap memberScrap : memberScrapList){
-            memberScrap.removeTopic();
-            memberScrapRepository.save(memberScrap);
-        }
-
-        // TOPIC GPT COLUMN 테이블 참조 해제
-        List<TopicGptColumn> topicGptColumnList = topicGptColumnRepository.findByTopic(topic);
-        for (TopicGptColumn topicGptColumn : topicGptColumnList){
-            topicGptColumn.removeTopic();
-            topicGptColumnRepository.save(topicGptColumn);
-        }
-
-        // TOPIC QUIZ 테이블 참조 해제
-        List<TopicQuiz> topicQuizList = topicQuizRepository.findByTopic(topic);
-        for (TopicQuiz topicQuiz : topicQuizList){
-            topicQuiz.removeTopic();
-            topicQuizRepository.save(topicQuiz);
-        }
-
-        // CATEGORY 테이블 참조 해제
-        topic.getCategory().getTopics().remove(topic);
-
-        topicRepository.delete(topic);
-        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
