@@ -9,6 +9,7 @@ import fotcamp.finhub.admin.repository.ManagerRepository;
 import fotcamp.finhub.admin.repository.NotificationRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Notification;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.*;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -26,7 +27,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 @Slf4j
@@ -52,13 +52,21 @@ public class FcmService {
         notificationRepository.save(newNotification);
 
         try {
-            if ("admin".equals(dto.getType())) {
+            if ("admin".equals(dto.getTarget())) {
                 sendNotificationsToManagers(accessToken, apns);
-            } else if ("all".equals(dto.getType())) {
+            } else if ("all".equals(dto.getTarget())) {
                 sendNotificationsToManagers(accessToken, apns);
                 sendNotificationsToMembers(accessToken, apns);
-            } else {
-                return ResponseEntity.ok(ApiResponseWrapper.fail("알람 메세지 타겟 타입 에러"));
+            }
+            else {
+                String email = dto.getTarget(); // 관리자 한명에게만 보내는 조건
+                Manager manager = managerRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("관리자 이메일이 존재하지 않습니다."));
+                if (manager.getFcmToken() == null){
+                    return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("토큰정보가 없습니다."));
+                }
+
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
+                sendFcmMessage(accessToken, message);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
@@ -86,6 +94,7 @@ public class FcmService {
             }
         }
     }
+
 
     private FcmMessageProcessDto.FcmMessage buildFcmMessage(String token, FcmMessageProcessDto.Apns apns) {
         return FcmMessageProcessDto.FcmMessage.builder()
