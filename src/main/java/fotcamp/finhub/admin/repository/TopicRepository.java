@@ -28,4 +28,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     Page<Topic> findNextTopicInSameCategory(@Param("categoryId") Long categoryId, @Param("topicId") Long topicId, Pageable pageable);
 
     List<Topic> findByUseYNAndCategory(String useYN, Category category);
+
+    @Query("SELECT COUNT(t) FROM Topic t WHERE t.category.id = :categoryId")
+    long countTopicsById(@Param("categoryId") Long id);
 }

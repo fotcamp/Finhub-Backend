@@ -19,6 +19,8 @@ import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
+import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
 import fotcamp.finhub.main.dto.response.column.ReportReasonAnswerDto;
 import fotcamp.finhub.main.dto.response.column.ReportReasonListDto;
 import fotcamp.finhub.main.repository.AnnouncementRepository;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -46,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -1111,5 +1115,22 @@ public class AdminService {
         manager.updateFcmToken(dto.getToken());
         managerRepository.save(manager);
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 공지사항 조회
+    public ResponseEntity<ApiResponseWrapper> getAnnounceList(int page, int pageSize){
+        PageRequest pageable = PageRequest.of(page - 1, pageSize);
+        Page<Announcement> announceList = announcementRepository.findOrderByTime(pageable);
+        List<AnnouncementProcessDto> announcementProcessDto = announceList.getContent().stream().map(
+                announcement -> AnnouncementProcessDto.builder()
+                        .id(announcement.getId())
+                        .title(announcement.getTitle())
+                        .content(announcement.getContent())
+                        .time(announcement.getCreatedTime())
+                        .build())
+        .collect(Collectors.toList());
+        PageInfoProcessDto pageInfoProcessDto =
+                new PageInfoProcessDto(announceList.getNumber()+1, announceList.getTotalPages(), announceList.getSize(), announceList.getTotalElements());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto, pageInfoProcessDto)));
     }
 }
