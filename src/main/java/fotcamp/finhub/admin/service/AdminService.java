@@ -332,6 +332,7 @@ public class AdminService {
             log.error("useYN에 다른 값이 들어왔습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("Y, N 값 중 하나를 입력해주세요"));
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }
