@@ -22,7 +22,7 @@ public class Gpt extends BaseEntity {
     @JoinColumn(name = "topic_id")
     private Topic topic;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usertype_id")
     private UserType userType;
 
