@@ -495,7 +495,7 @@ public class MainService {
                         .id(announcement.getId())
                         .title(announcement.getTitle())
                         .content(announcement.getContent())
-                        .time(LocalDate.from(announcement.getCreatedTime())).build()).collect(Collectors.toList());
+                        .time(announcement.getCreatedTime()).build()).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto)));
     }
 

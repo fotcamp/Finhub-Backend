@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.units.qual.A;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -457,5 +459,15 @@ public class AdminController {
             @Valid @RequestBody CreateFcmMessageRequestDto dto
             ) throws JsonProcessingException {
         return fcmService.sendFcmNotifications(dto);
+    }
+    @GetMapping("/announce")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "공지사항 조회", description = "admin 누구나 공지사항 조회 가능")
+    public ResponseEntity<ApiResponseWrapper> getAnnounceList(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int pageSize
+    ){
+
+        return adminService.getAnnounceList(page, pageSize);
     }
 }

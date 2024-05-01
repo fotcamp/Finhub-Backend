@@ -21,4 +21,8 @@ public interface MemberScrapRepository extends JpaRepository<MemberScrap, Long> 
     List<MemberScrap> findByMember(Member member);
 
     List<MemberScrap> findByTopic(Topic topic);
+
+    @Query("SELECT COUNT(m) FROM MemberScrap m WHERE m.topic.id = :topicId")
+    Long countMemberScrapByTopicId(@Param("topicId") Long id);
+
 }
