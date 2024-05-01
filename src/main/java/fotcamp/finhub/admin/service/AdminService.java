@@ -1,6 +1,5 @@
 package fotcamp.finhub.admin.service;
 
-import com.google.protobuf.Api;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
@@ -21,15 +20,14 @@ import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
-import fotcamp.finhub.main.dto.response.column.ReportReasonAnswerDto;
-import fotcamp.finhub.main.dto.response.column.ReportReasonListDto;
+import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.repository.AnnouncementRepository;
 import fotcamp.finhub.main.repository.ReportReasonsRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -87,6 +85,7 @@ public class AdminService {
     private final AnnouncementRepository announcementRepository;
     private final ReportReasonsRepository reportReasonsRepository;
 
+
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
     @Value("${promise.usertype}") String promiseUsertype;
@@ -95,19 +94,19 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> login(LoginRequestDto loginRequestDto) {
         try {
-            // 이메일로 바꾸기
             Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
 
             if (manager.getPassword().equals(loginRequestDto.password())) {
                 TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
                 // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
-                ManagerRefreshToken refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
-                if (refreshToken != null) {
-                    refreshToken.updateToken(allTokens.getRefreshToken());
+                Optional<ManagerRefreshToken> refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
+                if (refreshToken.isPresent()) {
+                    refreshToken.get().updateToken(allTokens.getRefreshToken());
+                    managerRefreshRepository.save(refreshToken.get());
                 } else {
-                    refreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
+                    ManagerRefreshToken managerRefreshToken = new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail());
+                    managerRefreshRepository.save(managerRefreshToken);
                 }
-                managerRefreshRepository.save(refreshToken);
                 AdminLoginResponseDto responseDto = new AdminLoginResponseDto(manager.getRole(), allTokens);
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto)); // 200
             }
@@ -1133,5 +1132,47 @@ public class AdminService {
         PageInfoProcessDto pageInfoProcessDto =
                 new PageInfoProcessDto(announceList.getNumber()+1, announceList.getTotalPages(), announceList.getSize(), announceList.getTotalElements());
         return ResponseEntity.ok(ApiResponseWrapper.success(new AnnouncementResponseDto(announcementProcessDto, pageInfoProcessDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> adminAutoLogin(HttpServletRequest request){
+        String accessToken = request.getHeader("Authorization");
+        String refreshToken = request.getHeader("refreshToken");
+
+        if(jwtUtil.validateTokenServiceLayer(accessToken)){
+            // 액세스토큰 유효할 때
+            Long mangerId = jwtUtil.getUserId(accessToken);
+            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+                    () -> new EntityNotFoundException("MANAGER ID가 존재하지 않습니다."));
+            AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
+            return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
+        }
+        if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
+            // 액세스토큰 유효x, 리프레시토큰 유효할 때
+            Long mangerId = jwtUtil.getUserId(refreshToken);
+            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+                    () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
+            AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
+            return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("로그인이 필요합니다"));
+    }
+
+    public AdminAutoLoginResponseDto updatingLoginResponse(Manager manager){
+        TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
+        Optional<ManagerRefreshToken> existingRefreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
+        if (existingRefreshToken.isPresent()) {
+            // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
+            ManagerRefreshToken managerRefreshToken = existingRefreshToken.get();
+            managerRefreshToken.updateToken(allTokens.getRefreshToken());
+            managerRefreshRepository.save(managerRefreshToken);
+        } else {
+            // 기존 리프레시 토큰 정보가 없는 경우, 새로운 리프레시 토큰 저장
+            managerRefreshRepository.save(new ManagerRefreshToken(allTokens.getRefreshToken(), manager.getEmail()));
+        }
+        // 응답 데이터 : 이름, 이메일, 등급
+        AdminAutoLoginProcessDto dto = AdminAutoLoginProcessDto.builder()
+                .role(manager.getRole())
+                .email(manager.getEmail()).build();
+        return new AdminAutoLoginResponseDto(allTokens, dto);
     }
 }

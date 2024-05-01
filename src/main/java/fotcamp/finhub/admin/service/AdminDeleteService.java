@@ -33,9 +33,8 @@ public class AdminDeleteService {
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
         Category category = categoryRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("카테고리 아이디가 존재하지 않습니다."));
-        Long count = topicRepository.countTopicsById(category.getId());
-        System.out.println(count);
-        System.out.println(category.getTopics());
+        long count = topicRepository.countTopicsById(category.getId());
+
         if (count == 0L){
             categoryRepository.delete(category);
             return ResponseEntity.ok(ApiResponseWrapper.success());

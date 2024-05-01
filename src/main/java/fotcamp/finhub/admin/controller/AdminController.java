@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -469,5 +470,11 @@ public class AdminController {
     ){
 
         return adminService.getAnnounceList(page, pageSize);
+    }
+
+    @GetMapping("/autoLogin")
+    @Operation(summary = "관리자용 자동로그인", description = "관리자용 자동로그인")
+    public ResponseEntity<ApiResponseWrapper> adminAutoLogin(HttpServletRequest request){
+        return adminService.adminAutoLogin(request);
     }
 }
