@@ -89,6 +89,8 @@ public class AuthService {
 
         if ("dev".equals(origin)) {
             redirectUri = "https://dev-finhub.vercel.app/auth/kakao/callback";
+        } else if ("production".equals(origin)) {
+            redirectUri = "https://finhub-front-end.vercel.app/auth/kakao/callback";
         }
 
         log.info("***redirectUri "+ redirectUri);
