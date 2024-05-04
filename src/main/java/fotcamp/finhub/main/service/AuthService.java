@@ -47,10 +47,12 @@ public class AuthService {
 
     public ResponseEntity<ApiResponseWrapper> login(String code, String origin) throws JsonProcessingException {
         String kakaoAccessToken = getKakaoAccessToken(code, origin); // 1. 액세스토큰 요청
+        log.info("***origin" + origin);
+        log.info("***code" + code);
         KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken); // 2. 사용자 정보 반환
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
-        // 3. 사용자 가입 유무 확인
+        // 3. 사용자 가입 유무 확인`
         Member member = memberRepository.findByEmail(email).orElseGet( () -> memberRepository.save(new Member(email, name)));
 
         // 4. jwt 발급
@@ -82,9 +84,12 @@ public class AuthService {
 
     public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
         String redirectUri = kakaoConfig.getRedirect_uri();
+
         if ("dev".equals(origin)) {
             redirectUri = "https://dev-finhub.vercel.app/auth/kakao/callback";
         }
+
+        log.info("***redirectUri"+ redirectUri);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // HTTP Body 생성
