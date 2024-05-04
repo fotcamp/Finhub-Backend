@@ -45,8 +45,8 @@ public class AuthService {
     private final KakaoConfig kakaoConfig;
     private final AwsS3Service awsS3Service;
 
-    public ResponseEntity<ApiResponseWrapper> login(String code) throws JsonProcessingException {
-        String kakaoAccessToken = getKakaoAccessToken(code); // 1. 액세스토큰 요청
+    public ResponseEntity<ApiResponseWrapper> login(String code, String origin) throws JsonProcessingException {
+        String kakaoAccessToken = getKakaoAccessToken(code, origin); // 1. 액세스토큰 요청
         KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken); // 2. 사용자 정보 반환
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
@@ -80,14 +80,20 @@ public class AuthService {
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
     }
 
-    public String getKakaoAccessToken(String code) throws JsonProcessingException {
+    public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
+        String redirectUri = "";
+        if ("local".equals(origin)) {
+            redirectUri = kakaoConfig.getRedirect_uri_local();
+        } else if ("dev".equals(origin)) {
+            redirectUri = kakaoConfig.getRedirect_uri_dev();
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // HTTP Body 생성
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", kakaoConfig.getGrant_type());
         body.add("client_id", kakaoConfig.getClientId());
-        body.add("redirect_uri", kakaoConfig.getRedirect_uri());
+        body.add("redirect_uri", redirectUri);
         body.add("code", code);
         body.add("client_secret", kakaoConfig.getClient_secretId());
 

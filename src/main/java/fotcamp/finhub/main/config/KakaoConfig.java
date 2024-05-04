@@ -15,8 +15,10 @@ public class KakaoConfig {
     private String clientId;
     @Value("${spring.security.oauth2.client.registration.kakao.authorization-grant-type}")
     private String grant_type;
-    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
-    private String redirect_uri;
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri-local}")
+    private String redirect_uri_local;
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri-dev}")
+    private String redirect_uri_dev;
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
     private String user_info_uri;
     @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
