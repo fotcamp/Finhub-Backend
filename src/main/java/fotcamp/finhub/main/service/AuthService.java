@@ -81,11 +81,9 @@ public class AuthService {
     }
 
     public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
-        String redirectUri = "";
-        if ("local".equals(origin)) {
-            redirectUri = kakaoConfig.getRedirect_uri_local();
-        } else if ("dev".equals(origin)) {
-            redirectUri = kakaoConfig.getRedirect_uri_dev();
+        String redirectUri = kakaoConfig.getRedirect_uri();
+        if ("dev".equals(origin)) {
+            redirectUri = "https://dev-finhub.vercel.app/auth/kakao/callback";
         }
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
