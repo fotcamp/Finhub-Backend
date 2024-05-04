@@ -46,9 +46,10 @@ public class AuthService {
     private final AwsS3Service awsS3Service;
 
     public ResponseEntity<ApiResponseWrapper> login(String code, String origin) throws JsonProcessingException {
+        log.info("***start login service !! " + origin);
         String kakaoAccessToken = getKakaoAccessToken(code, origin); // 1. 액세스토큰 요청
-        log.info("***origin" + origin);
-        log.info("***code" + code);
+        log.info("***origin " + origin);
+        log.info("***code " + code);
         KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken); // 2. 사용자 정보 반환
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
@@ -83,13 +84,14 @@ public class AuthService {
     }
 
     public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
+        log.info("***start get Kakao Access Token method!!");
         String redirectUri = kakaoConfig.getRedirect_uri();
 
         if ("dev".equals(origin)) {
             redirectUri = "https://dev-finhub.vercel.app/auth/kakao/callback";
         }
 
-        log.info("***redirectUri"+ redirectUri);
+        log.info("***redirectUri "+ redirectUri);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // HTTP Body 생성
