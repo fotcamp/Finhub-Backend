@@ -1,7 +1,6 @@
 package fotcamp.finhub.main.controller;
 
 
-import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -18,7 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "main", description = "main api")
+@Tag(name = "B main", description = "main api")
 @RestController
 @RequestMapping("/api/v1/main")
 @RequiredArgsConstructor

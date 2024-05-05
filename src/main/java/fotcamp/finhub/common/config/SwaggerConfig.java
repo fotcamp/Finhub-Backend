@@ -1,25 +1,70 @@
 package fotcamp.finhub.common.config;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import org.springframework.context.annotation.Configuration;
 
-@OpenAPIDefinition(
-        info = @Info(title = "Finhub API 명세서",
-                description = "Finhub API 명세서",
-                version = "v1"))
+import java.util.ArrayList;
+import java.util.List;
+
+
 @Configuration
 public class SwaggerConfig {
 
     @Bean
-    public GroupedOpenApi finhubApi() {
-        String[] paths = {"/api/v1/**"};
+    public OpenAPI swaggerCustomUI() {
+        return new OpenAPI()
+                .info(getOpenAPIInfo())
+                .components(getOpenAPIComponents())
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+    }
 
+    public Components getOpenAPIComponents() {
+        return new Components()
+                .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                        .type(SecurityScheme.Type.APIKEY)
+                        .in(SecurityScheme.In.HEADER)
+                        .name("Authorization")
+                        .description("Please enter 'Bearer' followed by a space and then your token"));
+    }
+
+    public Info getOpenAPIInfo() {
+        return new Info()
+                .title("Finhub API")
+                .version("1.0")
+                .description("Finhub API");
+    }
+
+    @Bean
+    public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
-                .group("Finhub API v1")
-                .pathsToMatch(paths)
+                .group("ADD_CUSTOM_HEADER")
+                .addOperationCustomizer((operation, handlerMethod) -> {
+                    if (operation.getParameters() != null) {
+                        operation.getParameters().addAll(this.getCustomerHeaders());
+                    } else {
+                        operation.setParameters(this.getCustomerHeaders());
+                    }
+                    return operation;
+                })
                 .build();
+    }
+
+    private List<Parameter> getCustomerHeaders() {
+        List<Parameter> parameters = new ArrayList<>();
+        Parameter customHeader = new HeaderParameter()
+                .name("finhub")
+                .description("Custom Header")
+                .example("willbesuccess");
+
+        parameters.add(customHeader);
+        return parameters;
     }
 }

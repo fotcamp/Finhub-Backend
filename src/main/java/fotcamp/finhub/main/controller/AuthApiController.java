@@ -14,7 +14,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "auth", description = "auth api")
+@Tag(name = "A auth",
+    description = "액세스 토큰 받아오는 방법 \n\n" +
+            "kakao 인가코드를 먼저 받아온다. \n\n" +
+            "BE local, dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE local -> origin parameter에 belocal\n\n" +
+            "BE dev -> origin parameter에 bedev\n\n" +
+            "BE prod -> origin parameter에 beprod\n\n" +
+            "FE는 origin parameter에 local, dev, production으로 자동 세팅 해야함."
+)
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
