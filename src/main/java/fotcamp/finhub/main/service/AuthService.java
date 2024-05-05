@@ -21,6 +21,7 @@ import fotcamp.finhub.main.repository.TokenRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 
 import org.springframework.stereotype.Service;
@@ -44,6 +45,19 @@ public class AuthService {
     private final TokenRepository tokenRepository;
     private final KakaoConfig kakaoConfig;
     private final AwsS3Service awsS3Service;
+
+    @Value("${custom-redirect-uri.felocal}")
+    private String redirect_uri_feLocal;
+    @Value("${custom-redirect-uri.fedev}")
+    private String redirect_uri_feDev;
+    @Value("${custom-redirect-uri.feprod}")
+    private String redirect_uri_feProd;
+    @Value("${custom-redirect-uri.belocal}")
+    private String redirect_uri_beLocal;
+    @Value("${custom-redirect-uri.bedev}")
+    private String redirect_uri_beDev;
+    @Value("${custom-redirect-uri.beprod}")
+    private String redirect_uri_beProd;
 
     public ResponseEntity<ApiResponseWrapper> login(String code, String origin) throws JsonProcessingException {
         log.info("***start login service !! " + origin);
@@ -85,12 +99,18 @@ public class AuthService {
 
     public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
         log.info("***start get Kakao Access Token method!!");
-        String redirectUri = kakaoConfig.getRedirect_uri();
+        String redirectUri = redirect_uri_feLocal; // default 프론트 로컬
 
-        if ("dev".equals(origin)) {
-            redirectUri = "https://dev-finhub.vercel.app/auth/kakao/callback";
-        } else if ("production".equals(origin)) {
-            redirectUri = "https://finhub-front-end.vercel.app/auth/kakao/callback";
+        if ("dev".equals(origin)) { // 프론트 개발
+            redirectUri = redirect_uri_feDev;
+        } else if ("production".equals(origin)) {  // 프론트 운영
+            redirectUri = redirect_uri_feProd;
+        } else if ("belocal".equals(origin)) { // 백엔드 로컬
+            redirectUri = redirect_uri_beLocal;
+        } else if ("bedev".equals(origin)) { // 백엔드 개발
+            redirectUri = redirect_uri_beDev;
+        } else if ("beprod".equals(origin)) { // 백엔드 운영
+            redirectUri = redirect_uri_beProd;
         }
 
         log.info("***redirectUri "+ redirectUri);

@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-@Tag(name = "main quiz", description = "main quiz api")
+@Tag(name = "D main quiz", description = "main quiz api")
 @RestController
 @RequestMapping("/api/v1/main/quiz")
 @RequiredArgsConstructor

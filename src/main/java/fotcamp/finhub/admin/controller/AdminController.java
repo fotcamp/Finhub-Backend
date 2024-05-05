@@ -25,7 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "admin", description = "admin api")
+@Tag(name = "E admin", description = "admin api")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin")

@@ -17,7 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "main gpt column", description = "main gpt column api")
+@Tag(name = "C main gpt column", description = "main gpt column api")
 @RestController
 @RequestMapping("/api/v1/main/column")
 @RequiredArgsConstructor
