@@ -30,4 +30,15 @@ public class CommentsReport extends BaseEntity{
     private ReportReasons reportReasons;
 
     private String useYn; // 댓글 현재 사용여부 -> Y면 댓글 사용중 (신고처리 안한 것)
+
+    public void modifyUseYn() {
+        this.useYn = "N";
+    }
+    public void useYnUpdate() {
+        if ("Y".equals(this.useYn)) {
+            this.useYn = "N";
+        } else if ("N".equals(this.useYn)) {
+            this.useYn = "Y";
+        }
+    }
 }

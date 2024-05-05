@@ -21,8 +21,10 @@ import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
 import fotcamp.finhub.main.dto.process.ReportedCommentsProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
+import fotcamp.finhub.main.dto.response.column.ReportCommentRequestDto;
 import fotcamp.finhub.main.dto.response.column.ReportedCommentsResponseDto;
 import fotcamp.finhub.main.repository.AnnouncementRepository;
+import fotcamp.finhub.main.repository.CommentsReportRepository;
 import fotcamp.finhub.main.repository.CommentsReportRepositoryCustom;
 import fotcamp.finhub.main.repository.ReportReasonsRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -87,6 +89,7 @@ public class AdminService {
     private final AnnouncementRepository announcementRepository;
     private final ReportReasonsRepository reportReasonsRepository;
     private final CommentsReportRepositoryCustom commentsReportRepositoryCustom;
+    private final CommentsReportRepository commentsReportRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -1188,13 +1191,22 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(detail));
     }
 
+    // 신고된 댓글 보기
     public ResponseEntity<ApiResponseWrapper> getReportedComment(Pageable pageable, String useYN) {
-
         Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN);
         List<ReportedCommentsProcessDto> reportedCommentsProcessDtoList = commentsReports.getContent().stream().map(ReportedCommentsProcessDto::new).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsReports);
         ReportedCommentsResponseDto allTopicRequestResponseDto = new ReportedCommentsResponseDto(reportedCommentsProcessDtoList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
+    }
+
+    // 신고된 댓글 처리
+    public ResponseEntity<ApiResponseWrapper> postReportedComment(ReportCommentRequestDto dto) {
+        CommentsReport commentsReport = commentsReportRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 댓글 ID가 없습니다."));
+        Comments comment = commentsReport.getReportedComment();
+        comment.useYnUpdate(); // Y였으면 N으로, N이였으면 Y로
+        commentsReport.useYnUpdate(); // Y였으면 N으로, N이였으면 Y로
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

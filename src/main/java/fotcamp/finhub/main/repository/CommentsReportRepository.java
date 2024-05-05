@@ -11,4 +11,6 @@ import java.util.Optional;
 @Repository
 public interface CommentsReportRepository extends JpaRepository<CommentsReport, Long> {
     Optional<CommentsReport> findByReportedCommentAndReporterMember(Comments reportedComment, Member reporterMember);
+    Optional<CommentsReport> findByReportedComment(Comments reportedComment);
+
 }
