@@ -218,6 +218,11 @@ public class ColumnService {
             return ResponseEntity.ok(ApiResponseWrapper.fail("이미 삭제한 댓글입니다."));
         }
         comments.modifyUseYn(); // 삭제처리 -> useYN "N"
+
+        if (commentsReportRepository.findByReportedComment(comments).isPresent()) { // 이미 신고된 댓글 이였을 경우 싱크 맞추기 위해 N 처리
+            CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comments).get();
+            commentsReport.modifyUseYn();
+        }
         commentsRepository.save(comments);
         return ResponseEntity.ok(ApiResponseWrapper.success());
 
@@ -251,6 +256,7 @@ public class ColumnService {
                 .reporterMember(reporterMember)
                 .reportedMember(reportedMember)
                 .reportReasons(reportReason)
+                .useYn("Y")
                 .build();
         commentsReportRepository.save(commentsReport);
         return ResponseEntity.ok(ApiResponseWrapper.success());

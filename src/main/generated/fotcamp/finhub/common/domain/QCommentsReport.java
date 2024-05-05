@@ -40,6 +40,8 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
 
     public final QReportReasons reportReasons;
 
+    public final StringPath useYn = createString("useYn");
+
     public QCommentsReport(String variable) {
         this(CommentsReport.class, forVariable(variable), INITS);
     }
