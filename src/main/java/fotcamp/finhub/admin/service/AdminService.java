@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.service;
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
@@ -1174,5 +1175,14 @@ public class AdminService {
                 .role(manager.getRole())
                 .email(manager.getEmail()).build();
         return new AdminAutoLoginResponseDto(allTokens, dto);
+    }
+
+    public ResponseEntity<ApiResponseWrapper> getAnnounceDetail(Long id){
+        Announcement announcement = announcementRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("공지사항 id가 존재하지 않습니다."));
+        DetailAnnounceResponseDto detail = DetailAnnounceResponseDto.builder()
+                .id(announcement.getId())
+                .title(announcement.getTitle())
+                .content(announcement.getContent()).build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(detail));
     }
 }

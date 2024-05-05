@@ -2,6 +2,7 @@ package fotcamp.finhub.admin.controller;
 
 import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
+import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
 import fotcamp.finhub.admin.service.AdminDeleteService;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
@@ -41,5 +42,14 @@ public class AdminDeleteController {
     {
         return adminDeleteService.deleteTopic(dto);
     }
+
+//    @DeleteMapping("/usertype")
+//    @PreAuthorize("hasRole('SUPER')")
+//    @Operation(summary = "유저타입 삭제 ( 직업 )", description = "유저타입삭제")
+//    public ResponseEntity<ApiResponseWrapper> deleteUsertype(
+//            @Valid @RequestBody DeleteUsertypeRequestDto dto
+//            ){
+//        return adminDeleteService.deleteUsertype(dto);
+//    }
 
 }

@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.Path;
 
 @Tag(name = "E admin", description = "admin api")
 @RestController
@@ -476,5 +477,14 @@ public class AdminController {
     @Operation(summary = "관리자용 자동로그인", description = "관리자용 자동로그인")
     public ResponseEntity<ApiResponseWrapper> adminAutoLogin(HttpServletRequest request){
         return adminService.adminAutoLogin(request);
+    }
+
+    @GetMapping("/announce/{id}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세 조회 ")
+    public ResponseEntity<ApiResponseWrapper> getAnnounceDetail(
+            @PathVariable(name = "id") Long id
+    ){
+        return adminService.getAnnounceDetail(id);
     }
 }

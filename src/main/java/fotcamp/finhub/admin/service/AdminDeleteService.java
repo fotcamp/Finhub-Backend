@@ -3,9 +3,11 @@ package fotcamp.finhub.admin.service;
 
 import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
+import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
+import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ public class AdminDeleteService {
     private final MemberScrapRepository memberScrapRepository;
     private final TopicGptColumnRepository topicGptColumnRepository;
     private final TopicQuizRepository topicQuizRepository;
+    private final UserTypeRepository userTypeRepository;
+    private final MemberRepository memberRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
@@ -59,4 +63,16 @@ public class AdminDeleteService {
             return ResponseEntity.ok(ApiResponseWrapper.success());
         }
     }
+
+//    public ResponseEntity<ApiResponseWrapper> deleteUsertype(DeleteUsertypeRequestDto dto){
+//        UserType userType = userTypeRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+//        long count = memberRepository.countMemberUsingUsertype(userType);
+//        if (count != 0){
+//            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("유저타입을 사용중인 멤버가 존재합니다."));
+//        }
+//        else {
+//            userTypeRepository.delete(userType);
+//            return ResponseEntity.ok(ApiResponseWrapper.success());
+//        }
+//    }
 }
