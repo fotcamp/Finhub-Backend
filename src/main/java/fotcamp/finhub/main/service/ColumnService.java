@@ -251,6 +251,7 @@ public class ColumnService {
                 .reporterMember(reporterMember)
                 .reportedMember(reportedMember)
                 .reportReasons(reportReason)
+                .useYn("Y")
                 .build();
         commentsReportRepository.save(commentsReport);
         return ResponseEntity.ok(ApiResponseWrapper.success());

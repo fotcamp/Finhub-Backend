@@ -1,6 +1,5 @@
 package fotcamp.finhub.admin.service;
 
-import com.google.protobuf.Api;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
@@ -20,9 +19,11 @@ import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
+import fotcamp.finhub.main.dto.process.ReportedCommentsProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
-import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
+import fotcamp.finhub.main.dto.response.column.ReportedCommentsResponseDto;
 import fotcamp.finhub.main.repository.AnnouncementRepository;
+import fotcamp.finhub.main.repository.CommentsReportRepositoryCustom;
 import fotcamp.finhub.main.repository.ReportReasonsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,6 +86,7 @@ public class AdminService {
     private final TopicGptColumnRepository topicGptColumnRepository;
     private final AnnouncementRepository announcementRepository;
     private final ReportReasonsRepository reportReasonsRepository;
+    private final CommentsReportRepositoryCustom commentsReportRepositoryCustom;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -1184,5 +1186,15 @@ public class AdminService {
                 .title(announcement.getTitle())
                 .content(announcement.getContent()).build();
         return ResponseEntity.ok(ApiResponseWrapper.success(detail));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> getReportedComment(Pageable pageable, String useYN) {
+
+        Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN);
+        List<ReportedCommentsProcessDto> reportedCommentsProcessDtoList = commentsReports.getContent().stream().map(ReportedCommentsProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsReports);
+        ReportedCommentsResponseDto allTopicRequestResponseDto = new ReportedCommentsResponseDto(reportedCommentsProcessDtoList, PageInfoProcessDto);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
     }
 }

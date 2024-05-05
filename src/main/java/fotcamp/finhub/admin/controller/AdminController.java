@@ -487,4 +487,15 @@ public class AdminController {
     ){
         return adminService.getAnnounceDetail(id);
     }
+
+    @GetMapping("/report/comment")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "신고된 댓글 보기", description = "신고된 댓글 조회 ")
+    public ResponseEntity<ApiResponseWrapper> getReportedComment(@RequestParam(value = "page", defaultValue = "1") int page,
+                                                                 @RequestParam(value = "size", defaultValue = "10") int size,
+                                                                 @RequestParam(name = "useYN", required = false) String useYN
+    ) {
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        return adminService.getReportedComment(pageable, useYN);
+    }
 }

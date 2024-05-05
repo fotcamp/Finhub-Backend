@@ -28,4 +28,6 @@ public class CommentsReport extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_reason_id")
     private ReportReasons reportReasons;
+
+    private String useYn; // 댓글 현재 사용여부 -> Y면 댓글 사용중 (신고처리 안한 것)
 }

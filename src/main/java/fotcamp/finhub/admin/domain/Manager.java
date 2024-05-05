@@ -29,7 +29,7 @@ public class Manager {
     @Column(name = "ROLE", nullable = false)
     private RoleType role;
 
-    @Column(name = "fcm-token")
+    @Column(name = "FCM_TOKEN")
     private String fcmToken;
 
     @Builder
