@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.config;
 
 import io.swagger.v3.oas.models.parameters.HeaderParameter;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +20,16 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
+    @Value("${swagger.server-url}")
+    private String serverUrl;
+
+
     @Bean
     public OpenAPI swaggerCustomUI() {
         return new OpenAPI()
                 .info(getOpenAPIInfo())
                 .components(getOpenAPIComponents())
+                .addServersItem(new Server().url(serverUrl).description("Default Server URL"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 
