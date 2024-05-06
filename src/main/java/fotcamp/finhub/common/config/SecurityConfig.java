@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /** method 단위로 권한 제어 가능
  * ex)
@@ -39,14 +40,19 @@ public class SecurityConfig {
    private static final String[] AUTH_WHITELIST = {
            "/api/v1/auth/**",
            "/api/v1/admin/login",
-           "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
+           "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/v3/api-docs",
            "/api/v1/home/**"
    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         // CSRF, CORS
-        http.csrf(AbstractHttpConfigurer::disable); // CSRF 토큰 사용 X -> disable 설정
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
+                        // HTTP 요청에 대한 권한 설정, 모든 경로로 지정("/**")
+                        // permitAll() : 해당 요청에 대한 모든 사용자에게 접근 권한 부여
+                        .requestMatchers(new AntPathRequestMatcher("/**")).permitAll()
+                );// CSRF 토큰 사용 X -> disable 설정
         http.cors(Customizer.withDefaults()); // 다른 도메인의 웹 페이지에서 리소스에 접근할 수 있도록 허용
 
         // 세션 관리 상태 없음으로 구성, SpringSecurity가 세션 생성
