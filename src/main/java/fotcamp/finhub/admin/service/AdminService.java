@@ -21,12 +21,10 @@ import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
 import fotcamp.finhub.main.dto.process.ReportedCommentsProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
+import fotcamp.finhub.main.dto.response.column.AdminCommentResponseDto;
 import fotcamp.finhub.main.dto.response.column.ReportCommentRequestDto;
 import fotcamp.finhub.main.dto.response.column.ReportedCommentsResponseDto;
-import fotcamp.finhub.main.repository.AnnouncementRepository;
-import fotcamp.finhub.main.repository.CommentsReportRepository;
-import fotcamp.finhub.main.repository.CommentsReportRepositoryCustom;
-import fotcamp.finhub.main.repository.ReportReasonsRepository;
+import fotcamp.finhub.main.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -90,6 +88,7 @@ public class AdminService {
     private final ReportReasonsRepository reportReasonsRepository;
     private final CommentsReportRepositoryCustom commentsReportRepositoryCustom;
     private final CommentsReportRepository commentsReportRepository;
+    private final CommentsRepository commentsRepository;
 
 
     @Value("${promise.category}") String promiseCategory;
@@ -1005,10 +1004,25 @@ public class AdminService {
     }
 
     // GPT 컬럼 상세 조회
-    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id) {
+    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id, Pageable pageable) {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재 하지 않는 GPT COLUMN"));
+        Page<Comments> comments = commentsRepository.findByGptColumn(gptColumn, pageable);
+        List<AdminCommentResponseDto> commentList = comments.getContent().stream()
+                .map(comment -> {
+                    Member member = comment.getMember();
+                    String avatarPath = Optional.ofNullable(member.getUserAvatar())
+                            .map(UserAvatar::getAvatar_img_path)
+                            .map(awsS3Service::combineWithBaseUrl)
+                            .orElse(null); // getUserAvatar()가 null이면 null 반환
+                    if (commentsReportRepository.findByReportedComment(comment).isPresent()) {
+                        return new AdminCommentResponseDto(member, comment, avatarPath, "Y");
+                    } else {
+                        return new AdminCommentResponseDto(member, comment, avatarPath, "N");
+                    }
+                }).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(comments);
         DetailGptColumnResponseDto detailGptColumnResponseDto = new DetailGptColumnResponseDto(
-               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()));
+               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()), commentList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(detailGptColumnResponseDto));
     }
