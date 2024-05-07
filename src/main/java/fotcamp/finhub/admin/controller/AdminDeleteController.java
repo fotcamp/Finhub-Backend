@@ -43,13 +43,13 @@ public class AdminDeleteController {
         return adminDeleteService.deleteTopic(dto);
     }
 
-//    @DeleteMapping("/usertype")
-//    @PreAuthorize("hasRole('SUPER')")
-//    @Operation(summary = "유저타입 삭제 ( 직업 )", description = "유저타입삭제")
-//    public ResponseEntity<ApiResponseWrapper> deleteUsertype(
-//            @Valid @RequestBody DeleteUsertypeRequestDto dto
-//            ){
-//        return adminDeleteService.deleteUsertype(dto);
-//    }
+    @DeleteMapping("/usertype")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "유저타입 삭제", description = "유저타입삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteUsertype(
+            @Valid @RequestBody DeleteUsertypeRequestDto dto
+            ){
+        return adminDeleteService.deleteUsertype(dto);
+    }
 
 }
