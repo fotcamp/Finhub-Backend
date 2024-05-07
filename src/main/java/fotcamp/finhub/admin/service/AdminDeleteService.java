@@ -1,6 +1,7 @@
 package fotcamp.finhub.admin.service;
 
 
+import fotcamp.finhub.admin.dto.request.DeleteAvatarRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
@@ -31,6 +32,7 @@ public class AdminDeleteService {
     private final MemberScrapRepository memberScrapRepository;
     private final TopicGptColumnRepository topicGptColumnRepository;
     private final TopicQuizRepository topicQuizRepository;
+    private final UserAvatarRepository userAvatarRepository;
     private final UserTypeRepository userTypeRepository;
     private final MemberRepository memberRepository;
 
@@ -65,14 +67,32 @@ public class AdminDeleteService {
     }
 
     public ResponseEntity<ApiResponseWrapper> deleteUsertype(DeleteUsertypeRequestDto dto){
-        UserType userType = userTypeRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        UserType userType = userTypeRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
         long count = memberRepository.countMemberUsingUsertype(userType);
         if (count != 0){
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("유저타입을 사용중인 멤버가 존재합니다."));
+            // 해당 유저타입을 사용중인 멤버들을 찾아서 전부 null처리
+            List<Member> memberList = memberRepository.findMemberListUsingUsertype(userType);
+            for ( Member member : memberList){
+                member.removeUsertype();
+            }
+            memberRepository.saveAll(memberList);
         }
-        else {
-            userTypeRepository.delete(userType);
-            return ResponseEntity.ok(ApiResponseWrapper.success());
+        userTypeRepository.delete(userType);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(DeleteAvatarRequestDto dto){
+        UserAvatar userAvatar = userAvatarRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        long count = memberRepository.countMemberUsingUserAvatar(userAvatar);
+        if (count != 0){
+            List<Member> memberList = memberRepository.findMemberListUsingUserAvatar(userAvatar);
+            for (Member member : memberList){
+                member.removeUserAvatar();
+            }
+            memberRepository.saveAll(memberList);
         }
+        userAvatarRepository.delete(userAvatar);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

@@ -108,7 +108,7 @@ public class Member {
         this.memberScrapList.remove(memberScrap);
     }
 
-    public void removeUserAvatar(UserAvatar userAvatar){
+    public void removeUserAvatar(){
         this.userAvatar = null;
     }
 
@@ -124,4 +124,6 @@ public class Member {
     public void updateCalendarEmoticon(CalendarEmoticon calendarEmoticon) {
         this.calendarEmoticon = calendarEmoticon;
     }
+
+    public void removeUsertype() {this.userType = null;}
 }
