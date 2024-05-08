@@ -62,7 +62,7 @@ public class MainService {
     private final WeekPopularKeywordRepository weekPopularKeywordRepository;
     private final PostsScrapRepository postsScrapRepository;
     private final AnnouncementRepository announcementRepository;
-
+    private final CommentsRepository commentsRepository;
     private final AwsS3Service awsS3Service;
     private final PostsLikeRepository postsLikeRepository;
     private static final int MAX_RECENT_SEARCHES = 10;
@@ -280,14 +280,18 @@ public class MainService {
     }
 
     public ResponseEntity<ApiResponseWrapper> requestKeyword(CustomUserDetails userDetails, KeywordRequestDto dto){
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        String requester = null;
+        if (userDetails != null){
+            Long memberId = userDetails.getMemberIdasLong();
+            Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+            requester = member.getEmail();
+        }
         if (topicRequestRepository.existsByTerm(dto.getKeyword()) ){
             return ResponseEntity.ok(ApiResponseWrapper.success("이미 요청처리 된 단어입니다."));
         }
         TopicRequest topicRequest = TopicRequest.builder()
                 .term(dto.getKeyword())
-                .requester(member.getEmail())
+                .requester(requester)
                 .requestedAt(LocalDateTime.now())
                 .build();
 
@@ -501,10 +505,25 @@ public class MainService {
 
     public ResponseEntity<ApiResponseWrapper> updateFcmToken(CustomUserDetails userDetails, String fcmToken) {
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
-                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         member.updateFcmToken(fcmToken);
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> myCommentList(CustomUserDetails userDetails){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        List<Comments> commentsList = commentsRepository.findByMember(member);
+        List<MyCommentsListProcessDto> commentListProcessDto = commentsList.stream()
+                .map(comments ->
+                        new MyCommentsListProcessDto(
+                        comments.getGptColumn().getTitle(),
+                        comments.getGptColumn().getBackgroundUrl(),
+                        comments.getContent(),
+                        comments.getTotalLike()
+                )).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new MyCommentsListResponseDto(commentListProcessDto)));
     }
 
 }

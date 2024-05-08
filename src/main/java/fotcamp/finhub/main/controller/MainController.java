@@ -1,6 +1,7 @@
 package fotcamp.finhub.main.controller;
 
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -141,7 +142,6 @@ public class MainController {
 
     // 없는단어 요청하기
     @PostMapping("/search/keyword")
-    @PreAuthorize("hasRole('USER')")
     @Operation(summary = "없는 단어 요청하기", description = "없는 단어 요청하기")
     public ResponseEntity<ApiResponseWrapper> requestKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -247,6 +247,7 @@ public class MainController {
 
     // 공지사항
     @GetMapping("/announce")
+    @Operation(summary = "공지사항 조회", description = "공지사항 조회")
     public ResponseEntity<ApiResponseWrapper> announcement(
             @RequestParam(name = "cursorId", required = false) Long cursorId,
             @RequestParam(name = "size", defaultValue = "7") int size)
@@ -256,11 +257,21 @@ public class MainController {
 
     // fcmToken 업데이트
     @PostMapping("/fcm-token")
+    @Operation(summary = "유저- fcm토큰 업데이트 ", description = "FCM토큰 업데이트")
     public ResponseEntity<ApiResponseWrapper> updateFcmToken(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody SaveFcmTokenRequestDto dto
     ){
         return mainService.updateFcmToken(userDetails, dto.getToken());
     }
+
+    @GetMapping("/menu/comment")
+    @Operation(summary = " 마이페이지- 내 댓글 모아보기 ", description = "내 댓글 모아보기")
+    public ResponseEntity<ApiResponseWrapper> myCommentList(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.myCommentList(userDetails);
+    }
+
 }
 
