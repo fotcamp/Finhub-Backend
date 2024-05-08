@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.repository;
 
+import fotcamp.finhub.common.domain.Quiz;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.TopicQuiz;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,8 @@ public interface TopicQuizRepository extends JpaRepository<TopicQuiz, Long> {
     void deleteAllByQuizId(@Param("quizId") Long quizId);
 
     List<TopicQuiz> findByTopic(Topic topic);
+    List<TopicQuiz> findByQuiz(Quiz quiz);
+
+    @Query("SELECT COUNT(t) FROM TopicQuiz t WHERE t.topic.id = :topicId")
+    Long countTopicQuizByTopic(@Param("topicId") Long topicId);
 }

@@ -1,9 +1,7 @@
 package fotcamp.finhub.admin.controller;
 
-import fotcamp.finhub.admin.dto.request.DeleteAvatarRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
+import com.google.protobuf.Api;
+import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminDeleteService;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
@@ -60,5 +58,23 @@ public class AdminDeleteController {
             @Valid @RequestBody DeleteAvatarRequestDto dto
     ){
         return adminDeleteService.deleteAvatar(dto);
+    }
+
+    @DeleteMapping("/quiz")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "퀴즈 삭제 ", description = "퀴즈 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteQuiz(
+            @Valid @RequestBody DeleteQuizRequestDto dto
+            ){
+        return adminDeleteService.deleteQuiz(dto);
+    }
+
+    @DeleteMapping("/column")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "컬럼 삭제 ", description = "컬럼 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteColumn(
+            @Valid @RequestBody DeleteColumnRequestDto dto
+    ){
+        return adminDeleteService.deleteColumn(dto);
     }
 }

@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.repository;
 
+import fotcamp.finhub.common.domain.GptColumn;
 import fotcamp.finhub.common.domain.Topic;
 import fotcamp.finhub.common.domain.TopicGptColumn;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,8 +19,13 @@ public interface TopicGptColumnRepository extends JpaRepository<TopicGptColumn, 
     void deleteAllByGptColumnId(@Param("gptColumnId") Long gptColumnId);
 
     List<TopicGptColumn> findByTopic(Topic topic);
+    List<TopicGptColumn> findByGptColumn(GptColumn gptColumn);
 
     @Query("SELECT COUNT(t) FROM TopicGptColumn t WHERE t.topic.id = :topicId")
     Long countTopicGptColumnByTopicId(@Param("topicId")Long id);
+
+    @Modifying
+    @Query("DELETE FROM TopicGptColumn t WHERE t.gptColumn = :gptColumn")
+    void deleteByGptColumn(@Param("gptColumn") GptColumn gptColumn);
 
 }
