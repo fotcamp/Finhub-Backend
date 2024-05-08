@@ -452,7 +452,7 @@ public class MainService {
         }
         UserAvatar userAvatar = userAvatarRepository.findById(member.getUserAvatar().getId())
                 .orElseThrow(() -> new EntityNotFoundException("아바타ID가 존재하지 않습니다."));
-        member.removeUserAvatar(userAvatar);
+        member.removeUserAvatar();
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }

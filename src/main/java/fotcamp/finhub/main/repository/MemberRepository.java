@@ -2,6 +2,7 @@ package fotcamp.finhub.main.repository;
 
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.Topic;
+import fotcamp.finhub.common.domain.UserAvatar;
 import fotcamp.finhub.common.domain.UserType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,5 +26,14 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("SELECT COUNT(m) FROM Member m WHERE m.userType = :usertype")
     long countMemberUsingUsertype(@Param("usertype") UserType userType);
+
+    @Query("SELECT m FROM Member m WHERE m.userType = :usertype")
+    List<Member> findMemberListUsingUsertype(@Param("usertype") UserType userType);
+
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.userAvatar = :userAvatar")
+    long countMemberUsingUserAvatar(@Param("userAvatar") UserAvatar userAvatar);
+
+    @Query("SELECT m FROM Member m WHERE m.userAvatar = :userAvatar")
+    List<Member> findMemberListUsingUserAvatar(@Param("userAvatar") UserAvatar userAvatar);
 
 }

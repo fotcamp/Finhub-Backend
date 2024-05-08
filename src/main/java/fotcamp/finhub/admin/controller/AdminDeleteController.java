@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.controller;
 
+import fotcamp.finhub.admin.dto.request.DeleteAvatarRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
 import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
@@ -52,4 +53,12 @@ public class AdminDeleteController {
         return adminDeleteService.deleteUsertype(dto);
     }
 
+    @DeleteMapping("/avatar")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "아바타 삭제 ", description = "아바타 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(
+            @Valid @RequestBody DeleteAvatarRequestDto dto
+    ){
+        return adminDeleteService.deleteAvatar(dto);
+    }
 }
