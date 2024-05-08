@@ -462,7 +462,7 @@ public class AdminController {
 
     @PostMapping("/send-noti")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
-    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송")
+    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송 target : admin (관리자에게만)/ all(관리자+유저)/ email(개인별)")
     public ResponseEntity<ApiResponseWrapper> sendNotification(
             @Valid @RequestBody CreateFcmMessageRequestDto dto
             ) throws JsonProcessingException {
