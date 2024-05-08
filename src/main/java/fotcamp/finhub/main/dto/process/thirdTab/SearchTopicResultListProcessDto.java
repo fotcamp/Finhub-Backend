@@ -10,12 +10,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SearchTopicResultListProcessDto {
 
-    private Long id;
+    private Long topicId;
+    private Long categoryId;
     private String title;
     private String summary;
 
-    public SearchTopicResultListProcessDto(Long id, String title, String summary) {
-        this.id = id;
+    public SearchTopicResultListProcessDto(Long topicId, Long categoryId, String title, String summary) {
+        this.topicId = topicId;
+        this.categoryId = categoryId;
         this.title = title;
         this.summary = summary;
     }

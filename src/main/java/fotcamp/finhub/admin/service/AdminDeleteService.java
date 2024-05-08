@@ -1,9 +1,7 @@
 package fotcamp.finhub.admin.service;
 
 
-import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
+import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
@@ -17,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -31,8 +30,12 @@ public class AdminDeleteService {
     private final MemberScrapRepository memberScrapRepository;
     private final TopicGptColumnRepository topicGptColumnRepository;
     private final TopicQuizRepository topicQuizRepository;
+    private final MemberQuizRepository memberQuizRepository;
+    private final UserAvatarRepository userAvatarRepository;
     private final UserTypeRepository userTypeRepository;
     private final MemberRepository memberRepository;
+    private final QuizRepository quizRepository;
+    private final GptColumnRepository gptColumnRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
@@ -58,21 +61,72 @@ public class AdminDeleteService {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("MemberScrap 테이블에 연관된 토픽이 있습니다."));
         } else if (topicGptColumnRepository.countTopicGptColumnByTopicId(dto.getId())!= 0L) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("TopicGptColumn 테이블에 연관된 토픽이 있습니다."));
+        } else if(topicQuizRepository.countTopicQuizByTopic(topic.getId()) != 0L){
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("TopicQuiz 테이블에 연관된 토픽이 있습니다."));
         }else{
             topicRepository.delete(topic);
             return ResponseEntity.ok(ApiResponseWrapper.success());
         }
     }
 
-//    public ResponseEntity<ApiResponseWrapper> deleteUsertype(DeleteUsertypeRequestDto dto){
-//        UserType userType = userTypeRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
-//        long count = memberRepository.countMemberUsingUsertype(userType);
-//        if (count != 0){
-//            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("유저타입을 사용중인 멤버가 존재합니다."));
-//        }
-//        else {
-//            userTypeRepository.delete(userType);
-//            return ResponseEntity.ok(ApiResponseWrapper.success());
-//        }
-//    }
+    public ResponseEntity<ApiResponseWrapper> deleteUsertype(DeleteUsertypeRequestDto dto){
+        UserType userType = userTypeRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        long count = memberRepository.countMemberUsingUsertype(userType);
+        if (count != 0){
+            // 해당 유저타입을 사용중인 멤버들을 찾아서 전부 null처리
+            List<Member> memberList = memberRepository.findMemberListUsingUsertype(userType);
+            for ( Member member : memberList){
+                member.removeUsertype();
+            }
+            memberRepository.saveAll(memberList);
+        }
+        userTypeRepository.delete(userType);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(DeleteAvatarRequestDto dto){
+        UserAvatar userAvatar = userAvatarRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        long count = memberRepository.countMemberUsingUserAvatar(userAvatar);
+        if (count != 0){
+            List<Member> memberList = memberRepository.findMemberListUsingUserAvatar(userAvatar);
+            for (Member member : memberList){
+                member.removeUserAvatar();
+            }
+            memberRepository.saveAll(memberList);
+        }
+        userAvatarRepository.delete(userAvatar);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteQuiz(DeleteQuizRequestDto dto){
+        Quiz quiz = quizRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        // 퀴즈 삭제하면 토픽퀴즈, 멤버퀴즈 테이블 정보들도 제거.
+        List<TopicQuiz> topicQuizList = topicQuizRepository.findByQuiz(quiz);
+        if (!topicQuizList.isEmpty()){
+            topicQuizRepository.deleteAll(topicQuizList);
+        }
+        List<MemberQuiz> memberQuizList = memberQuizRepository.findByQuiz(quiz);
+        if (!memberQuizList.isEmpty()) {
+            Iterator<MemberQuiz> iterator = memberQuizList.iterator();
+            while (iterator.hasNext()){
+                MemberQuiz memberQuiz = iterator.next();
+                memberQuiz.getMember().getQuizList().remove(memberQuiz);
+                iterator.remove();
+            }
+            memberQuizRepository.deleteAll(memberQuizList);
+        }
+        quizRepository.delete(quiz);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteColumn(DeleteColumnRequestDto dto){
+        GptColumn gptColumn = gptColumnRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        List<TopicGptColumn> topicGptColumnList = topicGptColumnRepository.findByGptColumn(gptColumn);
+        if (!topicGptColumnList.isEmpty()){
+            topicGptColumnRepository.deleteByGptColumn(gptColumn);
+        }
+        gptColumnRepository.delete(gptColumn);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
 }

@@ -1,8 +1,7 @@
 package fotcamp.finhub.admin.controller;
 
-import fotcamp.finhub.admin.dto.request.DeleteCategoryRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteTopicRequestDto;
-import fotcamp.finhub.admin.dto.request.DeleteUsertypeRequestDto;
+import com.google.protobuf.Api;
+import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminDeleteService;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
@@ -43,13 +42,39 @@ public class AdminDeleteController {
         return adminDeleteService.deleteTopic(dto);
     }
 
-//    @DeleteMapping("/usertype")
-//    @PreAuthorize("hasRole('SUPER')")
-//    @Operation(summary = "유저타입 삭제 ( 직업 )", description = "유저타입삭제")
-//    public ResponseEntity<ApiResponseWrapper> deleteUsertype(
-//            @Valid @RequestBody DeleteUsertypeRequestDto dto
-//            ){
-//        return adminDeleteService.deleteUsertype(dto);
-//    }
+    @DeleteMapping("/usertype")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "유저타입 삭제", description = "유저타입삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteUsertype(
+            @Valid @RequestBody DeleteUsertypeRequestDto dto
+            ){
+        return adminDeleteService.deleteUsertype(dto);
+    }
 
+    @DeleteMapping("/avatar")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "아바타 삭제 ", description = "아바타 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteAvatar(
+            @Valid @RequestBody DeleteAvatarRequestDto dto
+    ){
+        return adminDeleteService.deleteAvatar(dto);
+    }
+
+    @DeleteMapping("/quiz")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "퀴즈 삭제 ", description = "퀴즈 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteQuiz(
+            @Valid @RequestBody DeleteQuizRequestDto dto
+            ){
+        return adminDeleteService.deleteQuiz(dto);
+    }
+
+    @DeleteMapping("/column")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "컬럼 삭제 ", description = "컬럼 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteColumn(
+            @Valid @RequestBody DeleteColumnRequestDto dto
+    ){
+        return adminDeleteService.deleteColumn(dto);
+    }
 }

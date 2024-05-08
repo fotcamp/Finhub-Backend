@@ -2,7 +2,6 @@ package fotcamp.finhub.admin.dto.response;
 
 import fotcamp.finhub.admin.dto.process.GptColumnTopicProcessDto;
 import fotcamp.finhub.common.domain.GptColumn;
-import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 import fotcamp.finhub.main.dto.response.column.AdminCommentResponseDto;
 import lombok.Getter;
 
@@ -22,9 +21,8 @@ public class DetailGptColumnResponseDto {
     private final LocalDateTime modifiedTime;
     private final List<GptColumnTopicProcessDto> topicList;
     private final List<AdminCommentResponseDto> commentList;
-    private final PageInfoProcessDto pageInfo;
 
-    public DetailGptColumnResponseDto(GptColumn gptColumn, String backgroundUrl, List<AdminCommentResponseDto> commentList, PageInfoProcessDto pageInfo) {
+    public DetailGptColumnResponseDto(GptColumn gptColumn, String backgroundUrl, List<AdminCommentResponseDto> commentList) {
         this.id = gptColumn.getId();
         this.title = gptColumn.getTitle();
         this.summary = gptColumn.getSummary();
@@ -36,6 +34,5 @@ public class DetailGptColumnResponseDto {
         this.modifiedTime = gptColumn.getModifiedTime();
         this.topicList = gptColumn.getTopicGptColumnList().stream().map(GptColumnTopicProcessDto::new).toList();
         this.commentList = commentList;
-        this.pageInfo = pageInfo;
     }
 }

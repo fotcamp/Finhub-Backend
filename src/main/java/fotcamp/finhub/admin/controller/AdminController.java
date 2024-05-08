@@ -379,12 +379,9 @@ public class AdminController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "GPT COLUMN 상세 조회", description = "GPT COLUMN 상세 조회")
     public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(
-            @PathVariable(name = "id") Long id,
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "3") int size
+            @PathVariable(name = "id") Long id
     ) {
-        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
-        return adminService.getDetailGptColumn(id, pageable);
+        return adminService.getDetailGptColumn(id);
     }
 
     @PutMapping(value = "/gpt-column")
@@ -462,7 +459,7 @@ public class AdminController {
 
     @PostMapping("/send-noti")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
-    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송")
+    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송 target : admin (관리자에게만)/ all(관리자+유저)/ email(개인별)")
     public ResponseEntity<ApiResponseWrapper> sendNotification(
             @Valid @RequestBody CreateFcmMessageRequestDto dto
             ) throws JsonProcessingException {
