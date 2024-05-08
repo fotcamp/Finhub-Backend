@@ -518,10 +518,11 @@ public class MainService {
         List<MyCommentsListProcessDto> commentListProcessDto = commentsList.stream()
                 .map(comments ->
                         new MyCommentsListProcessDto(
-                        comments.getGptColumn().getTitle(),
-                        comments.getGptColumn().getBackgroundUrl(),
-                        comments.getContent(),
-                        comments.getTotalLike()
+                            comments.getId(),
+                            comments.getGptColumn().getTitle(),
+                            comments.getGptColumn().getBackgroundUrl(),
+                            comments.getContent(),
+                            comments.getTotalLike()
                 )).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new MyCommentsListResponseDto(commentListProcessDto)));
     }
