@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 application.yaml
 finhub-firebase-adminsdk.json
+prod.yaml
 ### STS ###
 .apt_generated
 .classpath

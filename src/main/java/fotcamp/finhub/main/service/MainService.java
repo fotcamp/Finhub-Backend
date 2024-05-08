@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -152,7 +151,8 @@ public class MainService {
         }
 
         List<SearchTopicResultListProcessDto> searchResultProcessDto = pageResult.stream().map(topic -> SearchTopicResultListProcessDto.builder()
-                .id(topic.getId())
+                .topicId(topic.getId())
+                .categoryId(topic.getCategory().getId())
                 .title(topic.getTitle())
                 .summary(topic.getSummary())
                 .build()).collect(Collectors.toList());
