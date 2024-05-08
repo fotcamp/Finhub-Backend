@@ -1004,10 +1004,10 @@ public class AdminService {
     }
 
     // GPT 컬럼 상세 조회
-    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id, Pageable pageable) {
+    public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id) {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재 하지 않는 GPT COLUMN"));
-        Page<Comments> comments = commentsRepository.findByGptColumn(gptColumn, pageable);
-        List<AdminCommentResponseDto> commentList = comments.getContent().stream()
+        List<Comments> comments = commentsRepository.findByGptColumn(gptColumn);
+        List<AdminCommentResponseDto> commentList = comments.stream()
                 .map(comment -> {
                     Member member = comment.getMember();
                     String avatarPath = Optional.ofNullable(member.getUserAvatar())
@@ -1020,9 +1020,8 @@ public class AdminService {
                         return new AdminCommentResponseDto(member, comment, avatarPath, "N");
                     }
                 }).toList();
-        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(comments);
         DetailGptColumnResponseDto detailGptColumnResponseDto = new DetailGptColumnResponseDto(
-               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()), commentList, PageInfoProcessDto);
+               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()), commentList);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(detailGptColumnResponseDto));
     }

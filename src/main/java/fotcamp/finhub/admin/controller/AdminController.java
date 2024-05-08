@@ -379,12 +379,9 @@ public class AdminController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "GPT COLUMN 상세 조회", description = "GPT COLUMN 상세 조회")
     public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(
-            @PathVariable(name = "id") Long id,
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "3") int size
+            @PathVariable(name = "id") Long id
     ) {
-        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
-        return adminService.getDetailGptColumn(id, pageable);
+        return adminService.getDetailGptColumn(id);
     }
 
     @PutMapping(value = "/gpt-column")
