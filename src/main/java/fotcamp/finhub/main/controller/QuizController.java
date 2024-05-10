@@ -69,17 +69,18 @@ public class QuizController {
         return quizService.missedQuizList(userDetails, cursorDate, limit);
     }
 
-    @GetMapping("/solved")
+    @GetMapping("/solved/{isCorrect}")
     @Operation(summary = "풀었던 퀴즈 가져오기", description = "풀었던 퀴즈 리스트 가져오기")
     public ResponseEntity<ApiResponseWrapper> solvedQuizList(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable(name = "isCorrect") String isCorrect,
             @RequestParam(value = "date", required = false) Optional<String> date,
             @RequestParam(value = "limit", defaultValue = "3") int limit
     ) {
         // dateStringOptional이 비어 있으면 오늘 날짜를 문자열로 설정
         String dateString = date.orElseGet(() -> LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         LocalDate cursorDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return quizService.solvedQuizList(userDetails, cursorDate, limit);
+        return quizService.solvedQuizList(userDetails, cursorDate, limit, isCorrect);
     }
 
     @PostMapping("/calendar-emoticon")
