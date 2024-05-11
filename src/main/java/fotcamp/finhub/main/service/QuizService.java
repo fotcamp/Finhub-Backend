@@ -176,12 +176,12 @@ public class QuizService {
     }
 
     // 풀었던 퀴즈 리스트 가져오기 api
-    public ResponseEntity<ApiResponseWrapper> solvedQuizList(CustomUserDetails userDetails, LocalDate cursorDate, int limit) {
+    public ResponseEntity<ApiResponseWrapper> solvedQuizList(CustomUserDetails userDetails, LocalDate cursorDate, int limit, String isCorrect) {
         if (userDetails == null) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
         }
 
-        List<QuizInfoDto> solvedQuizList = memberQuizRepository.findSolvedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, PageRequest.of(0, limit));
+        List<QuizInfoDto> solvedQuizList = memberQuizRepository.findSolvedQuizInfoByMemberId(userDetails.getMemberIdasLong(), cursorDate, isCorrect, PageRequest.of(0, limit));
         return ResponseEntity.ok(ApiResponseWrapper.success(new SolvedQuizListResponseDto(solvedQuizList)));
     }
 

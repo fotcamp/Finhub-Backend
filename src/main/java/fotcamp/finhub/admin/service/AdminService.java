@@ -1216,10 +1216,10 @@ public class AdminService {
 
     // 신고된 댓글 처리
     public ResponseEntity<ApiResponseWrapper> postReportedComment(ReportCommentRequestDto dto) {
-        CommentsReport commentsReport = commentsReportRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 댓글 ID가 없습니다."));
-        Comments comment = commentsReport.getReportedComment();
-        comment.useYnUpdate(); // Y였으면 N으로, N이였으면 Y로
-        commentsReport.useYnUpdate(); // Y였으면 N으로, N이였으면 Y로
+        Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
+        CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
+        comment.modifyUseYn(); // 무조건 n으로
+        commentsReport.modifyUseYn(); // 무조건 n으로
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
