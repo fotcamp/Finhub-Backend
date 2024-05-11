@@ -1120,7 +1120,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> modifyReportReason(ReportReasonModifyRequestDto dto) {
         ReportReasons reportReasons = reportReasonsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고이유ID가 존재하지 않습니다."));
         Optional<ReportReasons> findReason = reportReasonsRepository.findByReason(dto.reason());
-        if (findReason.isPresent()) {
+        if (findReason.isPresent() && !dto.id().equals(findReason.get().getId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseWrapper.fail("이미 존재하는 신고사유"));
         }
         reportReasons.modifyReportReasons(dto);
