@@ -65,6 +65,8 @@ public class MainService {
     private final CommentsRepository commentsRepository;
     private final AwsS3Service awsS3Service;
     private final PostsLikeRepository postsLikeRepository;
+    private final QuitReasonsRepository quitReasonsRepository;
+    private final QuitMemberRepository quitMemberRepository;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -119,10 +121,17 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    public ResponseEntity<ApiResponseWrapper> membershipResign(CustomUserDetails userDetails){
+    public ResponseEntity<ApiResponseWrapper> membershipResign(CustomUserDetails userDetails, QuitRequestDto dto){
         Long memberId = userDetails.getMemberIdasLong();
         Member existingMember = memberRepository.findById(memberId).orElseThrow(
                 () -> new EntityNotFoundException("해당 멤버는 존재하지 않습니다."));
+        QuitMember quitMember = QuitMember.builder()
+                .age(userDetails.getUsername())
+                .gender(userDetails.getUsername())
+                .reasonId(dto.id())
+                .reason(dto.reason())
+                .build();
+        quitMemberRepository.save(quitMember);
         memberRepository.delete(existingMember);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
@@ -527,4 +536,14 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new MyCommentsListResponseDto(commentListProcessDto)));
     }
 
+    // 회원 탈퇴 이유 가져오기
+    public ResponseEntity<ApiResponseWrapper> quitReasons() {
+        List<QuitReasons> quitReasons = quitReasonsRepository.findByUseYn("Y");
+        List<QuitReasonsProcessDto> quitReasonsProcessDtos = quitReasons.stream().map(
+                quitReason -> new QuitReasonsProcessDto(quitReason.getId(), quitReason.getReason())
+        ).toList();
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(new QuitReasonsResponseDto(quitReasonsProcessDtos)));
+
+    }
 }
