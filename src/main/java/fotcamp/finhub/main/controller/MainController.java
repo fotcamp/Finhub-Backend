@@ -219,13 +219,21 @@ public class MainController {
         return mainService.scrapList(userDetails, type);
     }
 
-    @GetMapping("/menu/setting/resign")
+    @GetMapping("/menu/setting/resign/reasons")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "설정 - 회원탈퇴 이유 가져오기", description = "회원 탈퇴 이유")
+    public ResponseEntity<ApiResponseWrapper> quitReasons(){
+        return mainService.quitReasons();
+    }
+
+    @PostMapping("/menu/setting/resign")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "설정 - 회원탈퇴", description = "회원 탈퇴 ")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody QuitRequestDto dto
     ){
-        return mainService.membershipResign(userDetails);
+        return mainService.membershipResign(userDetails, dto);
     }
 
     // 배너 리스트
