@@ -273,6 +273,7 @@ public class MainController {
         return mainService.updateFcmToken(userDetails, dto.getToken());
     }
 
+    // 내 댓글 모아보기
     @GetMapping("/menu/comment")
     @Operation(summary = " 마이페이지- 내 댓글 모아보기 ", description = "내 댓글 모아보기")
     public ResponseEntity<ApiResponseWrapper> myCommentList(
@@ -280,6 +281,30 @@ public class MainController {
     ){
         return mainService.myCommentList(userDetails);
     }
+
+    // 알람 목록 조회하기
+    @GetMapping("/alarm")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = " 안읽은 알람 목록 조회하기 ", description = "안읽은 알람이 위쪽에, 읽은 알람이 아래에 배치")
+    public ResponseEntity<ApiResponseWrapper> alarmList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(name = "cursorId", required = false) Long cursorId,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size
+    ){
+        return mainService.alarmList(userDetails, cursorId, size);
+    }
+
+    // 알람 상세조회
+    @PostMapping("/alarm")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = " 알람 상세 조회하기 ", description = "해당 url로 랜딩")
+    public ResponseEntity<ApiResponseWrapper> alarmDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody AlarmDetailRequestDto dto
+    ){
+        return mainService.alarmDetail(userDetails, dto);
+    }
+
 
 }
 

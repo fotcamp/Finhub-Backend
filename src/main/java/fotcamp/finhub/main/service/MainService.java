@@ -24,10 +24,7 @@ import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +66,7 @@ public class MainService {
     private final PostsLikeRepository postsLikeRepository;
     private final QuitReasonsRepository quitReasonsRepository;
     private final QuitMemberRepository quitMemberRepository;
+    private final MemberNotificationRepository memberNotificationRepository;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -524,15 +524,15 @@ public class MainService {
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         List<Comments> commentsList = commentsRepository.findByMember(member);
-        List<MyCommentsListProcessDto> commentListProcessDto = commentsList.stream()
-                .map(comments ->
+        List<MyCommentsListProcessDto> commentListProcessDto =
+                commentsList.stream().map(comments ->
                         new MyCommentsListProcessDto(
-                            comments.getId(),
-                            comments.getGptColumn().getTitle(),
-                            comments.getGptColumn().getBackgroundUrl(),
-                            comments.getContent(),
-                            comments.getTotalLike()
-                )).collect(Collectors.toList());
+                                comments.getId(),
+                                comments.getGptColumn().getTitle(),
+                                comments.getGptColumn().getBackgroundUrl(),
+                                comments.getContent(),
+                                comments.getTotalLike())
+                ).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new MyCommentsListResponseDto(commentListProcessDto)));
     }
 
@@ -546,4 +546,34 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new QuitReasonsResponseDto(quitReasonsProcessDtos)));
 
     }
+
+    public ResponseEntity<ApiResponseWrapper> alarmList(CustomUserDetails userDetails, Long cursorId, int size){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Pageable pageable = PageRequest.of(0, size);
+
+        Slice<MemberNotification> notifications = memberNotificationRepository.findByMemberAndIdLessThanOrderBySentAtDesc(member, cursorId, pageable);
+        List<AlarmDetailProcessDto> notificationResponseDto = notifications.getContent().stream().map(
+                        notification -> AlarmDetailProcessDto.builder()
+                                .id(notification.getNotification().getId())
+                                .title(notification.getNotification().getTitle())
+                                .message(notification.getNotification().getMessage())
+                                .url(notification.getNotification().getUrl())
+                                .sentAt(notification.getSentAt())
+                                .receivedAt(notification.getReceivedAt())
+                                .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseWrapper.success(new AlarmListResponseDto(notificationResponseDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> alarmDetail(CustomUserDetails userDetails, AlarmDetailRequestDto dto){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+
+        MemberNotification memberNotification = memberNotificationRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("요청ID가 존재하지 않습니다."));
+        String url = memberNotification.getNotification().getUrl();
+        memberNotification.updateMemberNotification();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new AlarmDetailResponseDto(url)));
+    }
+
 }

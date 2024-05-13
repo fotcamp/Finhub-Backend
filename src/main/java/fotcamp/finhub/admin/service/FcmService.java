@@ -8,7 +8,9 @@ import fotcamp.finhub.admin.dto.request.CreateFcmMessageRequestDto;
 import fotcamp.finhub.admin.repository.ManagerRepository;
 import fotcamp.finhub.admin.repository.NotificationRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.MemberNotification;
 import fotcamp.finhub.common.domain.Notification;
+import fotcamp.finhub.main.repository.MemberNotificationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.*;
@@ -39,9 +41,11 @@ public class FcmService {
     private final FcmConfig fcmConfig;
     private final ObjectMapper objectMapper;
     private final NotificationRepository notificationRepository;
+    private final MemberNotificationRepository memberNotificationRepository;
 
     public ResponseEntity<ApiResponseWrapper> sendFcmNotifications(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
         String accessToken = getAccessToken(); // 서버 유효한지 검증
+        System.out.println("**************"+accessToken);
         FcmMessageProcessDto.Apns apns = buildApnsPayload(dto);
 
         Notification newNotification = Notification.builder()
@@ -49,14 +53,12 @@ public class FcmService {
                 .message(dto.getContent())
                 .url(dto.getView())
                 .build();
-        notificationRepository.save(newNotification);
-
         try {
             if ("admin".equals(dto.getTarget())) {
                 sendNotificationsToManagers(accessToken, apns);
             } else if ("all".equals(dto.getTarget())) {
                 sendNotificationsToManagers(accessToken, apns);
-                sendNotificationsToMembers(accessToken, apns);
+                sendNotificationsToMembers(accessToken, apns, newNotification);
             }
             else {
                 String email = dto.getTarget(); // 관리자 한명에게만 보내는 조건
@@ -71,27 +73,34 @@ public class FcmService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
         }
-
+        notificationRepository.save(newNotification);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
     private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
         List<Manager> allManagers = managerRepository.findAll();
+        System.out.println("전송 대상 ^^^^^^^^^^^^^^^^ : "+allManagers.size());
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
+                System.out.println("여기로 들어오나?");
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
                 sendFcmMessage(accessToken, message);
             }
         }
     }
 
-    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
+    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, Notification notification) throws Exception {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
+                System.out.println("여기22222");
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns);
+                System.out.println("@@@@@@@전송메세지"+message);
                 sendFcmMessage(accessToken, message);
             }
+
+            MemberNotification newSendNoti = new MemberNotification(member, notification);
+            memberNotificationRepository.save(newSendNoti);
         }
     }
 
@@ -126,13 +135,14 @@ public class FcmService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
         String jsonMessage = objectMapper.writeValueAsString(Map.of("message", message));
-
+        System.out.println("gdgdgdgdgdgdgd");
         HttpEntity<String> entity = new HttpEntity<>(jsonMessage, headers);
 
         String fcmUrl = "https://fcm.googleapis.com/v1/projects/"+fcmConfig.getProjectId()+"/messages:send";
-
+        System.out.println("프로젝트id"+fcmConfig.getProjectId());
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
+        System.out.println("전송 완료?????");
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("Failed to send FCM message: {}", response.getBody());
             throw new IllegalStateException("FCM 메시지 전송 실패");
