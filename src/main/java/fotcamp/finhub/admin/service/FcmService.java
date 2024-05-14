@@ -45,7 +45,6 @@ public class FcmService {
 
     public ResponseEntity<ApiResponseWrapper> sendFcmNotifications(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
         String accessToken = getAccessToken(); // 서버 유효한지 검증
-        System.out.println("**************"+accessToken);
         FcmMessageProcessDto.Apns apns = buildApnsPayload(dto);
 
         Notification newNotification = Notification.builder()
@@ -79,10 +78,8 @@ public class FcmService {
 
     private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
         List<Manager> allManagers = managerRepository.findAll();
-        System.out.println("전송 대상 ^^^^^^^^^^^^^^^^ : "+allManagers.size());
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
-                System.out.println("여기로 들어오나?");
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
                 sendFcmMessage(accessToken, message);
             }
@@ -93,9 +90,7 @@ public class FcmService {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
-                System.out.println("여기22222");
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns);
-                System.out.println("@@@@@@@전송메세지"+message);
                 sendFcmMessage(accessToken, message);
             }
 
@@ -135,14 +130,11 @@ public class FcmService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
         String jsonMessage = objectMapper.writeValueAsString(Map.of("message", message));
-        System.out.println("gdgdgdgdgdgdgd");
         HttpEntity<String> entity = new HttpEntity<>(jsonMessage, headers);
 
         String fcmUrl = "https://fcm.googleapis.com/v1/projects/"+fcmConfig.getProjectId()+"/messages:send";
-        System.out.println("프로젝트id"+fcmConfig.getProjectId());
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
-        System.out.println("전송 완료?????");
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("Failed to send FCM message: {}", response.getBody());
             throw new IllegalStateException("FCM 메시지 전송 실패");

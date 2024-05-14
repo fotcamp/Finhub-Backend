@@ -27,5 +27,4 @@ public class MyCommentsListProcessDto {
         this.totalLike = totalLike;
     }
 
-
 }

@@ -67,6 +67,7 @@ public class MainService {
     private final QuitReasonsRepository quitReasonsRepository;
     private final QuitMemberRepository quitMemberRepository;
     private final MemberNotificationRepository memberNotificationRepository;
+    private final NotificationRepository notificationRepository;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -491,7 +492,6 @@ public class MainService {
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
 
-
         member.updatePushYN(dto.isYn());
         memberRepository.save(member);
         return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -550,17 +550,20 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> alarmList(CustomUserDetails userDetails, Long cursorId, int size){
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        if (cursorId == null){
+            cursorId = Long.MAX_VALUE;
+        }
         Pageable pageable = PageRequest.of(0, size);
 
-        Slice<MemberNotification> notifications = memberNotificationRepository.findByMemberAndIdLessThanOrderBySentAtDesc(member, cursorId, pageable);
+        Slice<MemberNotification> notifications = memberNotificationRepository.findNotificationsForMember(member, cursorId, pageable);
         List<AlarmDetailProcessDto> notificationResponseDto = notifications.getContent().stream().map(
-                        notification -> AlarmDetailProcessDto.builder()
-                                .id(notification.getNotification().getId())
-                                .title(notification.getNotification().getTitle())
-                                .message(notification.getNotification().getMessage())
-                                .url(notification.getNotification().getUrl())
-                                .sentAt(notification.getSentAt())
-                                .receivedAt(notification.getReceivedAt())
+                        memberNotification -> AlarmDetailProcessDto.builder()
+                                .id(memberNotification.getNotification().getId())
+                                .title(memberNotification.getNotification().getTitle())
+                                .message(memberNotification.getNotification().getMessage())
+                                .url(memberNotification.getNotification().getUrl())
+                                .sentAt(memberNotification.getSentAt())
+                                .receivedAt(memberNotification.getReceivedAt())
                                 .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new AlarmListResponseDto(notificationResponseDto)));
@@ -569,9 +572,10 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> alarmDetail(CustomUserDetails userDetails, AlarmDetailRequestDto dto){
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Notification notification = notificationRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("알람이 존재하지 않습니다."));
+        MemberNotification memberNotification = memberNotificationRepository.findByMemberAndNotification(member, notification).orElseThrow(() -> new EntityNotFoundException("기록이 존재하지 않습니다."));
 
-        MemberNotification memberNotification = memberNotificationRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("요청ID가 존재하지 않습니다."));
-        String url = memberNotification.getNotification().getUrl();
+        String url = notification.getUrl();
         memberNotification.updateMemberNotification();
         return ResponseEntity.ok(ApiResponseWrapper.success(new AlarmDetailResponseDto(url)));
     }

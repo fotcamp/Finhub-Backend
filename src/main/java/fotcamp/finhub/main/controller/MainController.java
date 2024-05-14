@@ -285,7 +285,7 @@ public class MainController {
     // 알람 목록 조회하기
     @GetMapping("/alarm")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = " 안읽은 알람 목록 조회하기 ", description = "안읽은 알람이 위쪽에, 읽은 알람이 아래에 배치")
+    @Operation(summary = " 알람 목록 조회하기 ", description = "안읽은 알람이 위쪽에, 읽은 알람이 아래에 배치")
     public ResponseEntity<ApiResponseWrapper> alarmList(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(name = "cursorId", required = false) Long cursorId,
