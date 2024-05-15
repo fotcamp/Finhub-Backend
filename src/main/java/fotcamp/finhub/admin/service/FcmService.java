@@ -69,14 +69,14 @@ public class FcmService {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
                 sendFcmMessage(accessToken, message);
             }
-        } catch (Exception e) {
+        } catch (FcmException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseWrapper.fail(e.getMessage()));
         }
         notificationRepository.save(newNotification);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws Exception {
+    private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws FcmException, JsonProcessingException {
         List<Manager> allManagers = managerRepository.findAll();
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
@@ -86,7 +86,7 @@ public class FcmService {
         }
     }
 
-    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, Notification notification) throws Exception {
+    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, Notification notification) throws FcmException, JsonProcessingException {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
@@ -125,7 +125,7 @@ public class FcmService {
                 .build();
     }
 
-    public void sendFcmMessage(String accessToken, FcmMessageProcessDto.FcmMessage message) throws JsonProcessingException {
+    public void sendFcmMessage(String accessToken, FcmMessageProcessDto.FcmMessage message) throws JsonProcessingException, FcmException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
