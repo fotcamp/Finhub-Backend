@@ -15,4 +15,8 @@ public class PushYNRequestDto {
     public boolean isYn() {
         return yn;
     }
+
+    public PushYNRequestDto(boolean yn) {
+        this.yn = yn;
+    }
 }

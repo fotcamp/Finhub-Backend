@@ -21,7 +21,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
 
-
     List<Member> findByPushYn(boolean pushYn);
 
     @Query("SELECT COUNT(m) FROM Member m WHERE m.userType = :usertype")
