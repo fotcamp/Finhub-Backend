@@ -1,0 +1,33 @@
+name: notify pr review
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - main
+      - develop
+
+jobs:
+  Notify:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Send Slack notification
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "SLACK PR 알림",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ github.repository }}* PR 리뷰요청입니다👍\n<${{ github.event.pull_request.html_url }}|PR 확인하러 가기>\nRegistered by *${{ github.event.pull_request.user.login }}*"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PR_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
