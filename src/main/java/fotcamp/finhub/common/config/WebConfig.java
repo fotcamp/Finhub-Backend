@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
         // Admin 애플리케이션을 위한 CORS 설정
         registry.addMapping("/api/v1/admin/**")
                 .allowedOrigins(mainOrigin, adminOrigin, devOrigin, "http://127.0.0.1:3000", "http://localhost:3000", "https://api.fin-hub.co.kr")  // Admin 프론트엔드 애플리케이션의 도메인
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);
 

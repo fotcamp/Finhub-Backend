@@ -35,4 +35,13 @@ public class MemberNotification {
         sentAt = LocalDateTime.now();
     }
 
+    public MemberNotification(Member member, Notification notification) {
+        this.member = member;
+        this.notification = notification;
+        this.sentAt = LocalDateTime.now();
+    }
+
+    public void updateMemberNotification(){
+        this.receivedAt = LocalDateTime.now();
+    }
 }

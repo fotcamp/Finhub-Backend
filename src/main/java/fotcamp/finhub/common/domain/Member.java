@@ -117,7 +117,6 @@ public class Member {
     }
 
     public void updatePushYN(boolean isYN){
-        System.out.println("-------------"+ isYN);
         this.pushYn = isYN;
     }
 
