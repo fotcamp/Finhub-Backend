@@ -53,6 +53,7 @@ public class FcmService {
                 .message(dto.getContent())
                 .url(dto.getView())
                 .build();
+
         try {
             if ("admin".equals(dto.getTarget())) {
                 sendNotificationsToManagers(accessToken, apns, dataContent);
@@ -87,7 +88,7 @@ public class FcmService {
         }
     }
 
-    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent) throws FcmException, JsonProcessingException {
+    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, Notification notification) throws FcmException, JsonProcessingException {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
