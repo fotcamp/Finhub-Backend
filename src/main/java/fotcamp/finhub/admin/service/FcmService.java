@@ -46,6 +46,7 @@ public class FcmService {
     public ResponseEntity<ApiResponseWrapper> sendFcmNotifications(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
         String accessToken = getAccessToken(); // 서버 유효한지 검증
         FcmMessageProcessDto.Apns apns = buildApnsPayload(dto);
+        FcmMessageProcessDto.DataContent dataContent = buildDataContent(dto);
 
         Notification newNotification = Notification.builder()
                 .title(dto.getTitle())
@@ -54,10 +55,10 @@ public class FcmService {
                 .build();
         try {
             if ("admin".equals(dto.getTarget())) {
-                sendNotificationsToManagers(accessToken, apns);
+                sendNotificationsToManagers(accessToken, apns, dataContent);
             } else if ("all".equals(dto.getTarget())) {
-                sendNotificationsToManagers(accessToken, apns);
-                sendNotificationsToMembers(accessToken, apns, newNotification);
+                sendNotificationsToManagers(accessToken, apns, dataContent);
+                sendNotificationsToMembers(accessToken, apns, dataContent, newNotification);
             }
             else {
                 String email = dto.getTarget(); // 관리자 한명에게만 보내는 조건
@@ -66,7 +67,7 @@ public class FcmService {
                     return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("토큰정보가 없습니다."));
                 }
 
-                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns, dataContent);
                 sendFcmMessage(accessToken, message);
             }
         } catch (FcmException e) {
@@ -76,21 +77,21 @@ public class FcmService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns) throws FcmException, JsonProcessingException {
+    private void sendNotificationsToManagers(String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent) throws JsonProcessingException {
         List<Manager> allManagers = managerRepository.findAll();
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
-                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns);
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns, dataContent);
                 sendFcmMessage(accessToken, message);
             }
         }
     }
 
-    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, Notification notification) throws FcmException, JsonProcessingException {
+    private void sendNotificationsToMembers(String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent) throws FcmException, JsonProcessingException {
         List<Member> activeMembers = memberRepository.findByPushYn(true);
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
-                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns);
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns, dataContent);
                 sendFcmMessage(accessToken, message);
             }
 
@@ -100,11 +101,22 @@ public class FcmService {
     }
 
 
-    private FcmMessageProcessDto.FcmMessage buildFcmMessage(String token, FcmMessageProcessDto.Apns apns) {
+    private FcmMessageProcessDto.FcmMessage buildFcmMessage(String token, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent) {
         return FcmMessageProcessDto.FcmMessage.builder()
                 .token(token)
+                .data(dataContent)
                 .apns(apns)
                 .build();
+    }
+
+    private FcmMessageProcessDto.DataContent buildDataContent(CreateFcmMessageRequestDto dto) {
+        FcmMessageProcessDto.DataContent dataContent = FcmMessageProcessDto.DataContent.builder()
+                .title(dto.getTitle())
+                .body(dto.getContent())
+                .view(dto.getView())
+                .build();
+
+        return dataContent;
     }
 
     private FcmMessageProcessDto.Apns buildApnsPayload(CreateFcmMessageRequestDto dto) {
