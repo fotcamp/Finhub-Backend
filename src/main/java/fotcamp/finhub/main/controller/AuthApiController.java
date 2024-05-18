@@ -6,6 +6,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -37,6 +38,7 @@ public class AuthApiController {
      * REDIRECT URI -> 프론트에서 인가코드를 포함시켜서 전송
      */
     @GetMapping("/login/oauth2/callback/kakao")
+    @Operation(summary = " 카카오 로그인", description = "카카오서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
     public ResponseEntity<ApiResponseWrapper> kakaoLogin(@RequestParam(name = "code") String code,
                                                          @RequestParam(name = "origin") String origin) throws JsonProcessingException {
 
@@ -48,6 +50,7 @@ public class AuthApiController {
 
 
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
+    @Operation(summary = "리프레시토큰 만료될 때 액세스토큰 업데이트 ", description = "액세스토큰 발급")
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
             HttpServletRequest request){
         return authService.validRefreshToken(request);
@@ -55,6 +58,7 @@ public class AuthApiController {
 
     // 자동로그인
     @GetMapping("/autoLogin")
+    @Operation(summary = "자동로그인", description = "자동로그인")
     public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
         return authService.autoLogin(request);
     }

@@ -89,12 +89,19 @@ public class ExceptionController{
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiResponseWrapper> handEntityNotFoundException(Exception e){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseWrapper.fail(e.getMessage()));
     }
 
     @ExceptionHandler(FcmException.class)
     public ResponseEntity<ApiResponseWrapper> handleFcmException(Exception e){
-        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(e.getMessage()));
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("FCM ERROR", e.getMessage()));
+    }
+
+    // 예상치 못한 예외 처리
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception ex) {
+        // 예외 처리 로직
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
 }
