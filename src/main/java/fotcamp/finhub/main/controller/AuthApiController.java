@@ -33,7 +33,6 @@ public class AuthApiController {
     private final AuthService authService;
     // https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri={REDIRECT_URI}&response_type=code
 
-
     /**
      * REDIRECT URI -> 프론트에서 인가코드를 포함시켜서 전송
      */

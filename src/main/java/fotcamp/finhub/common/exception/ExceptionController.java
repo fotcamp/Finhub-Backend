@@ -67,7 +67,8 @@ public class ExceptionController{
     }
 
     @ExceptionHandler(RestClientException.class)
-    public ResponseEntity<ApiResponseWrapper> handleRestTemplateException(Exception e){
+    public ResponseEntity<ApiResponseWrapper> handleRestTemplateException(RestClientException e) {
+        log.error("RestClientException occurred: ", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("REST TEMPLATE ERROR"));
     }
 
