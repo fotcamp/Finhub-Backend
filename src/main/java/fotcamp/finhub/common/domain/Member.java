@@ -125,4 +125,5 @@ public class Member {
     }
 
     public void removeUsertype() {this.userType = null;}
+    public void removeCalendarEmoticon(){this.calendarEmoticon = null;}
 }

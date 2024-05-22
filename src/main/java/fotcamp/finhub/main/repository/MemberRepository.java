@@ -1,9 +1,6 @@
 package fotcamp.finhub.main.repository;
 
-import fotcamp.finhub.common.domain.Member;
-import fotcamp.finhub.common.domain.Topic;
-import fotcamp.finhub.common.domain.UserAvatar;
-import fotcamp.finhub.common.domain.UserType;
+import fotcamp.finhub.common.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +14,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
 
     Optional<Member> findByEmail(String email);
-
+    List<Member> findByCalendarEmoticon(CalendarEmoticon calendarEmoticon);
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
 
