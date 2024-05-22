@@ -18,9 +18,15 @@ public class FcmMessageProcessDto {
     @Getter
     public static class FcmMessage {
         private String token;
+        private Notification notification;
         private DataContent data;
         private Apns apns;
-
+    }
+    @Builder
+    @Getter
+    public static class Notification{
+        private String title;
+        private String body;
     }
     @Builder
     @Getter
@@ -29,7 +35,6 @@ public class FcmMessageProcessDto {
         private String body;
         private String view;
     }
-
     @Builder
     @Getter
     public static class Apns{
