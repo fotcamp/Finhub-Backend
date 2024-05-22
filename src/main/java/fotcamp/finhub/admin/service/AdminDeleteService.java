@@ -1,12 +1,14 @@
 package fotcamp.finhub.admin.service;
 
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
+import fotcamp.finhub.main.repository.ReportReasonsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,8 @@ public class AdminDeleteService {
     private final MemberRepository memberRepository;
     private final QuizRepository quizRepository;
     private final GptColumnRepository gptColumnRepository;
+    private final CalendarEmoticonRepository calendarEmoticonRepository;
+    private final ReportReasonsRepository reportReasonsRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
@@ -127,6 +131,24 @@ public class AdminDeleteService {
             topicGptColumnRepository.deleteByGptColumn(gptColumn);
         }
         gptColumnRepository.delete(gptColumn);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteEmoji(DeleteCalendarEmojiRequestDto dto){
+        CalendarEmoticon calendarEmoticon = calendarEmoticonRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 ID"));
+        // 이모티콘존재 확인 -> 사용중인 member 찾아서 전부 null로 교체 -> 이모티콘삭제
+        List<Member> memberListusingEmoji = memberRepository.findByCalendarEmoticon(calendarEmoticon);
+        for (Member member : memberListusingEmoji){
+            member.removeCalendarEmoticon();
+            memberRepository.save(member);
+        }
+        calendarEmoticonRepository.delete(calendarEmoticon);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteReportReason(DeleteReportReasonRequestDto dto){
+        ReportReasons reportReasons = reportReasonsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        reportReasonsRepository.deleteById(reportReasons.getId());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
