@@ -86,4 +86,14 @@ public class AdminDeleteController {
     ){
         return adminDeleteService.deleteEmoji(dto);
     }
+
+    @DeleteMapping("/report/reason")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "신고사유 삭제", description = "신고사유 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteReportReason(
+            @Valid @RequestBody DeleteReportReasonRequestDto dto
+    ){
+        return adminDeleteService.deleteReportReason(dto);
+    }
+
 }
