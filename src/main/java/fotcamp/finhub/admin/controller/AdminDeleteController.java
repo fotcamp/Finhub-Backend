@@ -77,4 +77,13 @@ public class AdminDeleteController {
     ){
         return adminDeleteService.deleteColumn(dto);
     }
+
+    @DeleteMapping("/calendar-emoticon")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "캘린더 이모티콘 삭제 ", description = "캘린더 이모티콘 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteEmoji(
+            @Valid @RequestBody DeleteCalendarEmojiRequestDto dto
+    ){
+        return adminDeleteService.deleteEmoji(dto);
+    }
 }
