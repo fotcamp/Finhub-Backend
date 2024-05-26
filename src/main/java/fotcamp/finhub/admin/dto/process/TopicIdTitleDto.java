@@ -9,16 +9,19 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TopicIdTitleDto {
-    private Long id;
+    private Long categoryId;
+    private Long topicId;
     private String title;
 
     public TopicIdTitleDto(TopicQuiz topicQuiz) {
-        this.id = topicQuiz.getTopic().getId();
+        this.categoryId = topicQuiz.getTopic().getCategory().getId();
+        this.topicId = topicQuiz.getTopic().getId();
         this.title = topicQuiz.getTopic().getTitle();
     }
 
     public TopicIdTitleDto(TopicGptColumn topicGptColumn) {
-        this.id = topicGptColumn.getTopic().getId();
+        this.categoryId = topicGptColumn.getTopic().getCategory().getId();
+        this.topicId = topicGptColumn.getTopic().getId();
         this.title = topicGptColumn.getTopic().getTitle();
     }
 }
