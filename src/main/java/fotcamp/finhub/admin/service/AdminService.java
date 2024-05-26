@@ -881,7 +881,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> createTopicSummaryGptContent(CreateTopicSummaryGptContentRequestDto createTopicSummaryGptContentRequestDto, CustomUserDetails userDetails) {
         try {
             Topic topic = topicRepository.findById(createTopicSummaryGptContentRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 토픽"));
-            String prompt = topic.getDefinition() + "을 한 문장으로 요약해줘. \n" +
+            String prompt = topic.getTitle() + "을 한 문장으로 요약해줘. \n" +
                     "아래 답변 형식을 꼭 지켜서 답변해줘. \n" +
                     "[답변형식]\n" +
                     "[요약] : ";
