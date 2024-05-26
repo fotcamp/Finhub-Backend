@@ -25,7 +25,7 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping
-    @Operation(summary = "퀴즈 가져오기", description = "오늘의 퀴즈, 놓친 퀴즈 가져오기")
+    @Operation(summary = "퀴즈 가져오기", description = "오늘의 퀴즈, 지난날짜 퀴즈 가져오기")
     public ResponseEntity<ApiResponseWrapper> findQuiz(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(name = "date", required = false) String date
