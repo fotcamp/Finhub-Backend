@@ -23,7 +23,10 @@ import fotcamp.finhub.main.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -166,14 +169,16 @@ public class FcmService {
         String fcmUrl = "https://fcm.googleapis.com/v1/projects/"+fcmConfig.getProjectId()+"/messages:send";
         RestTemplate restTemplate = new RestTemplate();
 
-
-        ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("Failed to send FCM message: {}", response.getBody());
-            throw new IllegalStateException("FCM 메시지 전송 실패");
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Failed to send FCM message: {}", response.getBody());
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("HttpClientErrorException - 전송 실패 대상 토큰: {}", message.getToken());
+        } catch (RestClientException e) {
+            log.error("RestClientException - 전송 실패 대상 토큰: {}", message.getToken());
         }
-
-        log.info("Successfully sent FCM message: {}", response.getBody());
     }
 
     public String getAccessToken(){
