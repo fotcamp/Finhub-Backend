@@ -272,7 +272,7 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> popularKeyword(){
         int rank = 1;
         List<PopularSearchDto> popularSearchDtoList = new ArrayList<>();
-        List<WeekPopularSearch> weekPopularSearchList = weekPopularKeywordRepository.findAllByOrderByIdAsc();
+        List<WeekPopularSearch> weekPopularSearchList = weekPopularKeywordRepository.findTopByOrderByAnalysisDateDesc();
         for (WeekPopularSearch weekPopularSearch : weekPopularSearchList) {
             popularSearchDtoList.add(new PopularSearchDto(rank, weekPopularSearch.getKeyword(), weekPopularSearch.getTrend()));
             rank += 1;
