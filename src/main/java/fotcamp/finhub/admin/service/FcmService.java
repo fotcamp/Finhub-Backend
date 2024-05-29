@@ -64,7 +64,8 @@ public class FcmService {
             }
             else {
                 String email = dto.getTarget(); // 관리자 한명에게만 보내는 조건
-                Manager manager = managerRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("관리자 이메일이 존재하지 않습니다."));
+                Manager manager = managerRepository.findByEmail(email)
+                        .orElseThrow(() -> new EntityNotFoundException("관리자 이메일이 존재하지 않습니다."));
                 if (manager.getFcmToken() == null){
                     return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("토큰정보가 없습니다."));
                 }
@@ -85,7 +86,12 @@ public class FcmService {
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns, dataContent, notification);
-                sendFcmMessage(accessToken, message);
+                try{
+                    sendFcmMessage(accessToken, message);
+                }catch (FcmException e){
+                    log.error("유효하지 않은 토큰:" + manager.getName());
+                }
+
             }
         }
     }
@@ -96,9 +102,12 @@ public class FcmService {
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns, dataContent, notification );
-                sendFcmMessage(accessToken, message);
+                try{
+                    sendFcmMessage(accessToken, message);
+                }catch (FcmException e){
+                    log.error("유효하지 않은 토큰:" + member.getName());
+                }
             }
-
             MemberNotification newSendNoti = new MemberNotification(member, newNotification);
             memberNotificationRepository.save(newSendNoti);
         }
