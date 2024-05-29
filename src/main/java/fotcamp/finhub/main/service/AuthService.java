@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
+import fotcamp.finhub.common.security.CustomAccessDeniedHandler;
+import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.main.config.KakaoConfig;
@@ -14,6 +16,7 @@ import fotcamp.finhub.main.dto.process.login.UserInfoProcessDto;
 import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.dto.process.login.KakaoUserInfoProcessDto;
+import fotcamp.finhub.main.dto.response.login.MemberInfoResponseDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.common.utils.JwtUtil;
@@ -220,5 +223,22 @@ public class AuthService {
                 .pushYN(member.isPushYn())
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
+    }
+
+    public ResponseEntity<ApiResponseWrapper> memberInfoRequest(CustomUserDetails userDetails){
+        if (userDetails == null){
+            throw new EntityNotFoundException("잘못된 요청입니다.");
+        }
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        UserInfoProcessDto userInfoProcessDto = UserInfoProcessDto.builder()
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .userType(member.getUserType() != null ? member.getUserType().getName() : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .pushYN(member.isPushYn())
+                .build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new MemberInfoResponseDto(userInfoProcessDto)));
     }
 }
