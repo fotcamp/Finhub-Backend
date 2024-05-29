@@ -1,5 +1,6 @@
 package fotcamp.finhub.admin.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.domain.GptLog;
 import fotcamp.finhub.admin.domain.GptPrompt;
 import fotcamp.finhub.admin.domain.Manager;
@@ -90,6 +91,7 @@ public class AdminService {
     private final CommentsReportRepository commentsReportRepository;
     private final CommentsRepository commentsRepository;
 
+    private final FcmService fcmService;
 
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
@@ -1064,13 +1066,11 @@ public class AdminService {
     }
 
     // 공지사항 생성 api
-    public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto){
-
-        Announcement newAnnounce = Announcement.builder()
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .createdBy(userDetails.getRole()).build();
-        announcementRepository.save(newAnnounce);
+    public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto) throws JsonProcessingException {
+        announcementRepository.save(
+                new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
+        fcmService.sendFcmNotifications(
+                new CreateFcmMessageRequestDto("all","새로운공지사항등록", "새로운공지사항등록, url은 아직!", "www.naver.com"));
         return  ResponseEntity.ok(ApiResponseWrapper.success());
     }
 

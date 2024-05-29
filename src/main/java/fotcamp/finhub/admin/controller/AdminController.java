@@ -397,8 +397,7 @@ public class AdminController {
     @Operation(summary = "공지사항 생성", description = "공지사항")
     public ResponseEntity<ApiResponseWrapper> createAnnouncement(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody CreateAnnounceRequestDto dto)
-    {
+            @Valid @RequestBody CreateAnnounceRequestDto dto) throws JsonProcessingException {
         return adminService.createAnnouncement(userDetails, dto);
     }
 
