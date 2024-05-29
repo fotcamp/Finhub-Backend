@@ -62,4 +62,13 @@ public class AuthApiController {
         return authService.autoLogin(request);
     }
 
+    // 단순 정보 제공용
+    @GetMapping("/info")
+    @Operation(summary = "단순 멤버 정보제공", description = "단순 정보제공")
+    public ResponseEntity<ApiResponseWrapper> memberInfoRequest(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return authService.memberInfoRequest(userDetails);
+    }
+
 }

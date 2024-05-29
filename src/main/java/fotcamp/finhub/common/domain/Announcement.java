@@ -6,9 +6,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Announcement extends BaseEntity {
 
     @Id
@@ -24,5 +22,11 @@ public class Announcement extends BaseEntity {
     public void updateAnnounce(ModifyAnnounceRequestDto dto){
         this.title = dto.getTitle();
         this.content = dto.getContent();
+    }
+
+    public Announcement(String title, String content, String createdBy) {
+        this.title = title;
+        this.content = content;
+        this.createdBy = createdBy;
     }
 }

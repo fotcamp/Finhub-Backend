@@ -98,6 +98,7 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("FCM ERROR", e.getMessage()));
     }
 
+
     // 예상치 못한 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {

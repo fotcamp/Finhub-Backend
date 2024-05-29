@@ -23,7 +23,10 @@ import fotcamp.finhub.main.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -64,7 +67,8 @@ public class FcmService {
             }
             else {
                 String email = dto.getTarget(); // 관리자 한명에게만 보내는 조건
-                Manager manager = managerRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("관리자 이메일이 존재하지 않습니다."));
+                Manager manager = managerRepository.findByEmail(email)
+                        .orElseThrow(() -> new EntityNotFoundException("관리자 이메일이 존재하지 않습니다."));
                 if (manager.getFcmToken() == null){
                     return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("토큰정보가 없습니다."));
                 }
@@ -85,7 +89,12 @@ public class FcmService {
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns, dataContent, notification);
-                sendFcmMessage(accessToken, message);
+                try{
+                    sendFcmMessage(accessToken, message);
+                }catch (FcmException e){
+                    log.error("유효하지 않은 토큰:" + manager.getName());
+                }
+
             }
         }
     }
@@ -96,9 +105,12 @@ public class FcmService {
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns, dataContent, notification );
-                sendFcmMessage(accessToken, message);
+                try{
+                    sendFcmMessage(accessToken, message);
+                }catch (FcmException e){
+                    log.error("유효하지 않은 토큰:" + member.getName());
+                }
             }
-
             MemberNotification newSendNoti = new MemberNotification(member, newNotification);
             memberNotificationRepository.save(newSendNoti);
         }
@@ -157,14 +169,16 @@ public class FcmService {
         String fcmUrl = "https://fcm.googleapis.com/v1/projects/"+fcmConfig.getProjectId()+"/messages:send";
         RestTemplate restTemplate = new RestTemplate();
 
-
-        ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("Failed to send FCM message: {}", response.getBody());
-            throw new IllegalStateException("FCM 메시지 전송 실패");
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(fcmUrl, HttpMethod.POST, entity, String.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Failed to send FCM message: {}", response.getBody());
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("HttpClientErrorException - 전송 실패 대상 토큰: {}", message.getToken());
+        } catch (RestClientException e) {
+            log.error("RestClientException - 전송 실패 대상 토큰: {}", message.getToken());
         }
-
-        log.info("Successfully sent FCM message: {}", response.getBody());
     }
 
     public String getAccessToken(){
