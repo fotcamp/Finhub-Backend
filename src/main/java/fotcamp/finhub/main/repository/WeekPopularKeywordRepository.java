@@ -1,11 +1,8 @@
 package fotcamp.finhub.main.repository;
 
-import fotcamp.finhub.common.domain.PopularSearch;
 import fotcamp.finhub.common.domain.WeekPopularSearch;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -14,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface WeekPopularKeywordRepository extends JpaRepository<WeekPopularSearch, Long> {
-    List<WeekPopularSearch> findTopByOrderByAnalysisDateDesc();
+    @Query("SELECT ws FROM WeekPopularSearch ws WHERE ws.analysisDate = (SELECT MAX(ws2.analysisDate) FROM WeekPopularSearch ws2)")
+    List<WeekPopularSearch> findWeekPopularSearchWithMaxAnalysisDate();
 }
 
