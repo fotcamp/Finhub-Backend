@@ -14,6 +14,6 @@ import java.util.Optional;
 
 @Repository
 public interface WeekPopularKeywordRepository extends JpaRepository<WeekPopularSearch, Long> {
-    List<WeekPopularSearch> findAllByOrderByIdAsc();
+    List<WeekPopularSearch> findTopByOrderByAnalysisDateDesc();
 }
 
