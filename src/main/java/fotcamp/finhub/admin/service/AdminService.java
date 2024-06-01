@@ -241,9 +241,7 @@ public class AdminService {
         List<TopicProcessDto> topicProcessDtos = topics.getContent().stream().map(TopicProcessDto::new).toList();
         PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(topics);
         AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos, pageInfoProcessDto);
-
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
-
     }
 
     // 토픽 상세 조회
@@ -1067,10 +1065,16 @@ public class AdminService {
 
     // 공지사항 생성 api
     public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto) throws JsonProcessingException {
-        announcementRepository.save(
-                new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
-        fcmService.sendFcmNotifications(
-                new CreateFcmMessageRequestDto("all","새로운공지사항등록", "새로운공지사항등록, url은 아직!", "www.naver.com"));
+        announcementRepository.save(new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
+        CreateFcmMessageRequestDto newRequest = CreateFcmMessageRequestDto.builder()
+                .target("all")
+                .title("새로운 공지사항이 등록되었습니다.")
+                .content("클릭하여 확인하세요.")
+                .view("https://api.fin-hub.co.kr/api/v1/main/announce")
+                .action("OPEN_URL_ACTION")
+                .build();
+
+        fcmService.sendFcmNotifications(newRequest);
         return  ResponseEntity.ok(ApiResponseWrapper.success());
     }
 

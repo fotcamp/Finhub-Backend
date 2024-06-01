@@ -34,6 +34,7 @@ public class FcmMessageProcessDto {
         private String title;
         private String body;
         private String view;
+        private String action;
     }
     @Builder
     @Getter
