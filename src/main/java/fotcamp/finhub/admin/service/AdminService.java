@@ -20,6 +20,7 @@ import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
+import fotcamp.finhub.main.dto.process.FcmMessageProcessDto;
 import fotcamp.finhub.main.dto.process.ReportedCommentsProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
 import fotcamp.finhub.main.dto.response.column.AdminCommentResponseDto;
@@ -46,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -1071,7 +1073,8 @@ public class AdminService {
                 .title("새로운 공지사항이 등록되었습니다.")
                 .content("클릭하여 확인하세요.")
                 .view("https://api.fin-hub.co.kr/api/v1/main/announce")
-                .action("OPEN_URL_ACTION")
+                .action(FcmMessageProcessDto.Action.builder().date(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))).build())
+                .mutableContent(0L)
                 .build();
 
         fcmService.sendFcmNotifications(newRequest);

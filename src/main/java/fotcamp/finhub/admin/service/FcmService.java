@@ -125,12 +125,13 @@ public class FcmService {
                 .build();
     }
 
-    private FcmMessageProcessDto.DataContent buildDataContent(CreateFcmMessageRequestDto dto) {
+    private FcmMessageProcessDto.DataContent buildDataContent(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
+        String actionJson = objectMapper.writeValueAsString(dto.getAction());
         return FcmMessageProcessDto.DataContent.builder()
                 .title(dto.getTitle())
                 .body(dto.getContent())
                 .view(dto.getView())
-                .action(dto.getAction())
+                .action(actionJson)
                 .build();
     }
 
@@ -149,6 +150,7 @@ public class FcmService {
 
         FcmMessageProcessDto.Aps aps = FcmMessageProcessDto.Aps.builder()
                 .alert(alert)
+                .mutableContent(dto.getMutableContent())
                 .build();
 
         FcmMessageProcessDto.Payload payload = FcmMessageProcessDto.Payload.builder()
