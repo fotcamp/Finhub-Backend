@@ -13,13 +13,13 @@ import java.util.List;
 
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Long> {
-    Page<Comments> findByGptColumnAndUseYnOrderByCreatedTimeDesc(GptColumn gptColumn, String useYn, Pageable pageable); // 최신순
-    Page<Comments> findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(GptColumn gptColumn, String useYn, Pageable pageable); // 인기순
+    Page<Comments> findByGptColumnAndUseYnAndMemberNotInOrderByCreatedTimeDesc
+            (GptColumn gptColumn, String useYn, List<Member> blockedMemberIds,Pageable pageable); // 최신순
+    Page<Comments> findByGptColumnAndUseYnAndMemberNotInOrderByTotalLikeDescCreatedTimeDesc
+            (GptColumn gptColumn, String useYn, List<Member> blockedMemberIds, Pageable pageable); // 인기순
+
     Long countByGptColumnAndMember(GptColumn gptColumn, Member member);
-
-
     List<Comments> findByMember(Member member);
-
     List<Comments> findByGptColumn(GptColumn gptColumn);
 
 }
