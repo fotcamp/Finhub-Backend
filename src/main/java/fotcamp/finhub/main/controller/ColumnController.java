@@ -1,8 +1,10 @@
 package fotcamp.finhub.main.controller;
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.utils.PageableUtil;
+import fotcamp.finhub.main.dto.request.BlockMemberRequestDto;
 import fotcamp.finhub.main.dto.request.ScrapRequestDto;
 import fotcamp.finhub.main.dto.response.column.CommentDeleteRequestDto;
 import fotcamp.finhub.main.dto.response.column.CommentReportRequestDto;
@@ -106,5 +108,15 @@ public class ColumnController {
             @RequestBody CommentReportRequestDto dto
     ){
         return columnService.commentReport(userDetails, dto);
+    }
+
+    @PostMapping("/block")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "사용자 차단", description = "사용자 차단")
+    public ResponseEntity<ApiResponseWrapper> blockMember(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody BlockMemberRequestDto dto
+            ){
+        return columnService.blockMember(userDetails, dto);
     }
 }
