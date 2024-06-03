@@ -8,6 +8,7 @@ import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.CommonService;
+import fotcamp.finhub.main.dto.request.BlockMemberRequestDto;
 import fotcamp.finhub.main.dto.request.ScrapRequestDto;
 import fotcamp.finhub.main.dto.response.column.*;
 import fotcamp.finhub.main.repository.*;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +40,7 @@ public class ColumnService {
     private final AwsS3Service awsS3Service;
     private final ReportReasonsRepository reportReasonsRepository;
     private final CommentsReportRepository commentsReportRepository;
-
+    private final BlockRepository blockRepository;
 
     // column 리스트 조회
     public ResponseEntity<ApiResponseWrapper> getColumnList(Pageable pageable) {
@@ -162,11 +164,12 @@ public class ColumnService {
         }
 
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
+        List<Member> blockMemberList = (memberId != null) ? blockRepository.findBlockMemberByMemberId(memberId) : Collections.emptyList();
         Page<Comments> commentsList;
         if (type == 1) { // 인기순
-            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y", pageable);
+            commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByTotalLikeDescCreatedTimeDesc(gptColumn,"Y", blockMemberList, pageable);
         } else if (type == 2) { // 최신순
-            commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y", pageable);
+            commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByCreatedTimeDesc(gptColumn, "Y", blockMemberList, pageable);
         } else {
             return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
         }
@@ -259,6 +262,18 @@ public class ColumnService {
                 .useYn("Y")
                 .build();
         commentsReportRepository.save(commentsReport);
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 사용자 차단하기
+    public ResponseEntity<ApiResponseWrapper> blockMember(CustomUserDetails userDetails, BlockMemberRequestDto dto){
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+        }
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        Member blockMember = memberRepository.findById(dto.memberId()).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        blockRepository.save(new Block(member, blockMember));
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

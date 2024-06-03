@@ -1,10 +1,9 @@
 package fotcamp.finhub.main.dto.process;
 
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
 import java.util.List;
 
@@ -34,6 +33,7 @@ public class FcmMessageProcessDto {
         private String title;
         private String body;
         private String view;
+        private String action;
     }
     @Builder
     @Getter
@@ -49,12 +49,27 @@ public class FcmMessageProcessDto {
     @Getter
     public static class Aps{
         private Alert alert;
+        @JsonProperty("mutable-content")
+        private Long mutableContent;
     }
     @Builder
     @Getter
     public static class Alert{
         private String title;
         private String body;
+    }
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    public static class Action{
+        private String date;
+        private Long id;
+
+        @JsonCreator
+        public Action(@JsonProperty("date")String date,@JsonProperty("id") Long id) {
+            this.date = date;
+            this.id = id;
+        }
     }
 
 }

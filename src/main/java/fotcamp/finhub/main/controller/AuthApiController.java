@@ -46,8 +46,6 @@ public class AuthApiController {
         return authService.login(code, origin);
     }
 
-
-
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     @Operation(summary = "리프레시토큰 만료될 때 액세스토큰 업데이트 ", description = "액세스토큰 발급")
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
