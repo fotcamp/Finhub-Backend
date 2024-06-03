@@ -1,7 +1,6 @@
 package fotcamp.finhub.admin.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.admin.service.FcmService;
@@ -15,17 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.Path;
 
 @Tag(name = "E admin", description = "admin api")
 @RestController
@@ -35,7 +30,6 @@ public class AdminController {
 
     private final AdminService adminService;
     private final FcmService fcmService;
-    private final AwsS3Service awsS3Service;
 
     @PostMapping("/login")
     @Operation(summary = "관리자 로그인 요청", description = "관리자 여부 판단")
@@ -59,7 +53,7 @@ public class AdminController {
         if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
         }
-        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "position", "asc");
         return adminService.getAllCategory(pageable, useYN);
     }
 
@@ -97,7 +91,7 @@ public class AdminController {
         if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
         }
-        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "position", "asc");
         return adminService.getAllTopic(pageable, id, useYN);
     }
 
@@ -506,5 +500,12 @@ public class AdminController {
     @Operation(summary = "신고된 댓글 처리", description = "신고된 댓글 처리 ")
     public ResponseEntity<ApiResponseWrapper> postReportedComment(@Valid @RequestBody ReportCommentRequestDto dto) {
         return adminService.postReportedComment(dto);
+    }
+
+    @PostMapping("/order/{type}")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "카테고리/토픽 순서 조정", description = "카테고리/토픽 순서 조정")
+    public ResponseEntity<ApiResponseWrapper> order(@Valid @RequestBody OrderRequestDto dto, @PathVariable(name = "type") String type) {
+        return adminService.order(dto, type);
     }
 }

@@ -42,6 +42,8 @@ public class QTopic extends EntityPathBase<Topic> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
+    public final NumberPath<Long> position = createNumber("position", Long.class);
+
     public final StringPath shortDefinition = createString("shortDefinition");
 
     public final StringPath summary = createString("summary");

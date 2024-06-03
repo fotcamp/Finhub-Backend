@@ -41,6 +41,8 @@ public class Topic extends BaseEntity {
 
     private String createdBy;
 
+    private Long position; // 순서
+
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.PERSIST)
     private List<Gpt> gptList = new ArrayList<>();

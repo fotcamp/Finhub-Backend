@@ -10,10 +10,12 @@ public class AllCategoryProcessDto {
     private final Long id;
     private final String name;
     private final String useYN;
+    private final Long position;
 
     public AllCategoryProcessDto(Category category) {
         this.id = category.getId();
         this.name = category.getName();
         this.useYN = category.getUseYN();
+        this.position = category.getPosition();
     }
 }
