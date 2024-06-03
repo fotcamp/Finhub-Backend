@@ -26,6 +26,8 @@ public class Category {
     @Builder.Default
     private String useYN = "N";
 
+    private Long position; // 순서
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
     private final List<Topic> topics = new ArrayList<>();
 

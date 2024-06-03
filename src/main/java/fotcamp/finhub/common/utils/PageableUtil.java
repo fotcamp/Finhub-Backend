@@ -27,6 +27,14 @@ public class PageableUtil {
         return createPageable(page, size, Sort.by(sortProperty).descending());
     }
 
+    public static Pageable createPageableWithDefaultSort(Integer page, Integer size, String sortProperty, String orderBy) {
+        if ("asc".equals(orderBy)) {
+            return createPageable(page, size, Sort.by(sortProperty).ascending());
+        } else {
+            return createPageable(page, size, Sort.by(sortProperty).descending());
+        }
+    }
+
     public static Pageable createPageableWithNoSort(Integer page, Integer size) {
         return createPageableNoSort(page, size);
     }

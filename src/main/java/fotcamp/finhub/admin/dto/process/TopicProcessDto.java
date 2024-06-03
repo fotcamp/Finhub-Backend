@@ -9,11 +9,13 @@ public class TopicProcessDto {
     private final String categoryName;
     private final String title;
     private final String useYN;
+    private final Long position;
 
     public TopicProcessDto(Topic topic) {
         this.topicId = topic.getId();
         this.categoryName = topic.getCategory().getName();
         this.title = topic.getTitle();
         this.useYN = topic.getUseYN();
+        this.position = topic.getPosition();
     }
 }

@@ -59,7 +59,10 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom{
                 .map(order -> {
                     PathBuilder<Category> entityPath = new PathBuilder<>(Category.class, "category");
                     Expression<?> expression = entityPath.get(order.getProperty());
-                    return new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, expression);
+                    OrderSpecifier<?> orderSpecifier = order.isAscending() ? new OrderSpecifier(Order.ASC, expression)
+                            : new OrderSpecifier(Order.DESC, expression);
+                    // NULL 값이 마지막에 오도록 설정
+                    return orderSpecifier.nullsLast();
                 })
                 .toArray(OrderSpecifier[]::new);
     }

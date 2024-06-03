@@ -20,6 +20,7 @@ import fotcamp.finhub.common.service.CommonService;
 import fotcamp.finhub.common.utils.DateUtil;
 import fotcamp.finhub.common.utils.JwtUtil;
 import fotcamp.finhub.main.dto.process.AnnouncementProcessDto;
+import fotcamp.finhub.main.dto.process.FcmMessageProcessDto;
 import fotcamp.finhub.main.dto.process.ReportedCommentsProcessDto;
 import fotcamp.finhub.main.dto.response.AnnouncementResponseDto;
 import fotcamp.finhub.main.dto.response.column.AdminCommentResponseDto;
@@ -46,10 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -241,9 +240,7 @@ public class AdminService {
         List<TopicProcessDto> topicProcessDtos = topics.getContent().stream().map(TopicProcessDto::new).toList();
         PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(topics);
         AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos, pageInfoProcessDto);
-
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
-
     }
 
     // 토픽 상세 조회
@@ -1067,10 +1064,17 @@ public class AdminService {
 
     // 공지사항 생성 api
     public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto) throws JsonProcessingException {
-        announcementRepository.save(
-                new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
-        fcmService.sendFcmNotifications(
-                new CreateFcmMessageRequestDto("all","새로운공지사항등록", "새로운공지사항등록, url은 아직!", "www.naver.com"));
+        announcementRepository.save(new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
+        CreateFcmMessageRequestDto newRequest = CreateFcmMessageRequestDto.builder()
+                .target("all")
+                .title("새로운 공지사항이 등록되었습니다.")
+                .content("클릭하여 확인하세요.")
+                .view("https://api.fin-hub.co.kr/api/v1/main/announce")
+                .action(FcmMessageProcessDto.Action.builder().date(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))).build())
+                .mutableContent(0L)
+                .build();
+
+        fcmService.sendFcmNotifications(newRequest);
         return  ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
@@ -1221,5 +1225,23 @@ public class AdminService {
         comment.modifyUseYn(); // 무조건 n으로
         commentsReport.modifyUseYn(); // 무조건 n으로
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 카테고리, 토픽 순서 지정
+    public ResponseEntity<ApiResponseWrapper> order(OrderRequestDto dto, String type) {
+        try {
+            if ("category".equals(type)) {
+                for (Map.Entry<Long, Long> order : dto.orders().entrySet()) {
+                    categoryRepository.updatePosition(order.getKey(), order.getValue());
+                }
+            } else if ("topic".equals(type)) {
+                for (Map.Entry<Long, Long> order : dto.orders().entrySet()) {
+                    topicRepository.updatePosition(order.getKey(), order.getValue());
+                }
+            }
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("알 수 없는 오류 발생"));
+        }
     }
 }
