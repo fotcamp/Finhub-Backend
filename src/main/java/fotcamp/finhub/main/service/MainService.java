@@ -73,7 +73,7 @@ public class MainService {
     // 전체 카테고리 리스트
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> categoryList(){
-        List<Category> allCategories = categoryRepository.findAllByUseYNOrderByIdAsc("Y");
+        List<Category> allCategories = categoryRepository.findAllByUseYNAndPositionIsNotNullOrderByPositionAsc("Y");
         List<CategoryListProcessDto> categoryList = allCategories.stream()
                 .map(category -> new CategoryListProcessDto(category.getId(), category.getName())).collect(Collectors.toList());
         CategoryListResponseDto responseDto = new CategoryListResponseDto(categoryList);
@@ -421,7 +421,7 @@ public class MainService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> list(Long categoryId){
         Category findCategory = categoryRepository.findById(categoryId).orElseThrow( () -> new EntityNotFoundException("카테고리ID가 존재하지 않습니다."));
-        List<Topic> topicList = topicRepository.findByUseYNAndCategory("Y", findCategory);
+        List<Topic> topicList = topicRepository.findByUseYNAndCategoryAndPositionIsNotNullOrderByPositionAsc("Y", findCategory);
         List<TopicListOnlyNameProcessDto> topicListDto = topicList.stream()
                 .map(topic -> new TopicListOnlyNameProcessDto(topic.getId(), topic.getTitle())).collect(Collectors.toList());
 

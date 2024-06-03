@@ -48,10 +48,7 @@ import java.nio.file.NoSuchFileException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -1228,5 +1225,23 @@ public class AdminService {
         comment.modifyUseYn(); // 무조건 n으로
         commentsReport.modifyUseYn(); // 무조건 n으로
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    // 카테고리, 토픽 순서 지정
+    public ResponseEntity<ApiResponseWrapper> order(OrderRequestDto dto, String type) {
+        try {
+            if ("category".equals(type)) {
+                for (Map.Entry<Long, Long> order : dto.orders().entrySet()) {
+                    categoryRepository.updatePosition(order.getKey(), order.getValue());
+                }
+            } else if ("topic".equals(type)) {
+                for (Map.Entry<Long, Long> order : dto.orders().entrySet()) {
+                    topicRepository.updatePosition(order.getKey(), order.getValue());
+                }
+            }
+            return ResponseEntity.ok(ApiResponseWrapper.success());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("알 수 없는 오류 발생"));
+        }
     }
 }
