@@ -166,13 +166,25 @@ public class ColumnService {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
         List<Member> blockMemberList = (memberId != null) ? blockRepository.findBlockMemberByMemberId(memberId) : Collections.emptyList();
         Page<Comments> commentsList;
-        if (type == 1) { // 인기순
-            commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByTotalLikeDescCreatedTimeDesc(gptColumn,"Y", blockMemberList, pageable);
-        } else if (type == 2) { // 최신순
-            commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByCreatedTimeDesc(gptColumn, "Y", blockMemberList, pageable);
+
+        if (blockMemberList.isEmpty()) {
+            if (type == 1) { // 인기순
+                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y", pageable);
+            } else if (type == 2) { // 최신순
+                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y", pageable);
+            } else {
+                return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
+            }
         } else {
-            return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
+            if (type == 1) { // 인기순
+                commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y", blockMemberList, pageable);
+            } else if (type == 2) { // 최신순
+                commentsList = commentsRepository.findByGptColumnAndUseYnAndMemberNotInOrderByCreatedTimeDesc(gptColumn, "Y", blockMemberList, pageable);
+            } else {
+                return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
+            }
         }
+
         List<CommentResponseDto> responseList = commentsList.getContent().stream()
                 .map(comment -> {
                     Member commentWriter = comment.getMember();
@@ -274,6 +286,7 @@ public class ColumnService {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         Member blockMember = memberRepository.findById(dto.memberId()).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         blockRepository.save(new Block(member, blockMember));
+        blockRepository.save(new Block(blockMember, member));
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
