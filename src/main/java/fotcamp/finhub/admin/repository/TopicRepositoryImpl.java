@@ -66,7 +66,7 @@ public class TopicRepositoryImpl implements TopicRepositoryCustom{
                     OrderSpecifier<?> orderSpecifier = order.isAscending() ? new OrderSpecifier(Order.ASC, expression)
                             : new OrderSpecifier(Order.DESC, expression);
                     // NULL 값이 마지막에 오도록 설정
-                    return orderSpecifier.nullsLast();
+                    return orderSpecifier.nullsFirst();
                 })
                 .toArray(OrderSpecifier[]::new);
     }

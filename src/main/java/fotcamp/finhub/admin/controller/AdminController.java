@@ -6,7 +6,6 @@ import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.admin.service.FcmService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.utils.PageableUtil;
 import fotcamp.finhub.main.dto.response.column.ReportCommentRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
