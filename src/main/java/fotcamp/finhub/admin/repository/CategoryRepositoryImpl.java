@@ -4,6 +4,7 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import fotcamp.finhub.common.domain.Category;
@@ -27,9 +28,13 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom{
     // 기존 메서드
     @Override
     public List<Category> searchAllCategoryFilterList(String useYN) {
+        PathBuilder<Category> entityPath = new PathBuilder<>(Category.class, "category");
         return queryFactory
                 .selectFrom(category)
                 .where(useYNEq(useYN))
+                .orderBy(
+                        new OrderSpecifier<>(Order.ASC, entityPath.getString("position"), OrderSpecifier.NullHandling.NullsFirst)
+                )
                 .fetch();
     }
 

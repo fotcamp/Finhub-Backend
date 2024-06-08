@@ -5,5 +5,5 @@ import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 
 import java.util.List;
 
-public record AllCategoryResponseDto(List<AllCategoryProcessDto> categoryList, PageInfoProcessDto pageInfo) {
+public record AllCategoryResponseDto(List<AllCategoryProcessDto> categoryList) {
 }

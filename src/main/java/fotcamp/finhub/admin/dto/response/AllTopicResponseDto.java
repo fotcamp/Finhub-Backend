@@ -5,6 +5,6 @@ import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
 
 import java.util.List;
 
-public record AllTopicResponseDto(List<TopicProcessDto> topicList, PageInfoProcessDto pageInfo) {
+public record AllTopicResponseDto(List<TopicProcessDto> topicList) {
 
 }

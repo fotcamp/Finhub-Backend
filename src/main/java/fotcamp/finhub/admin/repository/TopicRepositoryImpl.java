@@ -28,10 +28,14 @@ public class TopicRepositoryImpl implements TopicRepositoryCustom{
     // 기존 메서드
     @Override
     public List<Topic> searchAllTopicFilterList(Long id, String useYN) {
+        PathBuilder<Topic> entityPath = new PathBuilder<>(Topic.class, "topic");
          return queryFactory
                 .selectFrom(topic)
                 .join(topic.category, category).fetchJoin()
                 .where(categoryEq(id), useYNEq(useYN))
+                 .orderBy(
+                         new OrderSpecifier<>(Order.ASC, entityPath.getString("position"), OrderSpecifier.NullHandling.NullsFirst)
+                 )
                 .fetch();
     }
 
