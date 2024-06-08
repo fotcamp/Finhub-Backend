@@ -5,14 +5,14 @@ import lombok.Getter;
 
 @Getter
 public class TopicProcessDto {
-    private final Long topicId;
+    private final Long id;
     private final String categoryName;
     private final String title;
     private final String useYN;
     private final Long position;
 
     public TopicProcessDto(Topic topic) {
-        this.topicId = topic.getId();
+        this.id = topic.getId();
         this.categoryName = topic.getCategory().getName();
         this.title = topic.getTitle();
         this.useYN = topic.getUseYN();
