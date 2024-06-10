@@ -125,10 +125,11 @@ public class AdminService {
 
     // 카테고리 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(String useYN) {
-        List<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(useYN);
-        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.stream().map(AllCategoryProcessDto::new).toList();
-        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList);
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(Pageable pageable, String useYN) {
+        Page<Category> categories = categoryRepositoryCustom.searchAllCategoryFilterList(pageable, useYN);
+        List<AllCategoryProcessDto> allCategoryProcessDtoList = categories.getContent().stream().map(AllCategoryProcessDto::new).toList();
+        PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(categories);
+        AllCategoryResponseDto allCategoryResponseDto = new AllCategoryResponseDto(allCategoryProcessDtoList, PageInfoProcessDto);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(allCategoryResponseDto));
     }
@@ -168,6 +169,7 @@ public class AdminService {
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
                     .thumbnailImgPath(awsS3Service.extractPathFromUrl(createCategoryRequestDto.s3ImgUrl()))
+                    .position(categoryRepository.findMaxPosition()+1)
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -234,10 +236,11 @@ public class AdminService {
 
     // 토픽 전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseWrapper> getAllTopic(Long categoryId, String useYN) {
-        List<Topic> topics = topicRepositoryCustom.searchAllTopicFilterList(categoryId, useYN);
-        List<TopicProcessDto> topicProcessDtos = topics.stream().map(TopicProcessDto::new).toList();
-        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos);
+    public ResponseEntity<ApiResponseWrapper> getAllTopic(Pageable pageable, Long categoryId, String useYN) {
+        Page<Topic> topics = topicRepositoryCustom.searchAllTopicFilterList(pageable, categoryId, useYN);
+        List<TopicProcessDto> topicProcessDtos = topics.getContent().stream().map(TopicProcessDto::new).toList();
+        PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(topics);
+        AllTopicResponseDto resultDto = new AllTopicResponseDto(topicProcessDtos, pageInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
     }
 
@@ -271,6 +274,7 @@ public class AdminService {
                     .summary(createTopicRequestDto.summary())
                     .thumbnailImgPath(awsS3Service.extractPathFromUrl(createTopicRequestDto.s3ImgUrl()))
                     .createdBy(userDetails.getRole())
+                    .position(topicRepository.findMaxPosition()+1)
                     .build();
 
             topic.setCategory(topicCategory);

@@ -28,14 +28,10 @@ public class TopicRepositoryImpl implements TopicRepositoryCustom{
     // 기존 메서드
     @Override
     public List<Topic> searchAllTopicFilterList(Long id, String useYN) {
-        PathBuilder<Topic> entityPath = new PathBuilder<>(Topic.class, "topic");
          return queryFactory
                 .selectFrom(topic)
                 .join(topic.category, category).fetchJoin()
                 .where(categoryEq(id), useYNEq(useYN))
-                 .orderBy(
-                         new OrderSpecifier<>(Order.ASC, entityPath.getString("position"), OrderSpecifier.NullHandling.NullsFirst)
-                 )
                 .fetch();
     }
 
@@ -67,10 +63,7 @@ public class TopicRepositoryImpl implements TopicRepositoryCustom{
                 .map(order -> {
                     PathBuilder<Topic> entityPath = new PathBuilder<>(Topic.class, "topic");
                     Expression<?> expression = entityPath.get(order.getProperty());
-                    OrderSpecifier<?> orderSpecifier = order.isAscending() ? new OrderSpecifier(Order.ASC, expression)
-                            : new OrderSpecifier(Order.DESC, expression);
-                    // NULL 값이 마지막에 오도록 설정
-                    return orderSpecifier.nullsFirst();
+                    return new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, expression);
                 })
                 .toArray(OrderSpecifier[]::new);
     }

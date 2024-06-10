@@ -44,11 +44,16 @@ public class AdminController {
     @GetMapping("/category")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "카테고리 전체 조회", description = "category 전체 조회")
-    public ResponseEntity<ApiResponseWrapper> getAllCategory(@RequestParam(name = "useYN", required = false) String useYN) {
+    public ResponseEntity<ApiResponseWrapper> getAllCategory(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(name = "useYN", required = false) String useYN) {
+
         if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
         }
-        return adminService.getAllCategory(useYN);
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "position", "asc");
+        return adminService.getAllCategory(pageable, useYN);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -76,6 +81,8 @@ public class AdminController {
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "토픽 전체 조회", description = "topic 전체 조회")
     public ResponseEntity<ApiResponseWrapper> getAllTopic(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(name = "categoryId", required = false) Long id,
             @RequestParam(name = "useYN", required = false) String useYN
     ) {
@@ -83,7 +90,8 @@ public class AdminController {
         if (useYN != null && !useYN.equals("Y") && !useYN.equals("N")) {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
         }
-        return adminService.getAllTopic(id, useYN);
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "position", "asc");
+        return adminService.getAllTopic(pageable, id, useYN);
     }
 
     @GetMapping("/topic/{topicId}")
