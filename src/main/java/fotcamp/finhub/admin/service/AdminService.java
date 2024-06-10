@@ -169,6 +169,7 @@ public class AdminService {
             Category category = Category.builder()
                     .name(createCategoryRequestDto.name())
                     .thumbnailImgPath(awsS3Service.extractPathFromUrl(createCategoryRequestDto.s3ImgUrl()))
+                    .position(categoryRepository.findMaxPosition()+1)
                     .build();
 
             Category saveCategory = categoryRepository.save(category);
@@ -273,6 +274,7 @@ public class AdminService {
                     .summary(createTopicRequestDto.summary())
                     .thumbnailImgPath(awsS3Service.extractPathFromUrl(createTopicRequestDto.s3ImgUrl()))
                     .createdBy(userDetails.getRole())
+                    .position(topicRepository.findMaxPosition()+1)
                     .build();
 
             topic.setCategory(topicCategory);

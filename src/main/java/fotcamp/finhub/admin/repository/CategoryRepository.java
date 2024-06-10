@@ -16,6 +16,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findAllByUseYNAndPositionIsNotNullOrderByPositionAsc(String useYN);
 
+    @Query("SELECT COALESCE(MAX(c.position), 0) FROM Category c")
+    Long findMaxPosition();
+
     @Modifying
     @Query("UPDATE Category c SET c.position = :position WHERE c.id = :id")
     void updatePosition(@Param("id") Long id, @Param("position") Long position);

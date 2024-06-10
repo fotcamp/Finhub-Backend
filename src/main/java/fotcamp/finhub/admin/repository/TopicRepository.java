@@ -36,4 +36,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Modifying
     @Query("UPDATE Topic t SET t.position = :position WHERE t.id = :id")
     void updatePosition(@Param("id") Long id, @Param("position") Long position);
+
+    @Query("SELECT COALESCE(MAX(t.position), 0) FROM Topic t")
+    Long findMaxPosition();
 }
