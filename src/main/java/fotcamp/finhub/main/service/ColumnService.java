@@ -193,9 +193,13 @@ public class ColumnService {
                             .map(awsS3Service::combineWithBaseUrl)
                             .orElse(null); // getUserAvatar()가 null이면 null 반환
                     if ("Y".equals(loginCheck)) { // 로그인 한 유저면
-                        return new CommentResponseDto(commentWriter, comment, avatarPath, comment.getMember().getMemberId().equals(memberId));
+                        Optional<CommentsLike> firstByCommentAndMember = commentsLikeRepository.findFirstByCommentAndMember(comment, memberRepository.findById(memberId).get());
+                        if (firstByCommentAndMember.isPresent()) {
+                            return new CommentResponseDto(commentWriter, comment, avatarPath, comment.getMember().getMemberId().equals(memberId), true);
+                        }
+                        return new CommentResponseDto(commentWriter, comment, avatarPath, comment.getMember().getMemberId().equals(memberId), false);
                     } else { // 로그인 하지않은 유저면
-                        return new CommentResponseDto(commentWriter, comment, avatarPath, false);
+                        return new CommentResponseDto(commentWriter, comment, avatarPath, false, false);
                     }
                 }).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsList);

@@ -15,8 +15,10 @@ public class CommentResponseDto {
     private String comment;
     private int like;
     private boolean isUserComment;
+    private Long writerId;
+    private boolean isUserLike;
 
-    public CommentResponseDto(Member member, Comments comment, String url, Boolean isUser) {
+    public CommentResponseDto(Member member, Comments comment, String url, Boolean isUser, Boolean isLike) {
         this.id = comment.getId();
         this.nickname = member.getNickname();
         this.date = comment.getCreatedTime().toLocalDate();
@@ -24,6 +26,8 @@ public class CommentResponseDto {
         this.comment = comment.getContent();
         this.like = comment.getTotalLike();
         this.isUserComment = isUser;
+        this.writerId = comment.getMember().getMemberId();
+        this.isUserLike = isLike;
     }
 
 }
