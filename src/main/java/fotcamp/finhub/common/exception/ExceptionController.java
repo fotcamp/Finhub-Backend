@@ -2,6 +2,7 @@ package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import io.jsonwebtoken.JwtException;
+import io.sentry.Sentry;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -103,6 +104,7 @@ public class ExceptionController{
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         // 예외 처리 로직
+        Sentry.captureException(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
