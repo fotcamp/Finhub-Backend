@@ -26,7 +26,7 @@ public interface MemberQuizRepository extends JpaRepository<MemberQuiz, Long> {
     );
 
 
-    @Query("SELECT new fotcamp.finhub.main.dto.response.quiz.QuizInfoDto(q.id, q.question, q.targetDate) FROM MemberQuiz mq JOIN mq.quiz q WHERE mq.member.memberId = :memberId AND q.targetDate <= :cursorDate AND mq.answerYn = :isCorrect ORDER BY q.targetDate DESC")
+    @Query("SELECT new fotcamp.finhub.main.dto.response.quiz.QuizInfoDto(q.id, q.question, q.targetDate) FROM MemberQuiz mq JOIN mq.quiz q WHERE mq.member.memberId = :memberId AND q.targetDate <= :cursorDate AND (:isCorrect = 'X' OR mq.answerYn = :isCorrect) ORDER BY q.targetDate DESC")
     List<QuizInfoDto> findSolvedQuizInfoByMemberId(@Param("memberId") Long memberId, @Param("cursorDate") LocalDate cursorDate, @Param("isCorrect") String isCorrect, Pageable pageable);
 
     List<MemberQuiz> findByQuiz(Quiz quiz);
