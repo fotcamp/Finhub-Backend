@@ -322,7 +322,7 @@ public class AdminService {
                 if (gptProcessDto.getGptId() != null) {
                     // gpt entity 내용 수정
                     gptRepository.findById(gptProcessDto.getGptId()).ifPresent(gpt -> {
-                        gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole());
+                        gpt.modifyContentUseYN(gptProcessDto, userDetails.getRole(), modifyTopicRequestDto.getCategoryId());
                         updateGptList.add(gpt);
                     });
                 }
