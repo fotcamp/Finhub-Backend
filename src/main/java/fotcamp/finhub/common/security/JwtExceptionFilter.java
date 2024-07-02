@@ -44,13 +44,13 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             }
 
             if (request.getHeader(expectedHeaderKey) == null) {
-                log.error(request.getHeader(expectedHeaderKey));
+                log.info(request.getHeader(expectedHeaderKey));
                 setResponse(response, ErrorMessage.EMPTY_HEADER);
                 return;
             } else if(Objects.equals(expectedHeaderValue, request.getHeader(expectedHeaderKey))){ //1차 보안 (사전에 약속된 key 하나를 default로 지정) : 헤더에 없으면 에러처리
                 filterChain.doFilter(request, response);// 로그인 비로그인 다 들어가겠지
             } else{
-                log.error(request.getHeader(expectedHeaderKey));
+                log.info(request.getHeader(expectedHeaderKey));
                 setResponse(response, ErrorMessage.NOT_CORRECT_HEADER);
                 return;
             }

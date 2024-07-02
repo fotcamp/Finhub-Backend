@@ -2,6 +2,7 @@ package fotcamp.finhub.common.exception;
 
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import io.jsonwebtoken.JwtException;
+import io.sentry.Sentry;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -39,14 +40,14 @@ public class ExceptionController{
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponseWrapper> handlingInvalidException(HttpMessageNotReadableException e) {
         String errorMessage = "값 부분이 공란입니다";  // 예외 메시지를 새로 정의
-        log.error("값 부분이 공란", e);
+        log.debug("값 부분이 공란", e);
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
     // 파일 업로드 용량 초과시 발생
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     protected ResponseEntity<ApiResponseWrapper> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        log.error("handleMaxUploadSizeExceededException", e);
+        log.debug("handleMaxUploadSizeExceededException", e);
         String errorMessage = "업로드 할 수 있는 파일의 최대 크기는 10MB 입니다.";
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
@@ -98,11 +99,11 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("FCM ERROR", e.getMessage()));
     }
 
-
     // 예상치 못한 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         // 예외 처리 로직
+        Sentry.captureException(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 

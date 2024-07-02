@@ -29,10 +29,9 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler{
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws ServletException, IOException{
-        log.error(accessDeniedException.getMessage());
+                       AccessDeniedException accessDeniedException) throws IOException{
+        log.debug(accessDeniedException.getMessage());
 
-        //ErrorMessageResponseDto responseMsg = new ErrorMessageResponseDto(ErrorMessage.ACCESS_DENIED.getCode(), ErrorMessage.ACCESS_DENIED.toString(), ErrorMessage.ACCESS_DENIED.getMsg());
         ErrorMessageResponseDto responseMsg = new ErrorMessageResponseDto(ApiStatus.FAIL, "접근이 거부되었습니다.","ACCESS_DENIED");
         String responseBody = objectMapper.writeValueAsString(responseMsg);
 
