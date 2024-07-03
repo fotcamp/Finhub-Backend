@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -523,15 +524,18 @@ public class MainService {
     public ResponseEntity<ApiResponseWrapper> myCommentList(CustomUserDetails userDetails){
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        List<Comments> commentsList = commentsRepository.findByMember(member);
+        List<Comments> commentsList = commentsRepository.findByMemberAndUseYn(member, "Y");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         List<MyCommentsListProcessDto> commentListProcessDto =
                 commentsList.stream().map(comments ->
                         new MyCommentsListProcessDto(
                                 comments.getId(),
+                                comments.getGptColumn().getId(),
                                 comments.getGptColumn().getTitle(),
-                                comments.getGptColumn().getBackgroundUrl(),
                                 comments.getContent(),
-                                comments.getTotalLike())
+                                comments.getTotalLike(),
+                                comments.getCreatedTime().format(formatter)
+                        )
                 ).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseWrapper.success(new MyCommentsListResponseDto(commentListProcessDto)));
     }
