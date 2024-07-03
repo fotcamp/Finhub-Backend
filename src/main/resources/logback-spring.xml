@@ -1,0 +1,42 @@
+<configuration>
+    <springProfile name="prod">
+        <!-- INFO부터 ERROR까지 기록하는 파일 설정 -->
+        <appender name="ORDINARY" class="ch.qos.logback.core.FileAppender">
+            <file>finhubLog.log</file>
+            <encoder>
+                <pattern>%date %level [%thread] %logger{10} [%file:%line] - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- WARN부터 ERROR까지 기록하는 파일 설정 -->
+        <appender name="HOTFIX" class="ch.qos.logback.core.FileAppender">
+            <file>hotfixLog.log</file>
+            <encoder>
+                <pattern>%date %level [%thread] %logger{10} [%file:%line] - %msg%n</pattern>
+            </encoder>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>WARN</level>
+            </filter>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="ORDINARY" />
+        </root>
+        <!-- WARN 이상의 로그는 HOTFIX에 기록 -->
+        <logger name="org.springframework" level="WARN">
+            <appender-ref ref="HOTFIX" />
+        </logger>
+    </springProfile>
+
+    <springProfile name="local">
+        <!-- 콘솔 확인을 위한 출력-->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%date %level [%thread] %logger{10} [%file:%line] - %msg%n</pattern>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="STDOUT" />
+        </root>
+    </springProfile>
+</configuration>
