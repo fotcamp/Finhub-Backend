@@ -38,8 +38,7 @@ public class JwtExceptionFilter extends OncePerRequestFilter { // OncePerRequest
             if (requestURI.contains("/swagger-ui/")
                     || requestURI.contains("/v3/api-docs")
                     || requestURI.contains("/swagger-resources")
-                    || requestURI.equals("/swagger-ui.html")
-                    || requestURI.equals("/home")) {
+                    || requestURI.equals("/swagger-ui.html")) {
                 filterChain.doFilter(request, response);
                 return;
             }
