@@ -356,18 +356,19 @@ public class MainService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> nextTopic(Long categoryId, Long topicId){
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
         PageRequest request = PageRequest.of(0, 1);
-        // 같은 category의 다음 topic 찾기
-        Page<Topic> nextTopicPage = topicRepository.findNextTopicInSameCategory(categoryId, topicId, request);
+        // 같은 category에 속하는 토픽들 중 해당 position 다음 순번의 토픽 찾기
+        Page<Topic> nextTopicPage = topicRepository.findNextTopicInSameCategory(categoryId, topic.getPosition(), request);
         DetailNextTopicProcessDto nextTopicProcessDto = null;
-        // 만약 다음 토픽이 존재하지 않는다면
+
         if(!nextTopicPage.isEmpty()){
             Topic nextTopic = nextTopicPage.getContent().get(0);
             nextTopicProcessDto= DetailNextTopicProcessDto.builder()
                     .id(nextTopic.getId())
                     .title(nextTopic.getTitle())
                     .img_path(awsS3Service.combineWithBaseUrl(nextTopic.getThumbnailImgPath())).build();
-        }else {
+        }else { //만약 다음 토픽이 존재하지 않는다면
             nextTopicProcessDto = new DetailNextTopicProcessDto(0L, "", "");
         }
         return ResponseEntity.ok(ApiResponseWrapper.success(new NextTopicResponseDto(nextTopicProcessDto)));
