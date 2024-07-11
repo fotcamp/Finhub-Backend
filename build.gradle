@@ -22,9 +22,6 @@ repositories {
 }
 
 dependencies {
-
-	implementation 'javax.servlet:jstl:1.2' // jstl 라이브러리 추가
-	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
