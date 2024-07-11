@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TopicRepository extends JpaRepository<Topic, Long> {
@@ -24,9 +25,8 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Query("SELECT t FROM Topic t WHERE t.category = :category AND t.id >= :cursorId AND t.useYN = 'Y' AND t.position IS NOT NULL ORDER BY t.position ASC")
     List<Topic> findByCategoryAndIdGreaterThan(@Param("category") Category category, @Param("cursorId") Long cursorId, Pageable pageable);
 
-
-    @Query("SELECT t FROM Topic t WHERE t.category.id = :categoryId AND t.id > :topicId AND t.useYN = 'Y' ORDER BY t.id ASC")
-    Page<Topic> findNextTopicInSameCategory(@Param("categoryId") Long categoryId, @Param("topicId") Long topicId, Pageable pageable);
+    @Query("SELECT t FROM Topic t WHERE t.category.id = :categoryId AND t.position > :position AND t.useYN = 'Y' ORDER BY t.position ASC")
+    Page<Topic> findNextTopicInSameCategory(@Param("categoryId") Long categoryId, @Param("position") Long position, Pageable pageable);
 
     List<Topic> findByUseYNAndCategoryAndPositionIsNotNullOrderByPositionAsc(String useYN, Category category);
 
