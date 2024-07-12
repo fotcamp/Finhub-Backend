@@ -24,6 +24,14 @@ jobs:
           echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
           cat ./src/main/resources/application.yaml
 
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "finhub-firebase-adminsdk.json"
+          json: ${{ secrets.FCM_SETTING }}
+          dir: "./src/main/resources/"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
