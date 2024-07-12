@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Generate Application.yaml File
         run: |
+          mkdir ./src/main/resources
           touch ./src/main/resources/application.yaml
           echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
           cat ./src/main/resources/application.yaml
