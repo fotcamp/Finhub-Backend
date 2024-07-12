@@ -2,11 +2,7 @@
 FROM openjdk:17-alpine AS builder
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src src
+COPY . .
 
 RUN chmod +x gradlew && ./gradlew clean build --no-daemon -x test
 
