@@ -228,7 +228,7 @@ public class MainController {
 
     @PostMapping("/menu/setting/resign")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 회원탈퇴", description = "회원 탈퇴 ")
+    @Operation(summary = "설정 - 회원탈퇴", description = "회원 탈퇴 - 직업, 아바타, 캘린더 이모티콘, 퀴즈목록, 토픽스크랩, 최근검색기록, 리프레시토큰, 댓글 기록, 댓글 좋아요 기록, 컬럼 스크랩, 사용자 차단 목록 ")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody QuitRequestDto dto

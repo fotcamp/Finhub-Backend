@@ -30,5 +30,6 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     List<Comments> findByMemberAndUseYn(Member member, String useYn);
 
     List<Comments> findByGptColumn(GptColumn gptColumn);
+    List<Comments> findByMember(Member member);
 
 }
