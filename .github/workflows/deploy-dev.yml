@@ -21,7 +21,7 @@ jobs:
         run: |
           mkdir ./src/main/resources
           touch ./src/main/resources/application.yaml
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
+          echo "${{ secrets.APPLICATION_DEV }}" > ./src/main/resources/application.yaml
           cat ./src/main/resources/application.yaml
 
       - name: create-json
