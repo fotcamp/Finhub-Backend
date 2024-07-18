@@ -69,6 +69,9 @@ public class MainService {
     private final QuitMemberRepository quitMemberRepository;
     private final MemberNotificationRepository memberNotificationRepository;
     private final NotificationRepository notificationRepository;
+    private final BlockRepository blockRepository;
+    private final CommentsLikeRepository commentsLikeRepository;
+
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -134,6 +137,22 @@ public class MainService {
                 .reason(dto.reason())
                 .build();
         quitMemberRepository.save(quitMember);
+        // 댓글 삭제
+        List<Comments> commentAll = commentsRepository.findByMember(existingMember);
+        commentsRepository.deleteAll(commentAll);
+        // 댓글 좋아요 기록 삭제
+        List<CommentsLike> commentsLikeAll = commentsLikeRepository.findByMember(existingMember);
+        commentsLikeRepository.deleteAll(commentsLikeAll);
+        // 컬럼 스크랩 삭제
+        List<PostsScrap> postScrapAll = postsScrapRepository.findByMember(existingMember);
+        postsScrapRepository.deleteAll(postScrapAll);
+
+        // 차단 목록 삭제
+        List<Block> blockListAll = blockRepository.findByMember(existingMember);
+        List<Block> blockMemberListAll = blockRepository.findByBlockMember(existingMember);
+        blockRepository.deleteAll(blockListAll);
+        blockRepository.deleteAll(blockMemberListAll);
+
         memberRepository.delete(existingMember);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }

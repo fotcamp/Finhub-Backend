@@ -14,4 +14,7 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
 
     @Query("SELECT b.blockMember FROM Block b WHERE b.member.id = :memberId")
     List<Member> findBlockMemberByMemberId(@Param("memberId") Long memberId);
+
+    List<Block> findByMember(Member member);
+    List<Block> findByBlockMember(Member member);
 }
