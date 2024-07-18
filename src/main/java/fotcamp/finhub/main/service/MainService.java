@@ -397,11 +397,15 @@ public class MainService {
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        UserType userType = userTypeRepository.findById(dto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
-        member.updateJob(userType);
+        long usertype_id = dto.getId();
+        if(usertype_id ==  0){
+            member.updateJob(null);
+        }else{
+            UserType userType = userTypeRepository.findById(dto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("직업ID가 존재하지 않습니다."));
+            member.updateJob(userType);
+        }
         memberRepository.save(member);
-
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
