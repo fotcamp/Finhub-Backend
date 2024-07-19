@@ -451,7 +451,7 @@ public class AdminController {
 
     @PostMapping("/send-noti")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
-    @Operation(summary = "알림메시지 전송", description = "타입별 알림메시지 구분 전송 target : admin (관리자에게만)/ all(관리자+유저)/ email(개인별)")
+    @Operation(summary = "알림메시지 전송", description = "type 0 : 멤버 이메일 리스트 , 1 : 관리자 이메일 리스트, 2 : 푸시 허용한 멤버 전체, 3 : 푸시 설정 무관 관리자 전체, 4 : 멤버+관리자전체")
     public ResponseEntity<ApiResponseWrapper> sendNotification(
             @Valid @RequestBody CreateFcmMessageRequestDto dto
             ) throws JsonProcessingException {
@@ -507,4 +507,5 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> order(@Valid @RequestBody OrderRequestDto dto, @PathVariable(name = "type") String type) {
         return adminService.order(dto, type);
     }
+
 }

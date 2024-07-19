@@ -64,7 +64,7 @@ public class MainService {
     private final AnnouncementRepository announcementRepository;
     private final CommentsRepository commentsRepository;
     private final AwsS3Service awsS3Service;
-    private final PostsLikeRepository postsLikeRepository;
+    private final CommentsReportRepository commentsReportRepository;
     private final QuitReasonsRepository quitReasonsRepository;
     private final QuitMemberRepository quitMemberRepository;
     private final MemberNotificationRepository memberNotificationRepository;
@@ -152,6 +152,12 @@ public class MainService {
         List<Block> blockMemberListAll = blockRepository.findByBlockMember(existingMember);
         blockRepository.deleteAll(blockListAll);
         blockRepository.deleteAll(blockMemberListAll);
+
+        // 댓글 신고 목록 삭제
+        List<CommentsReport> reporterList = commentsReportRepository.findByReporterMember(existingMember);
+        List<CommentsReport> reportedList = commentsReportRepository.findByReportedMember(existingMember);
+        commentsReportRepository.deleteAll(reporterList);
+        commentsReportRepository.deleteAll(reportedList);
 
         memberRepository.delete(existingMember);
         return ResponseEntity.ok(ApiResponseWrapper.success());
