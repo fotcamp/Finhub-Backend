@@ -20,9 +20,11 @@ jobs:
       - name: Generate Application.yaml File
         run: |
           mkdir ./src/main/resources
-          touch ./src/main/resources/application.yaml
           echo "${{ secrets.APPLICATION_DEV }}" > ./src/main/resources/application.yaml
-          cat ./src/main/resources/application.yaml
+
+      - name: Generate sql File
+        run: |
+          echo "${{ secrets.SQL_DATA_DEV }}" > ./src/main/resources/data.sql
 
       - name: create-json
         id: create-json
