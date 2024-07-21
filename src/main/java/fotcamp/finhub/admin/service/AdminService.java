@@ -1068,12 +1068,12 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> createAnnouncement(CustomUserDetails userDetails, CreateAnnounceRequestDto dto) throws JsonProcessingException {
         announcementRepository.save(new Announcement(dto.getTitle(), dto.getContent(), userDetails.getRole()));
         CreateFcmMessageRequestDto newRequest = CreateFcmMessageRequestDto.builder()
-                .target("all")
+                .type(4L)
+                .target(new ArrayList<>())
                 .title("새로운 공지사항이 등록되었습니다.")
                 .content("클릭하여 확인하세요.")
                 .view("https://api.fin-hub.co.kr/api/v1/main/announce")
                 .action(FcmMessageProcessDto.Action.builder().date(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))).build())
-                .mutableContent(0L)
                 .build();
 
         fcmService.sendFcmNotifications(newRequest);

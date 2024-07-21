@@ -32,4 +32,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m WHERE m.userAvatar = :userAvatar")
     List<Member> findMemberListUsingUserAvatar(@Param("userAvatar") UserAvatar userAvatar);
 
+    @Query("SELECT m FROM Member m WHERE m.pushYn = true AND m.email IN :emails")
+    List<Member> findByPushYnAndEmails(@Param("emails") List<String> emails);
 }
