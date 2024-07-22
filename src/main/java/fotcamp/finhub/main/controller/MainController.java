@@ -1,7 +1,6 @@
 package fotcamp.finhub.main.controller;
 
 
-import com.google.protobuf.Api;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -305,6 +304,14 @@ public class MainController {
         return mainService.alarmDetail(userDetails, dto);
     }
 
+    // VOC
+    @PostMapping("/menu/feedback")
+    @Operation(summary = " 고객 소리함 API ", description = "고객 피드백 수집")
+    public ResponseEntity<ApiResponseWrapper> feedback(
+            @RequestBody FeedbackRequestDto dto
+    ){
+        return mainService.feedback(dto);
+    }
 
 }
 
