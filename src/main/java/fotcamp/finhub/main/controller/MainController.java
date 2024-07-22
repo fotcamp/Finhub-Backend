@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.PUT;
 
 @Tag(name = "B main", description = "main api")
 @RestController
@@ -305,6 +306,14 @@ public class MainController {
         return mainService.alarmDetail(userDetails, dto);
     }
 
+    // VOC
+    @PostMapping("/menu/feedback")
+    @Operation(summary = " 고객 소리함 API ", description = "고객 피드백 수집")
+    public ResponseEntity<ApiResponseWrapper> feedback(
+            @RequestBody FeedbackRequestDto dto
+    ){
+        return mainService.feedback(dto);
+    }
 
 }
 
