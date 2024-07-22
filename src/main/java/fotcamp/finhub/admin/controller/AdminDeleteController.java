@@ -96,4 +96,12 @@ public class AdminDeleteController {
         return adminDeleteService.deleteReportReason(dto);
     }
 
+    @DeleteMapping("/banner")
+    @PreAuthorize("hasRole('SUPER')")
+    @Operation(summary = "배너 삭제", description = "배너 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteBanner(
+        @RequestBody DeleteBannerRequestDto dto
+    ){
+        return adminDeleteService.deleteBanner(dto);
+    }
 }
