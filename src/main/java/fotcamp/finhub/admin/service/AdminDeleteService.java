@@ -40,6 +40,7 @@ public class AdminDeleteService {
     private final GptColumnRepository gptColumnRepository;
     private final CalendarEmoticonRepository calendarEmoticonRepository;
     private final ReportReasonsRepository reportReasonsRepository;
+    private final BannerRepository bannerRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
@@ -149,6 +150,12 @@ public class AdminDeleteService {
     public ResponseEntity<ApiResponseWrapper> deleteReportReason(DeleteReportReasonRequestDto dto){
         ReportReasons reportReasons = reportReasonsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
         reportReasonsRepository.deleteById(reportReasons.getId());
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteBanner(DeleteBannerRequestDto dto){
+        Banner banner = bannerRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("id가 존재하지 않습니다."));
+        bannerRepository.delete(banner);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
