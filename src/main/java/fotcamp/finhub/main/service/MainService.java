@@ -1,5 +1,6 @@
 package fotcamp.finhub.main.service;
 
+import com.google.protobuf.Api;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
@@ -72,6 +73,8 @@ public class MainService {
     private final BlockRepository blockRepository;
     private final CommentsLikeRepository commentsLikeRepository;
     private final PostsLikeRepository postsLikeRepository;
+    private final FeedbackRepository feedbackRepository;
+
 
     private static final int MAX_RECENT_SEARCHES = 10;
 
@@ -533,6 +536,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> announcement(Long cursorId, int size){
         if (cursorId == null || cursorId == 0){
             cursorId = Long.MAX_VALUE;
@@ -556,6 +560,7 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> myCommentList(CustomUserDetails userDetails){
         Member member = memberRepository.findById(userDetails.getMemberIdasLong())
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
@@ -576,6 +581,7 @@ public class MainService {
     }
 
     // 회원 탈퇴 이유 가져오기
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> quitReasons() {
         List<QuitReasons> quitReasons = quitReasonsRepository.findByUseYn("Y");
         List<QuitReasonsProcessDto> quitReasonsProcessDtos = quitReasons.stream().map(
@@ -617,6 +623,11 @@ public class MainService {
         String url = notification.getUrl();
         memberNotification.updateMemberNotification();
         return ResponseEntity.ok(ApiResponseWrapper.success(new AlarmDetailResponseDto(url)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> feedback(FeedbackRequestDto dto){
+        feedbackRepository.save(new Feedback(dto.text()));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
 }
