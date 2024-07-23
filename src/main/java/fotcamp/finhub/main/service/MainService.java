@@ -72,7 +72,9 @@ public class MainService {
     private final NotificationRepository notificationRepository;
     private final BlockRepository blockRepository;
     private final CommentsLikeRepository commentsLikeRepository;
+    private final PostsLikeRepository postsLikeRepository;
     private final FeedbackRepository feedbackRepository;
+
 
     private static final int MAX_RECENT_SEARCHES = 10;
 
@@ -148,6 +150,10 @@ public class MainService {
         // 컬럼 스크랩 삭제
         List<PostsScrap> postScrapAll = postsScrapRepository.findByMember(existingMember);
         postsScrapRepository.deleteAll(postScrapAll);
+
+        // 컬럼 좋아요 삭제
+        List<PostsLike> postsLikeList = postsLikeRepository.findByMember(existingMember);
+        postsLikeRepository.deleteAll(postsLikeList);
 
         // 차단 목록 삭제
         List<Block> blockListAll = blockRepository.findByMember(existingMember);
