@@ -21,7 +21,11 @@ public interface MemberNotificationRepository extends JpaRepository<MemberNotifi
     List<MemberNotification> findByMember(Member member);
     Optional<MemberNotification> findByMemberAndNotification(Member member, Notification notification);
 
-    @Query("SELECT mn FROM MemberNotification mn LEFT JOIN FETCH mn.notification WHERE mn.member = :member AND mn.notification.id < :cursorId ORDER BY (CASE WHEN mn.receivedAt IS NULL THEN 0 ELSE 1 END), mn.sentAt DESC, mn.notification.id DESC")
+    @Query("SELECT mn FROM MemberNotification mn LEFT JOIN FETCH mn.notification " +
+            "WHERE mn.member = :member " +
+            "AND (mn.notification.id < :cursorId OR (mn.receivedAt IS NOT NULL AND mn.notification.id >= :cursorId)) " +
+            "ORDER BY (CASE WHEN mn.receivedAt IS NULL THEN 0 ELSE 1 END), " +
+            "mn.sentAt DESC, mn.notification.id DESC")
     Slice<MemberNotification> findNotificationsForMember(@Param("member") Member member, @Param("cursorId") Long cursorId, Pageable pageable);
 
 }
