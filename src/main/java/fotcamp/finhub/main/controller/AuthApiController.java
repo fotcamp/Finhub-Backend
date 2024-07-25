@@ -4,7 +4,7 @@ package fotcamp.finhub.main.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.main.service.AuthService;
+import fotcamp.finhub.main.service.AuthService2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthApiController {
 
-    private final AuthService authService;
+    private final AuthService2 authService2;
     // https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri={REDIRECT_URI}&response_type=code
 
     /**
@@ -41,28 +41,28 @@ public class AuthApiController {
 
         // 카카오서버로 인가코드와 관련 정보를 전송해서 카카오가 발행하는 액세스토큰이 정상적으로 수신되면,
         // 자체 jwt 발행하여 서비스 권한부여
-        return authService.loginKakao(code, origin);
+        return authService2.loginKakao(code, origin);
     }
 
     @GetMapping("/login/oauth2/callback/google")
     @Operation(summary = " 구글 로그인", description = "구글 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
     public ResponseEntity<ApiResponseWrapper> googleLogin( @RequestParam(name = "code")String code,
                                                            @RequestParam(name = "origin") String origin) throws JsonProcessingException {
-        return authService.loginGoogle(code, origin);
+        return authService2.loginGoogle(code, origin);
     }
 
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     @Operation(summary = "리프레시토큰 만료될 때 액세스토큰 업데이트 ", description = "액세스토큰 발급")
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(
             HttpServletRequest request){
-        return authService.validRefreshToken(request);
+        return authService2.validRefreshToken(request);
     }
 
     // 자동로그인
     @GetMapping("/autoLogin")
     @Operation(summary = "자동로그인", description = "자동로그인")
     public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
-        return authService.autoLogin(request);
+        return authService2.autoLogin(request);
     }
 
     // 단순 정보 제공용
@@ -71,7 +71,7 @@ public class AuthApiController {
     public ResponseEntity<ApiResponseWrapper> memberInfoRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        return authService.memberInfoRequest(userDetails);
+        return authService2.memberInfoRequest(userDetails);
     }
 
 }
