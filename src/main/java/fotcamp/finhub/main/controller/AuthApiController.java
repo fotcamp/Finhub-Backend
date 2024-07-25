@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.*;
             "kakao 인가코드를 먼저 받아온다. \n\n" +
             "BE local, dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
             "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "\n\n"+
+            "google 인가코드 받아오기 \n\n"+
+            "BE local : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
+            "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email\n\n"+
             "BE local -> origin parameter에 belocal\n\n" +
             "BE dev -> origin parameter에 bedev\n\n" +
             "BE prod -> origin parameter에 beprod\n\n" +
-            "FE는 origin parameter에 local, dev, production으로 자동 세팅 해야함."
+"FE는 origin parameter에 local, dev, production으로 자동 세팅 해야함."
 )
 @RestController
 @RequestMapping("/api/v1/auth")
