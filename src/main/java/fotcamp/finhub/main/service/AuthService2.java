@@ -40,7 +40,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AuthService {
+public class AuthService2 {
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
