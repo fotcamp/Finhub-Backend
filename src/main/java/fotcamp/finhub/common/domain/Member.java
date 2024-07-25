@@ -25,7 +25,7 @@ public class Member {
     @JoinColumn(name = "USERTYPE_ID")
     private UserType userType;
 
-    @Column(name = "EMAIL", nullable = false, unique = true)
+    @Column(name = "EMAIL", nullable = false)
     private String email;
 
     @Column(name = "PROFILE_NICKNAME", nullable = false)
@@ -35,6 +35,7 @@ public class Member {
     private boolean pushYn;
     private String fcmToken;
     private LocalDateTime fcmTokenCreatedAt;
+    private String provider; // OAuth 가입 방법 ( google , kakao )
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
@@ -65,9 +66,10 @@ public class Member {
     @OneToOne(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private RefreshToken refreshToken;
 
-    public Member(String email, String name){
+    public Member(String email, String name, String provider){
         this.email = email;
         this.name = name;
+        this.provider = provider;
         this.role = RoleType.ROLE_USER;
     }
 

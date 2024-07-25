@@ -4,12 +4,10 @@ package fotcamp.finhub.main.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
-import fotcamp.finhub.main.dto.request.AutoLoginRequestDto;
 import fotcamp.finhub.main.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,7 +41,14 @@ public class AuthApiController {
 
         // 카카오서버로 인가코드와 관련 정보를 전송해서 카카오가 발행하는 액세스토큰이 정상적으로 수신되면,
         // 자체 jwt 발행하여 서비스 권한부여
-        return authService.login(code, origin);
+        return authService.loginKakao(code, origin);
+    }
+
+    @GetMapping("/login/oauth2/callback/google")
+    @Operation(summary = " 구글 로그인", description = "구글 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
+    public ResponseEntity<ApiResponseWrapper> googleLogin( @RequestParam(name = "code")String code,
+                                                           @RequestParam(name = "origin") String origin) throws JsonProcessingException {
+        return authService.loginGoogle(code, origin);
     }
 
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
