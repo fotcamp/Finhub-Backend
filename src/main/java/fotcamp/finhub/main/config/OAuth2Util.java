@@ -20,7 +20,7 @@ public class OAuth2Util {
         return (String) response.getBody().get("access_token");
     }
 
-    public Map<String, Object> getUserInfo(String userInfoUrl, String accessToken) {
+    public Map getUserInfo(String userInfoUrl, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
