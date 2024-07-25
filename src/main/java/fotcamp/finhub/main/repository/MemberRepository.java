@@ -13,9 +13,8 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
 
-    Optional<Member> findByEmail(String email);
+    Optional<Member> findByEmailAndProvider(String email, String provider);
     List<Member> findByCalendarEmoticon(CalendarEmoticon calendarEmoticon);
-    boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
 
     List<Member> findByPushYn(boolean pushYn);
