@@ -8,8 +8,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class GoogleConfig {
 
+    @Value("${spring.security.oauth2.client.provider.google.token-uri}")
+    private String accessTokenRequestUrl;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
+    @Value("${spring.security.oauth2.client.registration.google.authorization-grant-type}")
+    private String grant_type;
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String client_secretId;
     @Value("${spring.security.oauth2.client.registration.google.client-name}")

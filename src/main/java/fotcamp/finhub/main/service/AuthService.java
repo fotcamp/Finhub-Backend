@@ -30,6 +30,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -75,7 +77,7 @@ public class AuthService {
         body.put("code", code);
         body.put("client_secret", kakaoConfig.getClient_secretId());
 
-        return oAuth2Util.getAccessToken(redirectUri, headers, body);
+        return oAuth2Util.getAccessToken(kakaoConfig.getAccessTokenRequestUrl(), headers, body);
     }
 
     private String getKakaoRedirectUri(String origin) {
@@ -154,17 +156,18 @@ public class AuthService {
     }
 
     private String getGoogleAccessToken(String code, String origin) throws JsonProcessingException {
+        String decode = URLDecoder.decode(code, StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
-        String redirectUri = getKakaoRedirectUri(origin);
+        String redirectUri = getGoogleRedirectUri(origin);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         Map<String, String> body = new HashMap<>();
         body.put("client_id", googleConfig.getClientId());
         body.put("client_secret", googleConfig.getClient_secretId());
-        body.put("code", code);
-        body.put("grant_type", "authorization_code");
+        body.put("code", decode);
+        body.put("grant_type", googleConfig.getGrant_type());
         body.put("redirect_uri", redirectUri);
-        return oAuth2Util.getAccessToken("https://oauth2.googleapis.com/token", headers, body);
+        return oAuth2Util.getAccessToken(googleConfig.getAccessTokenRequestUrl(), headers, body);
     }
 
     private String getGoogleRedirectUri(String origin) {
