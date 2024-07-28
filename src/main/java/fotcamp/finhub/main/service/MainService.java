@@ -1,6 +1,6 @@
 package fotcamp.finhub.main.service;
 
-import com.google.protobuf.Api;
+
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
@@ -31,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,8 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +71,6 @@ public class MainService {
     private final CommentsLikeRepository commentsLikeRepository;
     private final PostsLikeRepository postsLikeRepository;
     private final FeedbackRepository feedbackRepository;
-
 
     private static final int MAX_RECENT_SEARCHES = 10;
 
@@ -627,6 +623,13 @@ public class MainService {
 
     public ResponseEntity<ApiResponseWrapper> feedback(FeedbackRequestDto dto){
         feedbackRepository.save(new Feedback(dto.text()));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteFcmToken(CustomUserDetails userDetails){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        member.removeFcmToken();
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
