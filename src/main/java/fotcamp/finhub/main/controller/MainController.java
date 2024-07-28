@@ -313,5 +313,12 @@ public class MainController {
         return mainService.feedback(dto);
     }
 
+    @DeleteMapping("/fcm-token")
+    @Operation(summary = "유저- fcm토큰 삭제 ", description = "FCM토큰 정보 삭제")
+    public ResponseEntity<ApiResponseWrapper> deleteFcmToken(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.deleteFcmToken(userDetails);
+    }
 }
 

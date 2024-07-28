@@ -128,4 +128,8 @@ public class Member {
 
     public void removeUsertype() {this.userType = null;}
     public void removeCalendarEmoticon(){this.calendarEmoticon = null;}
+    public void removeFcmToken() {
+        this.fcmToken = null;
+        this.fcmTokenCreatedAt = null;
+    }
 }
