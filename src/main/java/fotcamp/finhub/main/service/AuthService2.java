@@ -9,6 +9,7 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.config.AppleJwtConfig;
 import fotcamp.finhub.main.config.GoogleConfig;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.config.OAuth2Util;
@@ -47,6 +48,7 @@ public class AuthService2 {
     private final TokenRepository tokenRepository;
     private final KakaoConfig kakaoConfig;
     private final GoogleConfig googleConfig;
+    private final AppleJwtConfig appleConfig;
     private final AwsS3Service awsS3Service;
     private final OAuth2Util oAuth2Util;
 
@@ -132,7 +134,7 @@ public class AuthService2 {
 
     public ResponseEntity<ApiResponseWrapper> loginGoogle(String code, String origin) throws JsonProcessingException {
         String googleAccessToken = getGoogleAccessToken(code, origin);
-        Map<String, Object> userInfo = oAuth2Util.getUserInfo("https://www.googleapis.com/oauth2/v3/userinfo", googleAccessToken);
+        Map<String, Object> userInfo = oAuth2Util.getUserInfo(googleConfig.getUser_info_uri(), googleAccessToken);
         String email = (String) userInfo.get("email");
         String name = (String) userInfo.get("name");
         String provider = googleConfig.getClient_name();
@@ -177,11 +179,11 @@ public class AuthService2 {
     }
 
     public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws JsonProcessingException {
-        String kakaoAccessToken = getKakaoAccessToken(code, origin);
-        KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken);
-        String email = kakaoUserInfo.getEmail();
-        String name = kakaoUserInfo.getName();
-        String provider = kakaoConfig.getClient_name();
+        String appleAccessToken = getAppleAccessToken(code, origin);
+        Map<String, Object> appleUserInfo = oAuth2Util.getUserInfo(appleConfig.getAccessTokenRequestUrl(), appleAccessToken);
+        String email = (String) appleUserInfo.get("email");
+        String name = (String) appleUserInfo.get("name");
+        String provider = "apple";
         Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
@@ -189,6 +191,36 @@ public class AuthService2 {
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+    }
+
+    private String getAppleAccessToken(String code, String origin){
+        String redirectUri = getAppleRedirectUri(origin);
+        String clientSecret = appleConfig.getClientSecret();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+
+        Map<String, String> bodyMap = new HashMap<>();
+        bodyMap.put("grant_type", appleConfig.getGrant_type());
+        bodyMap.put("code", code);
+        bodyMap.put("redirect_uri", redirectUri);
+        bodyMap.put("client_id", appleConfig.getClientId());
+        bodyMap.put("client_secret", clientSecret);
+
+        return oAuth2Util.getAccessToken(appleConfig.getAccessTokenRequestUrl(), headers, bodyMap);
+    }
+
+    private String getAppleRedirectUri(String origin) {
+        switch (origin) {
+            case "dev":
+                return appleConfig.getRedirect_uri_feDev();
+            case "production":
+                return appleConfig.getRedirect_uri_feProd();
+            case "beprod":
+                return appleConfig.getRedirect_uri_beProd();
+            default:
+                return appleConfig.getRedirect_uri_beProd();
+        }
     }
 
     private void saveOrUpdateRefreshToken(Member member, String refreshToken) {

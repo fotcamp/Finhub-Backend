@@ -1,9 +1,25 @@
 package fotcamp.finhub.main.config;
 
-import jakarta.annotation.Resource;
+import fotcamp.finhub.common.exception.FcmException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Date;
+
+@Getter
 @Configuration
 public class AppleJwtConfig {
 
@@ -31,5 +47,22 @@ public class AppleJwtConfig {
     @Value("${custom-redirect-uri.apple.beprod}")
     private String redirect_uri_beProd;
 
+    @Bean
+    public String getClientSecret() throws Exception {
+        byte[] keyBytes = Files.readAllBytes(Paths.get(keyResource.getURI()));
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("EC");
+        PrivateKey privateKey =  kf.generatePrivate(spec);
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .setHeaderParam("kid", keyId)
+                .setIssuer(teamId)
+                .setAudience("https://appleid.apple.com")
+                .setSubject(clientId)
+                .setExpiration(new Date(now + 3600000)) // 1 hour expiration
+                .setIssuedAt(new Date(now))
+                .signWith(privateKey, SignatureAlgorithm.ES256)
+                .compact();
+    }
 
 }
