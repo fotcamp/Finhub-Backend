@@ -1,6 +1,6 @@
 package fotcamp.finhub.main.service;
 
-import com.google.protobuf.Api;
+
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
@@ -23,9 +23,7 @@ import fotcamp.finhub.main.dto.response.thirdTab.RecentSearchResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchColumnResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.repository.*;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -33,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,8 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -77,8 +72,6 @@ public class MainService {
     private final PostsLikeRepository postsLikeRepository;
     private final FeedbackRepository feedbackRepository;
 
-    @PersistenceContext
-    private EntityManager entityManager;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
