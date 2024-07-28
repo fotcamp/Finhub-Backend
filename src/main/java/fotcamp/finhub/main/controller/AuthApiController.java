@@ -55,6 +55,13 @@ public class AuthApiController {
         return authService2.loginGoogle(code, origin);
     }
 
+    @GetMapping("/login/oauth2/callback/apple")
+    @Operation(summary = " 애플 로그인", description = "애플 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
+    public ResponseEntity<ApiResponseWrapper> appleLogin(@RequestParam(name = "code") String code,
+                                                         @RequestParam(name = "origin") String origin) throws JsonProcessingException {
+        return authService2.loginApple(code, origin);
+    }
+
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     @Operation(summary = "리프레시토큰 만료될 때 액세스토큰 업데이트 ", description = "액세스토큰 발급")
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(

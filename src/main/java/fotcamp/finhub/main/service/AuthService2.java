@@ -119,17 +119,6 @@ public class AuthService2 {
         return new KakaoUserInfoProcessDto(nickname, email);
     }
 
-    private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
-        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
-        if (existingRefreshToken.isPresent()) {
-            RefreshToken token = existingRefreshToken.get();
-            token.updateToken(refreshToken);
-            tokenRepository.save(token);
-        } else {
-            tokenRepository.save(new RefreshToken(member, refreshToken));
-        }
-    }
-
     private UserInfoProcessDto createUserInfoProcessDto(Member member) {
         return UserInfoProcessDto.builder()
                 .nickname(member.getNickname())
@@ -184,6 +173,32 @@ public class AuthService2 {
                 return googleConfig.getRedirect_uri_beProd();
             default:
                 return googleConfig.getRedirect_uri_feLocal();
+        }
+    }
+
+    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws JsonProcessingException {
+        String kakaoAccessToken = getKakaoAccessToken(code, origin);
+        KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken);
+        String email = kakaoUserInfo.getEmail();
+        String name = kakaoUserInfo.getName();
+        String provider = kakaoConfig.getClient_name();
+        Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
+        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
+        UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
+        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
+        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+    }
+
+    private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
+        Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
+        if (existingRefreshToken.isPresent()) {
+            RefreshToken token = existingRefreshToken.get();
+            token.updateToken(refreshToken);
+            tokenRepository.save(token);
+        } else {
+            tokenRepository.save(new RefreshToken(member, refreshToken));
         }
     }
 
