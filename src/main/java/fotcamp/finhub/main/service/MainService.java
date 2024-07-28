@@ -23,7 +23,9 @@ import fotcamp.finhub.main.dto.response.thirdTab.RecentSearchResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchColumnResponseDto;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.repository.*;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -75,7 +77,8 @@ public class MainService {
     private final PostsLikeRepository postsLikeRepository;
     private final FeedbackRepository feedbackRepository;
 
-
+    @PersistenceContext
+    private EntityManager entityManager;
     private static final int MAX_RECENT_SEARCHES = 10;
 
     // 전체 카테고리 리스트
@@ -627,6 +630,13 @@ public class MainService {
 
     public ResponseEntity<ApiResponseWrapper> feedback(FeedbackRequestDto dto){
         feedbackRepository.save(new Feedback(dto.text()));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> deleteFcmToken(CustomUserDetails userDetails){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        member.removeFcmToken();
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
