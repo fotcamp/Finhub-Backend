@@ -13,7 +13,6 @@ on:
   push:
     branches:
       - main
-      - feature/build
 jobs:
   Deploy-Development:
     runs-on: ubuntu-latest
