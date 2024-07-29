@@ -11,10 +11,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${origin.admin}") String adminOrigin;
     @Value("${origin.main}") String mainOrigin;
     @Value("${origin.dev}") String devOrigin;
-    @Value("${origin.dev}") String localOne;
-    @Value("${origin.dev}") String localTwo;
-    @Value("${origin.dev}") String localThree;
-    @Value("${origin.dev}") String serverSwagger;
+    @Value("${origin.localOne}") String localOne;
+    @Value("${origin.localTwo}") String localTwo;
+    @Value("${origin.localThree}") String localThree;
+    @Value("${origin.serverSwagger}") String serverSwagger;
 
 
     @Override
