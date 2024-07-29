@@ -1,32 +1,28 @@
-name: Production Deployment
-
+name: Development Deployment
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: finhub-backend
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  SERVICE_NAME: api
 on:
   push:
     branches:
       - main
-
-env:
-  AWS_REGION: ap-northeast-2 #리전
-  S3_BUCKET_NAME: finhub-bucket #버킷 이름
-  CODE_DEPLOY_APPLICATION_NAME: Finhub-CodeDeploy #CodeDeploy 애플리케이션 이름
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: Finhub-CodeDeploy-Group #CodeDeploy 배포 그룹 이름
-
-permissions:
-  contents: read
-
+      - build
 jobs:
-  deploy:
-    name: Deploy
+  Deploy-Development:
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - run: mkdir ./src/main/resources
-      - run: touch ./src/main/resources/application.yaml
-      - run: echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
+      - uses: actions/checkout@v2
+      - name: Generate Application.yaml File
+        run: |
+          mkdir ./src/main/resources
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
 
       - name: create-json
         id: create-json
@@ -36,47 +32,49 @@ jobs:
           json: ${{ secrets.FCM_SETTING }}
           dir: "./src/main/resources/"
 
-      - name: Run chmod to make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: "17"
-          distribution: "temurin"
-
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
-        with:
-          arguments: clean build -x test
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Upload to AWS S3
-        run: |
-          aws deploy push \
-            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
-            --ignore-hidden-files \
-            --s3-location s3://${{ env.S3_BUCKET_NAME }}/$GITHUB_SHA.zip \
-            --source .
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Deploy to AWS EC2 from S3
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
         run: |
-          aws deploy create-deployment \
-            --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
-            --deployment-config-name CodeDeployDefault.AllAtOnce \
-            --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-            --s3-location bucket=${{ env.S3_BUCKET_NAME }},key=$GITHUB_SHA.zip,bundleType=zip
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+      - name: Deploy on EC2 instance
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ubuntu
+          key: ${{ env.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/finhub
+            aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+            aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+            aws configure set region ${{ env.AWS_REGION }}
+            ECR_REGISTRY_LOGIN=$(aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }})
+            sudo docker-compose stop ${{ env.SERVICE_NAME }}
+            sudo docker-compose rm -f ${{ env.SERVICE_NAME }}
+            sudo docker-compose pull ${{ env.SERVICE_NAME }}
+            sudo docker-compose up -d ${{ env.SERVICE_NAME }}
+
       - name: Send Slack Message
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           fields: workflow,job,commit,repo,author,took,ref
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
         if: always()

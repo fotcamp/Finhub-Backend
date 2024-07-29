@@ -1,12 +1,12 @@
 name: Development Deployment
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: finhub-backend
+  ECR_REPOSITORY: finhub-backend-dev
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_HOST: ${{ secrets.EC2_HOST_DEV }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+  EC2_SSH_PRIVATE_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   SERVICE_NAME: api
 on:
