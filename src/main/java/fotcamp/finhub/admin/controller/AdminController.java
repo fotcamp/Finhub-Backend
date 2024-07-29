@@ -130,7 +130,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("useYN 형식 오류"));
         }
 
-        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
+        Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id", "asc");
         return adminService.getAllUserType(pageable, useYN);
     }
 
