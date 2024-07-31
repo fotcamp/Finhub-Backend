@@ -7,6 +7,7 @@ build/
 application.yaml
 finhub-firebase-adminsdk.json
 prod.yaml
+AuthKey_7P92CWD9R3.p8
 ### STS ###
 .apt_generated
 .classpath
