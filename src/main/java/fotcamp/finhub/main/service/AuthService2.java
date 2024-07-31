@@ -9,7 +9,6 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.utils.JwtUtil;
-import fotcamp.finhub.main.config.AppleJwtConfig;
 import fotcamp.finhub.main.config.GoogleConfig;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.config.OAuth2Util;
@@ -48,7 +47,7 @@ public class AuthService2 {
     private final TokenRepository tokenRepository;
     private final KakaoConfig kakaoConfig;
     private final GoogleConfig googleConfig;
-    private final AppleJwtConfig appleConfig;
+//    private final AppleJwtConfig appleConfig;
     private final AwsS3Service awsS3Service;
     private final OAuth2Util oAuth2Util;
 
@@ -84,8 +83,6 @@ public class AuthService2 {
 
     private String getKakaoRedirectUri(String origin) {
         switch (origin) {
-            case "dev":
-                return kakaoConfig.getRedirect_uri_feDev();
             case "production":
                 return kakaoConfig.getRedirect_uri_feProd();
             case "belocal":
@@ -163,8 +160,6 @@ public class AuthService2 {
 
     private String getGoogleRedirectUri(String origin) {
         switch (origin) {
-            case "dev":
-                return googleConfig.getRedirect_uri_feDev();
             case "production":
                 return googleConfig.getRedirect_uri_feProd();
             case "belocal":
@@ -178,50 +173,50 @@ public class AuthService2 {
         }
     }
 
-    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws JsonProcessingException {
-        String appleAccessToken = getAppleAccessToken(code, origin);
-        Map<String, Object> appleUserInfo = oAuth2Util.getUserInfo(appleConfig.getAccessTokenRequestUrl(), appleAccessToken);
-        String email = (String) appleUserInfo.get("email");
-        String name = (String) appleUserInfo.get("name");
-        String provider = "apple";
-        Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
-        saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
-        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
-        UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
-        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
-        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
-    }
+//    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws JsonProcessingException {
+//        String appleAccessToken = getAppleAccessToken(code, origin);
+//        Map<String, Object> appleUserInfo = oAuth2Util.getUserInfo(appleConfig.getAccessTokenRequestUrl(), appleAccessToken);
+//        String email = (String) appleUserInfo.get("email");
+//        String name = (String) appleUserInfo.get("name");
+//        String provider = "apple";
+//        Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
+//        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+//        saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
+//        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
+//        UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
+//        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
+//        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+//    }
 
-    private String getAppleAccessToken(String code, String origin){
-        String redirectUri = getAppleRedirectUri(origin);
-        String clientSecret = appleConfig.getClientSecret();
+//    private String getAppleAccessToken(String code, String origin){
+//        String redirectUri = getAppleRedirectUri(origin);
+//        String clientSecret = appleConfig.getClientSecret();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Type", "application/x-www-form-urlencoded");
+//
+//        Map<String, String> bodyMap = new HashMap<>();
+//        bodyMap.put("grant_type", appleConfig.getGrant_type());
+//        bodyMap.put("code", code);
+//        bodyMap.put("redirect_uri", redirectUri);
+//        bodyMap.put("client_id", appleConfig.getClientId());
+//        bodyMap.put("client_secret", clientSecret);
+//
+//        return oAuth2Util.getAccessToken(appleConfig.getAccessTokenRequestUrl(), headers, bodyMap);
+//    }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
-
-        Map<String, String> bodyMap = new HashMap<>();
-        bodyMap.put("grant_type", appleConfig.getGrant_type());
-        bodyMap.put("code", code);
-        bodyMap.put("redirect_uri", redirectUri);
-        bodyMap.put("client_id", appleConfig.getClientId());
-        bodyMap.put("client_secret", clientSecret);
-
-        return oAuth2Util.getAccessToken(appleConfig.getAccessTokenRequestUrl(), headers, bodyMap);
-    }
-
-    private String getAppleRedirectUri(String origin) {
-        switch (origin) {
-            case "dev":
-                return appleConfig.getRedirect_uri_feDev();
-            case "production":
-                return appleConfig.getRedirect_uri_feProd();
-            case "beprod":
-                return appleConfig.getRedirect_uri_beProd();
-            default:
-                return appleConfig.getRedirect_uri_beProd();
-        }
-    }
+//    private String getAppleRedirectUri(String origin) {
+//        switch (origin) {
+//            case "dev":
+//                return appleConfig.getRedirect_uri_feDev();
+//            case "production":
+//                return appleConfig.getRedirect_uri_feProd();
+//            case "beprod":
+//                return appleConfig.getRedirect_uri_beProd();
+//            default:
+//                return appleConfig.getRedirect_uri_beProd();
+//        }
+//    }
 
     private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
         Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
