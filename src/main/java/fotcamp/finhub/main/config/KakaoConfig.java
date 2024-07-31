@@ -24,8 +24,6 @@ public class KakaoConfig {
 
     @Value("${custom-redirect-uri.kakao.felocal}")
     private String redirect_uri_feLocal;
-    @Value("${custom-redirect-uri.kakao.fedev}")
-    private String redirect_uri_feDev;
     @Value("${custom-redirect-uri.kakao.feprod}")
     private String redirect_uri_feProd;
     @Value("${custom-redirect-uri.kakao.belocal}")
