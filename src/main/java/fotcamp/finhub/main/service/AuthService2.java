@@ -2,6 +2,14 @@ package fotcamp.finhub.main.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
@@ -9,6 +17,7 @@ import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.security.TokenDto;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.utils.JwtUtil;
+import fotcamp.finhub.main.config.AppleJwtConfig;
 import fotcamp.finhub.main.config.GoogleConfig;
 import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.config.OAuth2Util;
@@ -19,6 +28,8 @@ import fotcamp.finhub.main.dto.response.login.MemberInfoResponseDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.TokenRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +41,18 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 
+import java.io.IOException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.text.ParseException;
+import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +68,7 @@ public class AuthService2 {
     private final TokenRepository tokenRepository;
     private final KakaoConfig kakaoConfig;
     private final GoogleConfig googleConfig;
-//    private final AppleJwtConfig appleConfig;
+    private final AppleJwtConfig appleConfig;
     private final AwsS3Service awsS3Service;
     private final OAuth2Util oAuth2Util;
 
@@ -70,14 +91,12 @@ public class AuthService2 {
         String redirectUri = getKakaoRedirectUri(origin);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
         Map<String, String> body = new HashMap<>();
         body.put("grant_type", kakaoConfig.getGrant_type());
         body.put("client_id", kakaoConfig.getClientId());
         body.put("redirect_uri", redirectUri);
         body.put("code", code);
         body.put("client_secret", kakaoConfig.getClient_secretId());
-
         return oAuth2Util.getAccessToken(kakaoConfig.getAccessTokenRequestUrl(), headers, body);
     }
 
@@ -87,8 +106,6 @@ public class AuthService2 {
                 return kakaoConfig.getRedirect_uri_feProd();
             case "belocal":
                 return kakaoConfig.getRedirect_uri_beLocal();
-            case "bedev":
-                return kakaoConfig.getRedirect_uri_beDev();
             case "beprod":
                 return kakaoConfig.getRedirect_uri_beProd();
             default:
@@ -164,8 +181,6 @@ public class AuthService2 {
                 return googleConfig.getRedirect_uri_feProd();
             case "belocal":
                 return googleConfig.getRedirect_uri_beLocal();
-            case "bedev":
-                return googleConfig.getRedirect_uri_beDev();
             case "beprod":
                 return googleConfig.getRedirect_uri_beProd();
             default:
@@ -173,50 +188,83 @@ public class AuthService2 {
         }
     }
 
-//    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws JsonProcessingException {
-//        String appleAccessToken = getAppleAccessToken(code, origin);
-//        Map<String, Object> appleUserInfo = oAuth2Util.getUserInfo(appleConfig.getAccessTokenRequestUrl(), appleAccessToken);
-//        String email = (String) appleUserInfo.get("email");
-//        String name = (String) appleUserInfo.get("name");
-//        String provider = "apple";
-//        Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
-//        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
-//        saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
-//        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
-//        UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
-//        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
-//        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
-//    }
+    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws NoSuchAlgorithmException, InvalidKeySpecException, ParseException, IOException, JOSEException {
+        String identityToken = getAppleIdentityToken(code, origin);
+        if (!validateAppleIdToken(identityToken)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("애플로그인 정보 오류 발생."));
+        }
+        SignedJWT signedJWT = SignedJWT.parse(identityToken);
+        JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+        String email = claims.getStringClaim("email");
+        String name = claims.getStringClaim("name");
+        String provider = googleConfig.getClient_name();
+        Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
+        UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
+        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
+        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+    }
 
-//    private String getAppleAccessToken(String code, String origin){
-//        String redirectUri = getAppleRedirectUri(origin);
-//        String clientSecret = appleConfig.getClientSecret();
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.add("Content-Type", "application/x-www-form-urlencoded");
-//
-//        Map<String, String> bodyMap = new HashMap<>();
-//        bodyMap.put("grant_type", appleConfig.getGrant_type());
-//        bodyMap.put("code", code);
-//        bodyMap.put("redirect_uri", redirectUri);
-//        bodyMap.put("client_id", appleConfig.getClientId());
-//        bodyMap.put("client_secret", clientSecret);
-//
-//        return oAuth2Util.getAccessToken(appleConfig.getAccessTokenRequestUrl(), headers, bodyMap);
-//    }
+    private String getAppleIdentityToken(String code, String origin) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String redirectUri = getAppleRedirectUri(origin);
+        String clientSecret = createClientSecret();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+        Map<String, String> bodyMap = new HashMap<>();
+        bodyMap.put("grant_type", appleConfig.getGrant_type());
+        bodyMap.put("code", code);
+        bodyMap.put("redirect_uri", redirectUri);
+        bodyMap.put("client_id", appleConfig.getClientId());
+        bodyMap.put("client_secret", clientSecret);
+        return oAuth2Util.getIdentityToken(appleConfig.getIdentityTokenRequestUri(), headers, bodyMap);
+    }
 
-//    private String getAppleRedirectUri(String origin) {
-//        switch (origin) {
-//            case "dev":
-//                return appleConfig.getRedirect_uri_feDev();
-//            case "production":
-//                return appleConfig.getRedirect_uri_feProd();
-//            case "beprod":
-//                return appleConfig.getRedirect_uri_beProd();
-//            default:
-//                return appleConfig.getRedirect_uri_beProd();
-//        }
-//    }
+    private String getAppleRedirectUri(String origin) {
+        switch (origin) {
+            case "production":
+                return appleConfig.getRedirect_uri_feProd();
+            default:
+                return appleConfig.getRedirect_uri_beProd();
+        }
+    }
+
+    private String createClientSecret() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        RSAPrivateKey privateKey = getPrivateKey();
+        long nowMillis  = System.currentTimeMillis();
+        Date now = new Date(nowMillis);
+        final String jwt = Jwts.builder()
+                .setHeaderParam("kid", appleConfig.getKeyId())
+                .setIssuer(appleConfig.getTeamId())
+                .setIssuedAt(now)
+                .setExpiration(new Date(nowMillis + 86400000))// 1일
+                .setAudience("https://appleid.apple.com")
+                .setSubject(appleConfig.getClientId())
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+        return jwt;
+    }
+
+    private RSAPrivateKey getPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String privateKey = appleConfig.getPrivate_key();
+        byte[] encoded = Base64.getDecoder().decode(privateKey);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+    }
+
+    private boolean validateAppleIdToken(String idToken) throws ParseException, IOException, JOSEException {
+        SignedJWT signedJWT = SignedJWT.parse(idToken);
+        // Apple의 공개 키를 가져옴
+        JWKSet jwkSet = JWKSet.load(new URL(appleConfig.getPublic_key_url()));
+        JWK jwk = jwkSet.getKeyByKeyId(signedJWT.getHeader().getKeyID());
+        // 검증을 위한 RSA 공개 키 생성
+        RSAKey rsaKey = (RSAKey) jwk;
+
+        JWSVerifier verifier = new RSASSAVerifier(rsaKey.toRSAPublicKey());
+        // JWT 서명 검증
+        return signedJWT.verify(verifier);
+    }
 
     private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
         Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
@@ -228,7 +276,6 @@ public class AuthService2 {
             tokenRepository.save(new RefreshToken(member, refreshToken));
         }
     }
-
 
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
         String refreshToken = request.getHeader("refreshToken");

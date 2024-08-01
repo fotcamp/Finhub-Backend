@@ -2,6 +2,7 @@ package fotcamp.finhub.main.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.JOSEException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.service.AuthService2;
@@ -13,15 +14,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.text.ParseException;
+
 @Tag(name = "A auth",
     description = "액세스 토큰 받아오는 방법 \n\n" +
             "kakao 인가코드를 먼저 받아온다. \n\n" +
-            "BE local, dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
-            "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE local Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://15.164.149.101:3000/auth/kakao/callback&response_type=code \n\n" +
+            "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://main.fin-hub.co.kr/auth/kakao/callback&response_type=code \n\n" +
             "\n\n"+
             "google 인가코드 받아오기 \n\n"+
             "BE local : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
-            "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email\n\n"+
+            "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://main.fin-hub.co.kr/auth/google/callback&response_type=code&scope=profile email\n\n"+
+            "\n\n"+
             "BE local -> origin parameter에 belocal\n\n" +
             "BE dev -> origin parameter에 bedev\n\n" +
             "BE prod -> origin parameter에 beprod\n\n" +
@@ -55,12 +63,12 @@ public class AuthApiController {
         return authService2.loginGoogle(code, origin);
     }
 
-//    @GetMapping("/login/oauth2/callback/apple")
-//    @Operation(summary = " 애플 로그인", description = "애플 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
-//    public ResponseEntity<ApiResponseWrapper> appleLogin(@RequestParam(name = "code") String code,
-//                                                         @RequestParam(name = "origin") String origin) throws JsonProcessingException {
-//        return authService2.loginApple(code, origin);
-//    }
+    @GetMapping("/login/oauth2/callback/apple")
+    @Operation(summary = " 애플 로그인", description = "애플 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
+    public ResponseEntity<ApiResponseWrapper> appleLogin(@RequestParam(name = "code") String code,
+                                                         @RequestParam(name = "origin") String origin) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
+        return authService2.loginApple(code, origin);
+    }
 
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
     @Operation(summary = "리프레시토큰 만료될 때 액세스토큰 업데이트 ", description = "액세스토큰 발급")
