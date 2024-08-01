@@ -27,8 +27,6 @@ public class GoogleConfig {
     private String redirect_uri_feProd;
     @Value("${custom-redirect-uri.google.belocal}")
     private String redirect_uri_beLocal;
-    @Value("${custom-redirect-uri.google.bedev}")
-    private String redirect_uri_beDev;
     @Value("${custom-redirect-uri.google.beprod}")
     private String redirect_uri_beProd;
 }

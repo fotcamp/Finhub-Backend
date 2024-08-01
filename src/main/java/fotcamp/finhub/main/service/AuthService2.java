@@ -87,8 +87,6 @@ public class AuthService2 {
                 return kakaoConfig.getRedirect_uri_feProd();
             case "belocal":
                 return kakaoConfig.getRedirect_uri_beLocal();
-            case "bedev":
-                return kakaoConfig.getRedirect_uri_beDev();
             case "beprod":
                 return kakaoConfig.getRedirect_uri_beProd();
             default:
@@ -164,8 +162,6 @@ public class AuthService2 {
                 return googleConfig.getRedirect_uri_feProd();
             case "belocal":
                 return googleConfig.getRedirect_uri_beLocal();
-            case "bedev":
-                return googleConfig.getRedirect_uri_beDev();
             case "beprod":
                 return googleConfig.getRedirect_uri_beProd();
             default:

@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "A auth",
     description = "액세스 토큰 받아오는 방법 \n\n" +
             "kakao 인가코드를 먼저 받아온다. \n\n" +
-            "BE local, dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
-            "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE local Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/kakao&response_type=code \n\n" +
+            "BE dev Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=http://15.164.149.101:3000/auth/kakao/callback&response_type=code \n\n" +
+            "BE main Test : https://kauth.kakao.com/oauth/authorize?client_id=8cdab51912aa75e69f1dce7eb88d196c&redirect_uri=https://main.fin-hub.co.kr/auth/kakao/callback&response_type=code \n\n" +
             "\n\n"+
             "google 인가코드 받아오기 \n\n"+
             "BE local : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
-            "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email\n\n"+
+            "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://main.fin-hub.co.kr/auth/google/callback&response_type=code&scope=profile email\n\n"+
+            "\n\n"+
             "BE local -> origin parameter에 belocal\n\n" +
             "BE dev -> origin parameter에 bedev\n\n" +
             "BE prod -> origin parameter에 beprod\n\n" +
