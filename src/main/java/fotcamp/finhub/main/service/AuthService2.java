@@ -189,7 +189,7 @@ public class AuthService2 {
         }
     }
 
-    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws NoSuchAlgorithmException, InvalidKeySpecException, ParseException, IOException, JOSEException {
+    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws ParseException, IOException, JOSEException {
         String identityToken = getAppleIdentityToken(code, origin);
         if (!validateAppleIdToken(identityToken)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("애플로그인 정보 오류 발생."));
@@ -207,7 +207,7 @@ public class AuthService2 {
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
     }
 
-    private String getAppleIdentityToken(String code, String origin) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private String getAppleIdentityToken(String code, String origin){
         String redirectUri = getAppleRedirectUri(origin);
         String clientSecret = createClientSecret();
         HttpHeaders headers = new HttpHeaders();
@@ -230,7 +230,7 @@ public class AuthService2 {
         }
     }
 
-    public String createClientSecret() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private String createClientSecret(){
         PrivateKey privateKey = getPrivateKey();
         long nowMillis  = System.currentTimeMillis();
         Date now = new Date(nowMillis);
@@ -246,8 +246,7 @@ public class AuthService2 {
         return jwt;
     }
 
-    public PrivateKey getPrivateKey() {
-//        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    private PrivateKey getPrivateKey() {
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
         try {
             byte[] privateKeyBytes = Base64.getDecoder().decode(appleConfig.getPrivate_key());
