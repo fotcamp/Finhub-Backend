@@ -93,4 +93,11 @@ public class AuthApiController {
         return authService2.memberInfoRequest(userDetails);
     }
 
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponseWrapper> test(@RequestParam(name = "code") String code,
+                                                   @RequestParam(name = "origin") String origin) throws NoSuchAlgorithmException, InvalidKeySpecException, ParseException, IOException, JOSEException {
+        authService2.getPrivateKey();
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
 }

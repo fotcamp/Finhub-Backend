@@ -34,6 +34,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,11 +47,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.Date;
@@ -197,7 +198,7 @@ public class AuthService2 {
         JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
         String email = claims.getStringClaim("email");
         String name = claims.getStringClaim("name");
-        String provider = googleConfig.getClient_name();
+        String provider = appleConfig.getClient_name();
         Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
@@ -229,8 +230,8 @@ public class AuthService2 {
         }
     }
 
-    private String createClientSecret() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        RSAPrivateKey privateKey = getPrivateKey();
+    public String createClientSecret() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        PrivateKey privateKey = getPrivateKey();
         long nowMillis  = System.currentTimeMillis();
         Date now = new Date(nowMillis);
         final String jwt = Jwts.builder()
@@ -240,17 +241,22 @@ public class AuthService2 {
                 .setExpiration(new Date(nowMillis + 86400000))// 1일
                 .setAudience("https://appleid.apple.com")
                 .setSubject(appleConfig.getClientId())
-                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .signWith(privateKey, SignatureAlgorithm.ES256)
                 .compact();
         return jwt;
     }
 
-    private RSAPrivateKey getPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String privateKey = appleConfig.getPrivate_key();
-        byte[] encoded = Base64.getDecoder().decode(privateKey);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+    public PrivateKey getPrivateKey() {
+//        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+        try {
+            byte[] privateKeyBytes = Base64.getDecoder().decode(appleConfig.getPrivate_key());
+
+            PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(privateKeyBytes);
+            return converter.getPrivateKey(privateKeyInfo);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting private key from String", e);
+        }
     }
 
     private boolean validateAppleIdToken(String idToken) throws ParseException, IOException, JOSEException {
@@ -260,7 +266,6 @@ public class AuthService2 {
         JWK jwk = jwkSet.getKeyByKeyId(signedJWT.getHeader().getKeyID());
         // 검증을 위한 RSA 공개 키 생성
         RSAKey rsaKey = (RSAKey) jwk;
-
         JWSVerifier verifier = new RSASSAVerifier(rsaKey.toRSAPublicKey());
         // JWT 서명 검증
         return signedJWT.verify(verifier);
