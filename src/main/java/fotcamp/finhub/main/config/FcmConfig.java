@@ -7,16 +7,13 @@ import com.google.firebase.FirebaseOptions;
 import fotcamp.finhub.common.exception.FcmException;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.Collections;
-
 
 
 @Slf4j

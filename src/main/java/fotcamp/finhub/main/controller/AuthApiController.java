@@ -30,6 +30,9 @@ import java.text.ParseException;
             "BE local : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
             "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://main.fin-hub.co.kr/auth/google/callback&response_type=code&scope=profile email\n\n"+
             "\n\n"+
+            "apple 인가코드 받아오기 \n\n"+
+            "production : https://appleid.apple.com/auth/authorize?response_type=code&client_id=finhub.fotcamp.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/apple&scope=name%20email&response_mode=form_post\n\n\n"+
+            "\n\n"+
             "BE local -> origin parameter에 belocal\n\n" +
             "BE dev -> origin parameter에 bedev\n\n" +
             "BE prod -> origin parameter에 beprod\n\n" +
@@ -66,7 +69,7 @@ public class AuthApiController {
     @GetMapping("/login/oauth2/callback/apple")
     @Operation(summary = " 애플 로그인", description = "애플 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
     public ResponseEntity<ApiResponseWrapper> appleLogin(@RequestParam(name = "code") String code,
-                                                         @RequestParam(name = "origin") String origin) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
+                                                         @RequestParam(name = "origin") String origin) throws IOException, ParseException, JOSEException {
         return authService2.loginApple(code, origin);
     }
 
