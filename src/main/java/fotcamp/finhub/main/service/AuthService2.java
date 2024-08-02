@@ -11,6 +11,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
+import fotcamp.finhub.common.domain.Agreement;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -23,10 +24,12 @@ import fotcamp.finhub.main.config.KakaoConfig;
 import fotcamp.finhub.main.config.OAuth2Util;
 import fotcamp.finhub.main.dto.process.login.KakaoUserInfoProcessDto;
 import fotcamp.finhub.main.dto.process.login.UserInfoProcessDto;
+import fotcamp.finhub.main.dto.request.SignUpAgreeRequest;
 import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.dto.response.login.MemberInfoResponseDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
+import fotcamp.finhub.main.repository.SignUpAgreementRepository;
 import fotcamp.finhub.main.repository.TokenRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -65,13 +68,16 @@ import java.util.Optional;
 public class AuthService2 {
 
     private final JwtUtil jwtUtil;
-    private final MemberRepository memberRepository;
-    private final TokenRepository tokenRepository;
+
     private final KakaoConfig kakaoConfig;
     private final GoogleConfig googleConfig;
     private final AppleJwtConfig appleConfig;
     private final AwsS3Service awsS3Service;
     private final OAuth2Util oAuth2Util;
+
+    private final SignUpAgreementRepository signUpAgreementRepository;
+    private final MemberRepository memberRepository;
+    private final TokenRepository tokenRepository;
 
     public ResponseEntity<ApiResponseWrapper> loginKakao(String code, String origin) throws JsonProcessingException {
         String kakaoAccessToken = getKakaoAccessToken(code, origin);
@@ -358,5 +364,12 @@ public class AuthService2 {
                 .pushYN(member.isPushYn())
                 .build();
         return ResponseEntity.ok(ApiResponseWrapper.success(new MemberInfoResponseDto(userInfoProcessDto)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> signUpAgree(SignUpAgreeRequest signUpAgreeRequest, CustomUserDetails userDetails){
+        Long memberId = userDetails.getMemberIdasLong();
+        memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        signUpAgreementRepository.save(new Agreement(memberId, signUpAgreeRequest.privacy_policy(), signUpAgreeRequest.terms_of_service()));
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
