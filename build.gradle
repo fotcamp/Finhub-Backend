@@ -71,6 +71,10 @@ dependencies {
 	// Sentry
 	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.10.0'
 
+	// bouncy castle
+	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+	implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
+
 }
 
 def querydslSrcDir = 'src/main/generated'

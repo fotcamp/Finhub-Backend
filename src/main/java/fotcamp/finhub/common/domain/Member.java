@@ -28,7 +28,7 @@ public class Member {
     @Column(name = "EMAIL", nullable = false)
     private String email;
 
-    @Column(name = "PROFILE_NICKNAME", nullable = false)
+    @Column(name = "PROFILE_NICKNAME")
     private String name;
 
     private String nickname;
