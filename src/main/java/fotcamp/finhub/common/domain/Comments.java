@@ -57,7 +57,4 @@ public class Comments extends BaseEntity{
             this.useYn = "Y";
         }
     }
-
-
-
 }
