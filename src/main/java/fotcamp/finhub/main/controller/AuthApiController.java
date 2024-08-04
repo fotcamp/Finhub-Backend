@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.main.dto.request.SignUpAgreeRequest;
 import fotcamp.finhub.main.service.AuthService2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -94,6 +95,14 @@ public class AuthApiController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
         return authService2.memberInfoRequest(userDetails);
+    }
+
+    @PostMapping("/agreement")
+    @Operation(summary = "회원가입 이용 약관 동의", description = "회원가입 이용 약관 동의 api")
+    public ResponseEntity<ApiResponseWrapper> signUpAgree(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody SignUpAgreeRequest signUpAgreeRequest){
+        return authService2.signUpAgree(signUpAgreeRequest, userDetails);
     }
 
 }

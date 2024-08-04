@@ -441,7 +441,7 @@ public class MainService {
                 List<PostsScrap> scrapList = postsScrapRepository.findByMember(member);
                 List<MyScrapColumnProcessDto> responseDto = scrapList.stream().map(
                                 postsScrap -> MyScrapColumnProcessDto.builder()
-                                        .columnId(postsScrap.getId())
+                                        .columnId(postsScrap.getGptColumn().getId())
                                         .title(postsScrap.getGptColumn().getTitle())
                                         .summary(postsScrap.getGptColumn().getSummary())
                                         .build())

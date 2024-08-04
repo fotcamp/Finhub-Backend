@@ -6,6 +6,8 @@ import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
+import fotcamp.finhub.main.repository.CommentsLikeRepository;
+import fotcamp.finhub.main.repository.CommentsRepository;
 import fotcamp.finhub.main.repository.MemberRepository;
 import fotcamp.finhub.main.repository.MemberScrapRepository;
 import fotcamp.finhub.main.repository.ReportReasonsRepository;
@@ -41,6 +43,8 @@ public class AdminDeleteService {
     private final CalendarEmoticonRepository calendarEmoticonRepository;
     private final ReportReasonsRepository reportReasonsRepository;
     private final BannerRepository bannerRepository;
+    private final CommentsRepository commentsRepository;
+    private final CommentsLikeRepository commentsLikeRepository;
 
     public ResponseEntity<ApiResponseWrapper> deleteCategory(DeleteCategoryRequestDto dto){
 
@@ -131,6 +135,13 @@ public class AdminDeleteService {
         if (!topicGptColumnList.isEmpty()){
             topicGptColumnRepository.deleteByGptColumn(gptColumn);
         }
+        // 컬럼 연관 댓글조회
+        List<Comments> commentsList = commentsRepository.findByGptColumn(gptColumn);
+        // 댓글 좋아요 목록 삭제
+        for(Comments comments : commentsList){
+            commentsLikeRepository.deleteByComments(comments);
+        }
+        commentsRepository.deleteAll(commentsList);
         gptColumnRepository.delete(gptColumn);
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
