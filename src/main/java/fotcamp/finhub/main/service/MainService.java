@@ -432,6 +432,7 @@ public class MainService {
                                         .topicId(memberScrap.getTopic().getId())
                                         .title(memberScrap.getTopic().getTitle())
                                         .definition(memberScrap.getTopic().getDefinition())
+                                        .imgUrl(memberScrap.getTopic().getThumbnailImgPath())
                                         .build())
                         .collect(Collectors.toList());
 
@@ -444,6 +445,7 @@ public class MainService {
                                         .columnId(postsScrap.getGptColumn().getId())
                                         .title(postsScrap.getGptColumn().getTitle())
                                         .summary(postsScrap.getGptColumn().getSummary())
+                                        .imgUrl(postsScrap.getGptColumn().getBackgroundUrl())
                                         .build())
                         .collect(Collectors.toList());
                 return ResponseEntity.ok(ApiResponseWrapper.success(responseDto));
