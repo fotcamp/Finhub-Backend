@@ -50,7 +50,7 @@ public class ColumnService {
                 return new TopicIdTitleDto(topicGptColumn);
             }).toList();
             return new ColumnListDto(gptColumn.getId(), gptColumn.getTitle(), gptColumn.getCreatedTime().toLocalDate(),
-                    awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()), topicList);
+                    awsS3Service.combineWithCloudFrontBaseUrl(gptColumn.getBackgroundUrl()), topicList);
         }).toList();
 
         PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(gptColumns);
@@ -77,7 +77,7 @@ public class ColumnService {
 
         ColumnDetailAnswerDto answer = ColumnDetailAnswerDto.builder()
                 .gptColumn(gptColumn)
-                .url(awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()))
+                .url(awsS3Service.combineWithCloudFrontBaseUrl(gptColumn.getBackgroundUrl()))
                 .isScrapped(isScrapped)
                 .isLiked(isLiked)
                 .topicList(topicsDto)
@@ -190,7 +190,7 @@ public class ColumnService {
                     Member commentWriter = comment.getMember();
                     String avatarPath = Optional.ofNullable(commentWriter.getUserAvatar())
                             .map(UserAvatar::getAvatar_img_path)
-                            .map(awsS3Service::combineWithBaseUrl)
+                            .map(awsS3Service::combineWithCloudFrontBaseUrl)
                             .orElse(null); // getUserAvatar()가 null이면 null 반환
                     if ("Y".equals(loginCheck)) { // 로그인 한 유저면
                         Optional<CommentsLike> firstByCommentAndMember = commentsLikeRepository.findFirstByCommentAndMember(comment, memberRepository.findById(memberId).get());

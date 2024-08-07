@@ -75,6 +75,9 @@ dependencies {
 	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
 	implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
 
+	// SMTP
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 def querydslSrcDir = 'src/main/generated'

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -508,4 +509,20 @@ public class AdminController {
         return adminService.order(dto, type);
     }
 
+    @GetMapping("/feedback")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "VOC 리스트 조회", description = "페이지 방식 적용, 파라미터로 reply=T 혹은 F로 답장했던 목록 혹은 답장안한 목록 조회 가능")
+    public ResponseEntity<ApiResponseWrapper> vocList(@RequestParam(value = "page", defaultValue = "1") int page,
+                                                      @RequestParam(value = "size", defaultValue = "10") int size,
+                                                      @RequestParam(value = "reply", defaultValue = "F") String reply
+    ){
+        return adminService.vocList(page, size, reply);
+    }
+
+    @PostMapping("/feedback")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
+    @Operation(summary = "VOC 답장하기", description = "답장 내용 전송하면 SMTP 활용해 메일로 전송")
+    public ResponseEntity<ApiResponseWrapper> sendReply(@RequestBody ReplyRequestDto dto) throws MessagingException {
+        return adminService.sendReply(dto);
+    }
 }

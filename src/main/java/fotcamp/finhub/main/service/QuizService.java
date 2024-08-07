@@ -129,7 +129,7 @@ public class QuizService {
         if (member.getCalendarEmoticon() == null) {
             emoticonImgPath = null;
         } else {
-            emoticonImgPath = awsS3Service.combineWithBaseUrl(member.getCalendarEmoticon().getEmoticon_img_path());
+            emoticonImgPath = awsS3Service.combineWithCloudFrontBaseUrl(member.getCalendarEmoticon().getEmoticon_img_path());
         }
 
         LocalDate startDate = DateUtil.convertToDate(Long.parseLong(year), Long.parseLong(month), 1L);
@@ -159,7 +159,7 @@ public class QuizService {
         List<EmoticonDto> emoticonList = new ArrayList<>();
         List<CalendarEmoticon> allEmoticon = calendarEmoticonRepository.findAll();
         for (CalendarEmoticon calendarEmoticon : allEmoticon) {
-            emoticonList.add(new EmoticonDto(calendarEmoticon.getId(), awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path())));
+            emoticonList.add(new EmoticonDto(calendarEmoticon.getId(), awsS3Service.combineWithCloudFrontBaseUrl(calendarEmoticon.getEmoticon_img_path())));
         }
 
         // ApiResponseWrapper에 결과 DTO를 담아 반환

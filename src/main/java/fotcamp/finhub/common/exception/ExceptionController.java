@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.nio.file.NoSuchFileException;
 import java.time.DateTimeException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ public class ExceptionController{
                 .getAllErrors()
                 .get(0)
                 .getDefaultMessage();
+        log.error(String.valueOf(e));
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail(errorMessage));
     }
 
@@ -99,11 +101,17 @@ public class ExceptionController{
         return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("FCM ERROR", e.getMessage()));
     }
 
+    @ExceptionHandler(NoSuchFileException.class)
+    public ResponseEntity<ApiResponseWrapper> handleS3ImgFileException(Exception e){
+        return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("S3 이미지 파일 에러 발생", e.getMessage()));
+    }
+
     // 예상치 못한 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         // 예외 처리 로직
         Sentry.captureException(ex);
+        log.error(String.valueOf(ex));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
