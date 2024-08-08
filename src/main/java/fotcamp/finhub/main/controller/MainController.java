@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.common.service.SlackWebhookService;
 import fotcamp.finhub.main.dto.request.*;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.service.MainService;
@@ -29,6 +30,7 @@ import java.io.IOException;
 public class MainController {
 
     private final MainService mainService;
+    private final SlackWebhookService slackService;
 
     // 단어 검색
     @GetMapping("/search/topic/{method}")
@@ -329,5 +331,6 @@ public class MainController {
     ){
         return mainService.deleteFcmToken(userDetails);
     }
+
 }
 

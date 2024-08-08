@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class VocProcessDto {
+public class VocDetailProcessDto {
 
     private Long feedbackId;
     private String userAgent;
@@ -19,7 +19,7 @@ public class VocProcessDto {
 
 
     @Builder
-    public VocProcessDto(Long feedbackId, String userAgent, String appVersion, String email, String context, String fileUrl1, String fileUrl2, String fileUrl3, String fileUrl4, String reply) {
+    public VocDetailProcessDto(Long feedbackId, String userAgent, String appVersion, String email, String context, String fileUrl1, String fileUrl2, String fileUrl3, String fileUrl4, String reply) {
         this.feedbackId = feedbackId;
         this.userAgent = userAgent;
         this.appVersion = appVersion;

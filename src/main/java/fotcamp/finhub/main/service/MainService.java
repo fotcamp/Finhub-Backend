@@ -9,6 +9,7 @@ import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
+import fotcamp.finhub.common.service.SlackWebhookService;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.process.secondTab.*;
 import fotcamp.finhub.main.dto.process.thirdTab.SearchColumnResultListProcessDto;
@@ -78,7 +79,7 @@ public class MainService {
     private final FeedbackRepository feedbackRepository;
 
     private final FcmService fcmService;
-    private final EmailService emailService;
+    private final SlackWebhookService slackService;
 
     private static final int MAX_RECENT_SEARCHES = 10;
 
@@ -652,7 +653,6 @@ public class MainService {
             if (!member.isPushYn()) {
                 return ResponseEntity.ok(ApiResponseWrapper.success());
             }
-            System.out.println("푸시알람 가야지~~~~~~~`");
             CreateFcmMessageRequestDto pushProcessDto = CreateFcmMessageRequestDto.builder()
                     .type(0L)
                     .target(Collections.singletonList(member.getEmail()))
@@ -665,6 +665,7 @@ public class MainService {
                             .build())
                     .build();
             fcmService.sendFcmNotifications(pushProcessDto);
+            slackService.sendMsg(dto.getEmail(), dto.getText(), newVoc.getId());
         }
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }

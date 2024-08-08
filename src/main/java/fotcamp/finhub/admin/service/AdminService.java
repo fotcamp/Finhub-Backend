@@ -1253,18 +1253,35 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> vocList(int page, int size, String reply){
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdTime"));
         Page<Feedback> feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
-        List<VocProcessDto> vocProcessDtoList = feedbackList.stream().map(feedback -> VocProcessDto.builder()
+        List<VocListProcessDto> vocDetailProcessDtoList = feedbackList.stream().map(feedback -> VocListProcessDto.builder()
+                .feedbackId(feedback.getId())
+                .email(feedback.getEmail())
+                .context(feedback.getFeedback())
+                .reply(feedback.getReply()).build()).toList();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> vocDetail(Long id){
+        Feedback feedback = feedbackRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 VOC"));
+        VocDetailProcessDto vocDetailProcessDto = VocDetailProcessDto.builder()
                 .feedbackId(feedback.getId())
                 .userAgent(feedback.getUserAgent())
                 .appVersion(feedback.getAppVersion())
                 .email(feedback.getEmail())
                 .context(feedback.getFeedback())
-                .fileUrl1(feedback.getFileUrl1())
-                .fileUrl2(feedback.getFileUrl2())
-                .fileUrl3(feedback.getFileUrl3())
-                .fileUrl4(feedback.getFileUrl4())
-                .reply(reply).build()).toList();
-        return ResponseEntity.ok(ApiResponseWrapper.success(new VocResponseDto(vocProcessDtoList)));
+                .fileUrl1(checkIfNullFileUrl(feedback.getFileUrl1()))
+                .fileUrl2(checkIfNullFileUrl(feedback.getFileUrl2()))
+                .fileUrl3(checkIfNullFileUrl(feedback.getFileUrl3()))
+                .fileUrl4(checkIfNullFileUrl(feedback.getFileUrl4()))
+                .reply(feedback.getReply())
+                .build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocDetailResponseDto(vocDetailProcessDto)));
+    }
+
+    private String checkIfNullFileUrl(String fileUrl) {
+        return Optional.ofNullable(fileUrl)
+                .map(awsS3Service::combineWithCloudFrontBaseUrl)
+                .orElse(null);
     }
 
     public ResponseEntity<ApiResponseWrapper> sendReply(ReplyRequestDto dto) {
