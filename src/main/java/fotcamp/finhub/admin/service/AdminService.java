@@ -1004,7 +1004,10 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(resultDto));
     }
 
-    // GPT 컬럼 상세 조회
+    /**
+     * GPT 컬럼의 상세 내용(댓글, 댓글신고여부)을 조회한다.
+     * @Return DetailGptColumnResponseDto
+     * */
     public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id) {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재 하지 않는 GPT COLUMN"));
         List<Comments> comments = commentsRepository.findByGptColumn(gptColumn);
@@ -1015,7 +1018,7 @@ public class AdminService {
                             .map(UserAvatar::getAvatar_img_path)
                             .map(awsS3Service::combineWithBaseUrl)
                             .orElse(null); // getUserAvatar()가 null이면 null 반환
-                    if (commentsReportRepository.findByReportedComment(comment).isPresent()) {
+                    if (commentsReportRepository.existsByReportedComment(comment)) {
                         return new AdminCommentResponseDto(member, comment, avatarPath, "Y");
                     } else {
                         return new AdminCommentResponseDto(member, comment, avatarPath, "N");
