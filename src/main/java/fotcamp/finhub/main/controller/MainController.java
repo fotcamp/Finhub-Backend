@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Tag(name = "B main", description = "main api")
 @RestController
@@ -320,6 +321,9 @@ public class MainController {
             @Valid @ModelAttribute FeedbackRequestDto dto, // 유효성 검증을 위해 @Valid 사용
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) throws MessagingException, IOException {
+        if (dto.getFiles() == null) {
+            dto.setFiles(Collections.emptyList().toArray(new MultipartFile[0])); // 파일 리스트가 null이면 빈 리스트로 설정
+        }
         return mainService.feedback(userAgent, appVersion, dto, userDetails);
     }
 

@@ -24,7 +24,7 @@ public class SlackWebhookService {
     public void sendMsg(String email, String text, Long id) {
         Slack slack = Slack.getInstance();
         StringBuilder sb = new StringBuilder();
-        String detailUrl = String.format("%s/api/v1/admin/feedback/%d", domain, id);
+        String detailUrl = String.format("%s/services/feedback/%d", domain, id);
         String truncatedText = text.length() > 100 ? text.substring(0, 100) + "..." : text;
         sb.append("{\n")
                 .append("  \"blocks\": [\n")
