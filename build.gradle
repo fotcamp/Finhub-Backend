@@ -75,6 +75,11 @@ dependencies {
 	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
 	implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
 
+	// SMTP
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// slack bot
+	implementation 'com.slack.api:slack-api-client:1.40.3'
 }
 
 def querydslSrcDir = 'src/main/generated'

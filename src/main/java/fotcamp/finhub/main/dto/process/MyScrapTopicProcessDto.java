@@ -14,12 +14,14 @@ public class MyScrapTopicProcessDto {
     private Long topicId;
     private String title;
     private String definition;
+    private String imgUrl;
 
-    public MyScrapTopicProcessDto(Long categoryId, Long topicId, String title, String definition) {
+    public MyScrapTopicProcessDto(Long categoryId, Long topicId, String title, String definition, String imgUrl) {
         this.categoryId = categoryId;
         this.topicId = topicId;
         this.title = title;
         this.definition = definition;
+        this.imgUrl = imgUrl;
     }
 
 }
