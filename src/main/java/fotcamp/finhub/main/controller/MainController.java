@@ -1,14 +1,17 @@
 package fotcamp.finhub.main.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
+import fotcamp.finhub.common.service.SlackWebhookService;
 import fotcamp.finhub.main.dto.request.*;
 import fotcamp.finhub.main.dto.response.thirdTab.SearchTopicResponseDto;
 import fotcamp.finhub.main.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Collections;
 
 @Tag(name = "B main", description = "main api")
 @RestController
@@ -24,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class MainController {
 
     private final MainService mainService;
+    private final SlackWebhookService slackService;
 
     // 단어 검색
     @GetMapping("/search/topic/{method}")
@@ -305,13 +313,20 @@ public class MainController {
     }
 
     // VOC
-    @PostMapping("/menu/feedback")
+    @PostMapping(value = "/menu/feedback",  consumes = { "multipart/form-data" })
     @Operation(summary = " 고객 소리함 API ", description = "고객 피드백 수집")
     public ResponseEntity<ApiResponseWrapper> feedback(
-            @RequestBody FeedbackRequestDto dto
-    ){
-        return mainService.feedback(dto);
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader(value = "App-Version") String appVersion,
+            @Valid @ModelAttribute FeedbackRequestDto dto, // 유효성 검증을 위해 @Valid 사용
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) throws MessagingException, IOException {
+        if (dto.getFiles() == null) {
+            dto.setFiles(Collections.emptyList().toArray(new MultipartFile[0])); // 파일 리스트가 null이면 빈 리스트로 설정
+        }
+        return mainService.feedback(userAgent, appVersion, dto, userDetails);
     }
+
 
     @DeleteMapping("/fcm-token")
     @Operation(summary = "유저- fcm토큰 삭제 ", description = "FCM토큰 정보 삭제")
@@ -320,5 +335,6 @@ public class MainController {
     ){
         return mainService.deleteFcmToken(userDetails);
     }
+
 }
 

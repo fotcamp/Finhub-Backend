@@ -27,6 +27,7 @@ import fotcamp.finhub.main.dto.response.column.AdminCommentResponseDto;
 import fotcamp.finhub.main.dto.response.column.ReportCommentRequestDto;
 import fotcamp.finhub.main.dto.response.column.ReportedCommentsResponseDto;
 import fotcamp.finhub.main.repository.*;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -89,8 +90,10 @@ public class AdminService {
     private final CommentsReportRepositoryCustom commentsReportRepositoryCustom;
     private final CommentsReportRepository commentsReportRepository;
     private final CommentsRepository commentsRepository;
+    private final FeedbackRepository feedbackRepository;
 
     private final FcmService fcmService;
+    private final EmailService emailService;
 
     @Value("${promise.category}") String promiseCategory;
     @Value("${promise.topic}") String promiseTopic;
@@ -103,7 +106,7 @@ public class AdminService {
             Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
 
             if (manager.getPassword().equals(loginRequestDto.password())) {
-                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
+                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
                 // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
                 Optional<ManagerRefreshToken> refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
                 if (refreshToken.isPresent()) {
@@ -141,7 +144,7 @@ public class AdminService {
             Category findCategory = categoryRepository.findById(categoryId).orElseThrow(EntityNotFoundException::new);
 
             // 썸네일 이미지 경로 수정
-            String modifiedThumbnailImgPath = awsS3Service.combineWithBaseUrl(findCategory.getThumbnailImgPath());
+            String modifiedThumbnailImgPath = awsS3Service.combineWithCloudFrontBaseUrl(findCategory.getThumbnailImgPath());
 
             List<Topic> topicList = findCategory.getTopics();
             List<DetailCategoryTopicProcessDto> detailCategoryTopicProcessDtos = topicList.stream().map(DetailCategoryTopicProcessDto::new).toList();
@@ -254,7 +257,7 @@ public class AdminService {
                     .map(DetailTopicProcessDto::new).toList();
             DetailTopicResponseDto detailTopicResponseDto = new DetailTopicResponseDto(findTopic.getCategory().getId(), findTopic.getId(),
                     findTopic.getTitle(), findTopic.getDefinition(), findTopic.getSummary(),
-                    awsS3Service.combineWithBaseUrl(findTopic.getThumbnailImgPath()), findTopic.getUseYN(), detailTopicProcessDtos);
+                    awsS3Service.combineWithCloudFrontBaseUrl(findTopic.getThumbnailImgPath()), findTopic.getUseYN(), detailTopicProcessDtos);
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailTopicResponseDto));
         } catch (EntityNotFoundException e) {
@@ -347,7 +350,7 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> getAllUserType(Pageable pageable, String useYN) {
         Page<UserType> userTypes = userTypeRepositoryCustom.searchAllUserTypeFilterList(pageable, useYN);
         List<UserTypeProcessDto> userTypeProcessDtos = userTypes.getContent().stream().map(userType -> {
-            return new UserTypeProcessDto(userType.getId(), userType.getName(), userType.getUseYN(), awsS3Service.combineWithBaseUrl(userType.getAvatarImgPath()));
+            return new UserTypeProcessDto(userType.getId(), userType.getName(), userType.getUseYN(), awsS3Service.combineWithCloudFrontBaseUrl(userType.getAvatarImgPath()));
         }).toList();
         PageInfoProcessDto pageInfoProcessDto = commonService.setPageInfo(userTypes);
         AllUserTypeResponseDto allUserTypeResponseDto = new AllUserTypeResponseDto(userTypeProcessDtos, pageInfoProcessDto);
@@ -361,7 +364,7 @@ public class AdminService {
         try {
             UserType findUserType = userTypeRepository.findById(typeId).orElseThrow(EntityNotFoundException::new);
             DetailUserTypeResponseDto detailUserTypeResponseDto = new DetailUserTypeResponseDto(findUserType.getId(), findUserType.getName(),
-                    awsS3Service.combineWithBaseUrl(findUserType.getAvatarImgPath()), findUserType.getUseYN());
+                    awsS3Service.combineWithCloudFrontBaseUrl(findUserType.getAvatarImgPath()), findUserType.getUseYN());
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailUserTypeResponseDto));
 
@@ -766,7 +769,7 @@ public class AdminService {
             DetailBannerResponseDto detailBannerResponseDto = new DetailBannerResponseDto(
                     findBanner.getId(), findBanner.getTitle(), findBanner.getSubTitle(),
                     findBanner.getLandingPageUrl(), findBanner.getBannerType(), findBanner.getUseYN(), findBanner.getCreatedBy(),
-                    awsS3Service.combineWithBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
+                    awsS3Service.combineWithCloudFrontBaseUrl(findBanner.getBannerImageUrl()), findBanner.getCreatedTime(), findBanner.getModifiedTime()
             );
 
             return ResponseEntity.ok(ApiResponseWrapper.success(detailBannerResponseDto));
@@ -835,7 +838,7 @@ public class AdminService {
         List<GetUserAvatarProcessDto> resultList = userAvatars.stream().map(userAvatar ->
                 new GetUserAvatarProcessDto(
                         userAvatar.getId(),
-                        awsS3Service.combineWithBaseUrl(userAvatar.getAvatar_img_path()),
+                        awsS3Service.combineWithCloudFrontBaseUrl(userAvatar.getAvatar_img_path()),
                         userAvatar.getCreatedBy(),
                         userAvatar.getCreatedTime(),
                         userAvatar.getModifiedTime()
@@ -867,7 +870,7 @@ public class AdminService {
         List<GetCalendarEmoticonProcessDto> resultList = calendarEmoticons.stream().map(calendarEmoticon ->
                 new GetCalendarEmoticonProcessDto(
                         calendarEmoticon.getId(),
-                        awsS3Service.combineWithBaseUrl(calendarEmoticon.getEmoticon_img_path()),
+                        awsS3Service.combineWithCloudFrontBaseUrl(calendarEmoticon.getEmoticon_img_path()),
                         calendarEmoticon.getCreatedBy(),
                         calendarEmoticon.getCreatedTime(),
                         calendarEmoticon.getModifiedTime()
@@ -1016,7 +1019,7 @@ public class AdminService {
                     Member member = comment.getMember();
                     String avatarPath = Optional.ofNullable(member.getUserAvatar())
                             .map(UserAvatar::getAvatar_img_path)
-                            .map(awsS3Service::combineWithBaseUrl)
+                            .map(awsS3Service::combineWithCloudFrontBaseUrl)
                             .orElse(null); // getUserAvatar()가 null이면 null 반환
                     if (commentsReportRepository.existsByReportedComment(comment)) {
                         return new AdminCommentResponseDto(member, comment, avatarPath, "Y");
@@ -1025,7 +1028,7 @@ public class AdminService {
                     }
                 }).toList();
         DetailGptColumnResponseDto detailGptColumnResponseDto = new DetailGptColumnResponseDto(
-               gptColumn, awsS3Service.combineWithBaseUrl(gptColumn.getBackgroundUrl()), commentList);
+               gptColumn, awsS3Service.combineWithCloudFrontBaseUrl(gptColumn.getBackgroundUrl()), commentList);
 
         return ResponseEntity.ok(ApiResponseWrapper.success(detailGptColumnResponseDto));
     }
@@ -1186,7 +1189,7 @@ public class AdminService {
     }
 
     public AdminAutoLoginResponseDto updatingLoginResponse(Manager manager){
-        TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString());
+        TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
         Optional<ManagerRefreshToken> existingRefreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
@@ -1248,5 +1251,50 @@ public class AdminService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("알 수 없는 오류 발생"));
         }
+    }
+
+    public ResponseEntity<ApiResponseWrapper> vocList(int page, int size, String reply){
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdTime"));
+        Page<Feedback> feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
+        List<VocListProcessDto> vocDetailProcessDtoList = feedbackList.stream().map(feedback -> VocListProcessDto.builder()
+                .feedbackId(feedback.getId())
+                .email(feedback.getEmail())
+                .context(feedback.getFeedback())
+                .reply(feedback.getReply()).build()).toList();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList)));
+    }
+
+    public ResponseEntity<ApiResponseWrapper> vocDetail(Long id){
+        Feedback feedback = feedbackRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 VOC"));
+        VocDetailProcessDto vocDetailProcessDto = VocDetailProcessDto.builder()
+                .feedbackId(feedback.getId())
+                .userAgent(feedback.getUserAgent())
+                .appVersion(feedback.getAppVersion())
+                .email(feedback.getEmail())
+                .context(feedback.getFeedback())
+                .fileUrl1(checkIfNullFileUrl(feedback.getFileUrl1()))
+                .fileUrl2(checkIfNullFileUrl(feedback.getFileUrl2()))
+                .fileUrl3(checkIfNullFileUrl(feedback.getFileUrl3()))
+                .fileUrl4(checkIfNullFileUrl(feedback.getFileUrl4()))
+                .reply(feedback.getReply())
+                .build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocDetailResponseDto(vocDetailProcessDto)));
+    }
+
+    private String checkIfNullFileUrl(String fileUrl) {
+        return Optional.ofNullable(fileUrl)
+                .map(awsS3Service::combineWithCloudFrontBaseUrl)
+                .orElse(null);
+    }
+
+    public ResponseEntity<ApiResponseWrapper> sendReply(ReplyRequestDto dto) {
+        Feedback feedback = feedbackRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 VOC"));
+        try {
+            emailService.sendReplyEmail(feedback.getEmail(), feedback.getFeedback(), dto.text());
+        } catch (MessagingException exception){
+            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("메일 전송 실패"));
+        }
+        feedback.updateFeedback("T");
+        return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
