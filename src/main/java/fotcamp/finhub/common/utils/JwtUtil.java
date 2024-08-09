@@ -42,8 +42,8 @@ public class JwtUtil {
      * @param memberId
      * @return TokenDto
      */
-    public TokenDto createAllTokens(Long memberId, String roleType){
-        return new TokenDto(createToken(memberId, roleType, "Access"), createToken(memberId,roleType, "Refresh"));
+    public TokenDto createAllTokens(Long memberId, String roleType, String provider){
+        return new TokenDto(createToken(memberId, roleType, "Access", provider), createToken(memberId,roleType, "Refresh", provider));
     }
 
     /**
@@ -51,11 +51,12 @@ public class JwtUtil {
      * @param memberId, type
      * @return JWT String
      */
-    public String createToken(Long memberId, String roleType, String type){
+    public String createToken(Long memberId, String roleType, String type, String provider){
         long expireTime = type.equals("Access") ? accessTokenExpTime : refreshTokenExpTime;
 
         Claims claims = Jwts.claims();
         claims.put("memberId", memberId);
+        claims.put("provider", provider);
         claims.put("role", roleType);
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
@@ -84,6 +85,15 @@ public class JwtUtil {
      * */
     public String getRoleType(String token){
         return parseClaims(token).get("role", String.class);
+    }
+
+    /**
+     * 토큰에서 RoleType 추출
+     * @param token
+     * @return RoleType
+     * */
+    public String getProvider(String token){
+        return parseClaims(token).get("provider", String.class);
     }
 
     /**

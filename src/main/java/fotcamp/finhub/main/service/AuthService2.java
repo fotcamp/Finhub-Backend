@@ -50,10 +50,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Security;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.Date;
@@ -86,7 +83,7 @@ public class AuthService2 {
         String name = kakaoUserInfo.getName();
         String provider = kakaoConfig.getClient_name();
         Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), member.getProvider());
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
@@ -146,9 +143,9 @@ public class AuthService2 {
         return UserInfoProcessDto.builder()
                 .nickname(member.getNickname())
                 .email(member.getEmail())
-                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
-                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
                 .pushYN(member.isPushYn())
                 .build();
     }
@@ -160,7 +157,7 @@ public class AuthService2 {
         String name = (String) userInfo.get("name");
         String provider = googleConfig.getClient_name();
         Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
@@ -206,7 +203,7 @@ public class AuthService2 {
         String name = claims.getStringClaim("name");
         String provider = appleConfig.getClient_name();
         Member member = memberRepository.findByEmailAndProvider(email, provider).orElseGet(() -> memberRepository.save(new Member(email, name, provider)));
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
@@ -292,7 +289,8 @@ public class AuthService2 {
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
             Long memberId = jwtUtil.getUserId(refreshToken);
             String  roleType = jwtUtil.getRoleType(refreshToken);
-            String newAccessToken = jwtUtil.createToken(memberId, roleType,"Access");
+            String provider = jwtUtil.getProvider(refreshToken);
+            String newAccessToken = jwtUtil.createToken(memberId, roleType,"Access", provider);
             UpdateAccessTokenResponseDto updateAccessTokenResponseDto = new UpdateAccessTokenResponseDto(newAccessToken);
             return ResponseEntity.ok(ApiResponseWrapper.success(updateAccessTokenResponseDto));
         }
@@ -326,7 +324,7 @@ public class AuthService2 {
     }
 
     public LoginResponseDto updatingLoginResponse(Member member){
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString());
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), member.getProvider());
         Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
@@ -341,9 +339,9 @@ public class AuthService2 {
         UserInfoProcessDto userInfoProcessDto = UserInfoProcessDto.builder()
                 .nickname(member.getNickname())
                 .email(member.getEmail())
-                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
-                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
                 .pushYN(member.isPushYn())
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
@@ -358,9 +356,9 @@ public class AuthService2 {
         UserInfoProcessDto userInfoProcessDto = UserInfoProcessDto.builder()
                 .nickname(member.getNickname())
                 .email(member.getEmail())
-                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
+                .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
-                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithBaseUrl(member.getUserType().getAvatarImgPath()) : null)
+                .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
                 .pushYN(member.isPushYn())
                 .build();
         return ResponseEntity.ok(ApiResponseWrapper.success(new MemberInfoResponseDto(userInfoProcessDto)));

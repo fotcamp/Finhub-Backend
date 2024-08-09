@@ -14,8 +14,13 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.NoSuchFileException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,8 +31,11 @@ public class AwsS3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Value("${spring.cloud.aws.s3.base-url}")
-    private String baseUrl;
+//    @Value("${spring.cloud.aws.s3.base-url}")
+//    private String s3BaseUrl;
+
+    @Value("${cloud-front.base-url}")
+    private String cdnBaseUrl;
 
     public String uploadFile(SaveImgToS3RequestDto saveImgToS3RequestDto) throws NoSuchFileException {
 
@@ -85,7 +93,7 @@ public class AwsS3Service {
     }
 
     // s3 이미지 base url 빼고 폴더 경로만 return 하게 수정
-    public String extractPathFromUrl(String s3Url) throws Exception {
+    public String extractPathFromUrl(String s3Url) throws MalformedURLException {
         if (s3Url == null || s3Url.isBlank()) {
             return null;
         }
@@ -95,11 +103,22 @@ public class AwsS3Service {
     }
 
     // s3 이미지 base url 합쳐서 full url로 return 하게 수정
-    public String combineWithBaseUrl(String path) {
+    public String combineWithCloudFrontBaseUrl(String path) {
         if (path == null || path.isBlank()) {
             return null;
         }
         // Base URL과 경로를 결합하여 전체 URL 생성
-        return baseUrl + path;
+        return cdnBaseUrl + path;
+    }
+
+    public List<String> uploadFiles(MultipartFile[] files, String type){
+        List<CompletableFuture<String>> imgUrlList = Arrays.stream(files).filter(file -> !file.isEmpty()).map(file -> CompletableFuture.supplyAsync(() -> {
+            try {
+                return extractPathFromUrl(uploadFile(new SaveImgToS3RequestDto(type, file)));
+            } catch (NoSuchFileException | MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        })).toList();
+        return imgUrlList.stream().map(CompletableFuture::join).collect(Collectors.toList());
     }
 }
