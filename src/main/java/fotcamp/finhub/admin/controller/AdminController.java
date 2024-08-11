@@ -514,7 +514,7 @@ public class AdminController {
     @Operation(summary = "VOC 목록 조회", description = "페이지 방식 적용, 파라미터로 reply=T 혹은 F로 답장했던 목록 혹은 답장안한 목록 조회 가능")
     public ResponseEntity<ApiResponseWrapper> vocList(@RequestParam(value = "page", defaultValue = "1") int page,
                                                       @RequestParam(value = "size", defaultValue = "10") int size,
-                                                      @RequestParam(value = "reply", defaultValue = "F") String reply
+                                                      @RequestParam(value = "reply", required = false) String reply
     ){
         return adminService.vocList(page, size, reply);
     }

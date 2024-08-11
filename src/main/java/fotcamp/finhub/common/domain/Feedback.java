@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 
 import lombok.Builder;
@@ -26,7 +27,10 @@ public class Feedback extends BaseEntity{
     private String fileUrl2;
     private String fileUrl3;
     private String fileUrl4;
+    @Lob
     private String feedback;
+    @Lob
+    private String adminResponse;
     private String reply;
 
     @Builder
@@ -39,10 +43,12 @@ public class Feedback extends BaseEntity{
         this.fileUrl3 = fileUrl3;
         this.fileUrl4 = fileUrl4;
         this.feedback = feedback;
+        this.adminResponse = null;
         this.reply = "F";
     }
 
-    public void updateFeedback(String reply){
+    public void updateFeedback(String reply, String text){
+        this.adminResponse = text;
         this.reply = reply;
     }
 

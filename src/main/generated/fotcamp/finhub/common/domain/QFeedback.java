@@ -21,6 +21,8 @@ public class QFeedback extends EntityPathBase<Feedback> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
+    public final StringPath adminResponse = createString("adminResponse");
+
     public final StringPath appVersion = createString("appVersion");
 
     //inherited

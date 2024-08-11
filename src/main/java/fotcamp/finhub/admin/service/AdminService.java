@@ -1255,13 +1255,26 @@ public class AdminService {
 
     public ResponseEntity<ApiResponseWrapper> vocList(int page, int size, String reply){
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdTime"));
-        Page<Feedback> feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
+        Page<Feedback> feedbackList;
+        if(reply != null){
+            feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
+        }
+        else{
+            feedbackList = feedbackRepository.findAll(pageable);
+        }
         List<VocListProcessDto> vocDetailProcessDtoList = feedbackList.stream().map(feedback -> VocListProcessDto.builder()
                 .feedbackId(feedback.getId())
                 .email(feedback.getEmail())
                 .context(feedback.getFeedback())
                 .reply(feedback.getReply()).build()).toList();
-        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList)));
+
+        VocListPageInfoProcessDto pageInfo = VocListPageInfoProcessDto.builder()
+                .currentPage(page)
+                .totalPages(feedbackList.getTotalPages())
+                .pageSize(size)
+                .totalElements(feedbackList.getTotalElements())
+                .build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList, pageInfo)));
     }
 
     public ResponseEntity<ApiResponseWrapper> vocDetail(Long id){
@@ -1276,6 +1289,7 @@ public class AdminService {
                 .fileUrl2(checkIfNullFileUrl(feedback.getFileUrl2()))
                 .fileUrl3(checkIfNullFileUrl(feedback.getFileUrl3()))
                 .fileUrl4(checkIfNullFileUrl(feedback.getFileUrl4()))
+                .adminResponse(feedback.getAdminResponse())
                 .reply(feedback.getReply())
                 .build();
         return ResponseEntity.ok(ApiResponseWrapper.success(new VocDetailResponseDto(vocDetailProcessDto)));
@@ -1294,7 +1308,7 @@ public class AdminService {
         } catch (MessagingException exception){
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("메일 전송 실패"));
         }
-        feedback.updateFeedback("T");
+        feedback.updateFeedback("T", dto.text());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
