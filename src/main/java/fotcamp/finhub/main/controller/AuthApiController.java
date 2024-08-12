@@ -32,7 +32,7 @@ import java.text.ParseException;
             "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://main.fin-hub.co.kr/auth/google/callback&response_type=code&scope=profile email\n\n"+
             "\n\n"+
             "apple 인가코드 받아오기 \n\n"+
-            "production : https://appleid.apple.com/auth/authorize?response_type=code&client_id=finhub.fotcamp.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/apple&scope=name%20email&response_mode=form_post\n\n\n"+
+            "production : https://appleid.apple.com/auth/authorize?response_type=code&client_id=finhub.fotcamp.com&redirect_uri=https://api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/apple&response_mode=query\n\n\n"+
             "\n\n"+
             "BE local -> origin parameter에 belocal\n\n" +
             "BE dev -> origin parameter에 bedev\n\n" +

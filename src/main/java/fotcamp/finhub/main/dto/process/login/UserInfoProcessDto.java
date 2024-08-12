@@ -14,13 +14,15 @@ public class UserInfoProcessDto {
     private String userType;
     private String userTypeUrl;
     private Boolean pushYN;
+    private Boolean isMember;
 
-    public UserInfoProcessDto(String nickname, String email, String avatarUrl, String userType, String userTypeUrl, Boolean pushYN) {
+    public UserInfoProcessDto(String nickname, String email, String avatarUrl, String userType, String userTypeUrl, Boolean pushYN, Boolean isMember) {
         this.nickname = nickname;
         this.email = email;
         this.avatarUrl = avatarUrl;
         this.userType = userType;
         this.userTypeUrl = userTypeUrl;
         this.pushYN = pushYN;
+        this.isMember = isMember;
     }
 }
