@@ -1266,7 +1266,8 @@ public class AdminService {
                 .feedbackId(feedback.getId())
                 .email(feedback.getEmail())
                 .context(feedback.getFeedback())
-                .reply(feedback.getReply()).build()).toList();
+                .reply(feedback.getReply())
+                .createdTime(feedback.getCreatedTime()).build()).toList();
 
         VocListPageInfoProcessDto pageInfo = VocListPageInfoProcessDto.builder()
                 .currentPage(page)
