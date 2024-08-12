@@ -1305,11 +1305,11 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> sendReply(ReplyRequestDto dto) {
         Feedback feedback = feedbackRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 VOC"));
         try {
+            feedback.updateFeedback("T", dto.text());
             emailService.sendReplyEmail(feedback.getEmail(), feedback.getFeedback(), dto.text());
         } catch (MessagingException exception){
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("메일 전송 실패"));
         }
-        feedback.updateFeedback("T", dto.text());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }
