@@ -3,7 +3,7 @@ name: Remind Unmerged PRs
 on:
   schedule:
     # 매일 한국 시간(KST) 오전 9시 (UTC 기준 0시)
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: pullRequests } = await github.pulls.list({
+            const { data: pullRequests } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open'
