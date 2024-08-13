@@ -26,12 +26,8 @@ jobs:
             const unmergedPRs = pullRequests.filter(pr => !pr.merged_at);
             const prList = unmergedPRs.map(pr => `- <${pr.html_url}|${pr.title}> by ${pr.user.login}`).join('\n');
 
-            return {
-              count: unmergedPRs.length,
-              prList
-            };
-          result-encoding: string
-          result-type: json
+            core.setOutput('count', unmergedPRs.length.toString());
+            core.setOutput('prList', prList.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n'));
 
       - name: Send Slack notification (with PRs)
         if: steps.list_prs.outputs.count != '0'
