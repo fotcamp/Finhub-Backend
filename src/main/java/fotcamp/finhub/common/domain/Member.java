@@ -25,17 +25,20 @@ public class Member {
     @JoinColumn(name = "USERTYPE_ID")
     private UserType userType;
 
-    @Column(name = "EMAIL", nullable = false)
+    @Column(name = "EMAIL") // apple 로그인시, 이메일 nullable
     private String email;
 
     @Column(name = "PROFILE_NICKNAME")
-    private String name;
+    private String name; // 소셜 로그인시, 저장될 이름 (apple 로그인 - null 저장)
 
-    private String nickname;
+    private String nickname; // 앱 내에서 사용될 이름 (유저가 설정)
     private boolean pushYn;
     private String fcmToken;
     private LocalDateTime fcmTokenCreatedAt;
-    private String provider; // OAuth 가입 방법 ( google , kakao )
+    private String provider; // OAuth 가입 방법 ( google , kakao, apple )
+
+    @Column(name = "MEMBER_UUID")
+    private String memberUuid; // 소셜 로그인시, 저장될 멤버 고유식별자값
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
@@ -66,11 +69,12 @@ public class Member {
     @OneToOne(mappedBy = "member", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private RefreshToken refreshToken;
 
-    public Member(String email, String name, String provider){
+    public Member(String email, String name, String provider, String memberUuid){
         this.email = email;
         this.name = name;
         this.provider = provider;
         this.role = RoleType.ROLE_USER;
+        this.memberUuid = memberUuid;
     }
 
     public void updateFcmToken(String fcmToken){
@@ -131,5 +135,8 @@ public class Member {
     public void removeFcmToken() {
         this.fcmToken = null;
         this.fcmTokenCreatedAt = null;
+    }
+    public void updateMemberUuid(String uuid){
+        this.memberUuid = uuid;
     }
 }

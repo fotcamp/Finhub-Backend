@@ -15,23 +15,25 @@ import lombok.Setter;
 public class CustomUserInfo {
 
     private Long memberId;
+    private String uuid;
     private String email;
     private String name;
     private RoleType role;
 
 
-    public CustomUserInfo(Long memberId, String email, String name, RoleType role) {
+    public CustomUserInfo(Long memberId, String uuid, String email, String name, RoleType role) {
         this.memberId = memberId;
+        this.uuid = uuid;
         this.email = email;
         this.name = name;
         this.role = role;
     }
 
-    public static CustomUserInfo fromEntity(Member member){
-        return CustomUserInfo.builder()
-                .email(member.getEmail())
-                .name(member.getName())
-                .role(member.getRole())
-                .build();
-    }
+//    public static CustomUserInfo fromEntity(Member member){
+//        return CustomUserInfo.builder()
+//                .email(member.getEmail())
+//                .name(member.getName())
+//                .role(member.getRole())
+//                .build();
+//    }
 }

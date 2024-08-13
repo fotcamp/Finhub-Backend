@@ -32,6 +32,9 @@ public class Manager {
     @Column(name = "FCM_TOKEN")
     private String fcmToken;
 
+    @Column(name = "ADMIN_UUID")
+    private String managerUuid;
+
     @Builder
     public Manager(Long memberId, String email, String name, String password, String fcmToken) {
         this.memberId = memberId;
@@ -40,6 +43,7 @@ public class Manager {
         this.password = password;
         this.role = RoleType.ROLE_BE;
         this.fcmToken = fcmToken;
+        this.managerUuid = "FOTCAMP";
     }
 
     public void updateFcmToken(String token){

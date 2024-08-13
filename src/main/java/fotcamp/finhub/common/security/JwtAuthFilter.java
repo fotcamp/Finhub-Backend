@@ -2,9 +2,6 @@ package fotcamp.finhub.common.security;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fotcamp.finhub.common.api.ApiStatus;
-import fotcamp.finhub.common.dto.response.ErrorMessageResponseDto;
-import fotcamp.finhub.common.exception.ErrorMessage;
 import fotcamp.finhub.common.utils.JwtUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,9 +41,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = jwtUtil.resolveToken(request);
         if (token != null && !token.isEmpty() && jwtUtil.validateToken(token)) {
-            Long memberId = jwtUtil.getUserId(token);
+            String uuid = jwtUtil.getUuid(token);
             String roleType = jwtUtil.getRoleType(token);
-            CustomUserDetails userDetails = loadUserDetailsByRole(roleType, memberId);
+            CustomUserDetails userDetails = loadUserDetailsByRole(roleType, uuid);
             if (userDetails != null) {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -55,11 +52,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private CustomUserDetails loadUserDetailsByRole(String roleType, Long memberId) {
+    private CustomUserDetails loadUserDetailsByRole(String roleType, String uuid) {
         if ("ROLE_USER".equals(roleType)) {
-            return customUserDetailService.loadUserByUsername(memberId.toString());
+            return customUserDetailService.loadUserByUsername(uuid);
         } else {
-            return customUserDetailService.loadAdminByRole(memberId.toString());
+            return customUserDetailService.loadAdminByRole(uuid);
         }
     }
 }

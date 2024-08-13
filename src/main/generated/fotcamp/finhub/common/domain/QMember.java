@@ -36,6 +36,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final ListPath<MemberScrap, QMemberScrap> memberScrapList = this.<MemberScrap, QMemberScrap>createList("memberScrapList", MemberScrap.class, QMemberScrap.class, PathInits.DIRECT2);
 
+    public final StringPath memberUuid = createString("memberUuid");
+
     public final StringPath name = createString("name");
 
     public final StringPath nickname = createString("nickname");
