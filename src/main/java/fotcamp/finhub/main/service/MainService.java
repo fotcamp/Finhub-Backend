@@ -146,11 +146,19 @@ public class MainService {
                 .reason(dto.reason())
                 .build();
         quitMemberRepository.save(quitMember);
-        // 댓글 좋아요 기록 삭제
-        List<CommentsLike> commentsLikeAll = commentsLikeRepository.findByMember(existingMember);
-        commentsLikeRepository.deleteAll(commentsLikeAll);
-        // 댓글 삭제
+        // 멤버가 작성한 모든 댓글 조회
         List<Comments> commentAll = commentsRepository.findByMember(existingMember);
+        // 각 댓글에 타인이 눌렀던 좋아요 기록 삭제
+        for (Comments comment : commentAll) {
+            List<CommentsLike> commentsLikeAll = commentsLikeRepository.findByComment(comment);
+            commentsLikeRepository.deleteAll(commentsLikeAll);
+        }
+
+        // 해당 멤버가 누른 좋아요 기록 삭제
+        List<CommentsLike> userCommentsLikes = commentsLikeRepository.findByMember(existingMember);
+        commentsLikeRepository.deleteAll(userCommentsLikes);
+
+        // 댓글 삭제
         commentsRepository.deleteAll(commentAll);
 
         // 컬럼 스크랩 삭제
