@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface CommentsLikeRepository extends JpaRepository<CommentsLike, Long> {
     Optional<CommentsLike> findFirstByCommentAndMember(Comments comment, Member member);
     List<CommentsLike> findByMember(Member member);
+    List<CommentsLike> findByComment(Comments comments);
 
     @Modifying
     @Query("DELETE FROM CommentsLike cl WHERE cl.comment = :comment")
