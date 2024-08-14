@@ -86,7 +86,7 @@ public class AuthService2 {
         String uuid = kakaoUserInfo.getUuid(); // 카카오 고유식별자 값
         String provider = kakaoConfig.getClient_name();
         AtomicBoolean isMember = new AtomicBoolean(true); // AtomicBoolean을 사용하여 isMember를 람다 내부에서 수정할 수 있도록 설정 ( 기존 유저가 자주 조회할 것으로 예상하여 디폴트는 true)
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByMemberUuid(uuid)
                 .orElseGet(() -> {
                     isMember.set(false); // 신규회원
                     return memberRepository.save(new Member(email, name, provider, uuid)); // email, name은 null이어도 무관
@@ -170,7 +170,7 @@ public class AuthService2 {
         String sub = (String) userInfo.get("sub");
         String provider = googleConfig.getClient_name();
         AtomicBoolean isMember = new AtomicBoolean(true);
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByMemberUuid(sub)
                 .orElseGet(() -> {
                     isMember.set(false); // 신규회원
                     return memberRepository.save(new Member(email, name, provider, sub));
