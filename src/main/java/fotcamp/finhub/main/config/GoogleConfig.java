@@ -29,4 +29,7 @@ public class GoogleConfig {
     private String redirect_uri_beLocal;
     @Value("${custom-redirect-uri.google.beprod}")
     private String redirect_uri_beProd;
+    @Value("${custom-redirect-uri.google.bedev}")
+    private String redirect_uri_beDev;
+
 }
