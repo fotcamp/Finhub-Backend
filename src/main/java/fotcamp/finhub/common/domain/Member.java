@@ -106,8 +106,8 @@ public class Member {
         this.userAvatar = userAvatar;
     }
 
-    public void removeScrap(MemberScrap memberScrap){
-        this.memberScrapList.remove(memberScrap);
+    public void setEmail(String email){
+        this.email = email;
     }
 
     public void removeUserAvatar(){
