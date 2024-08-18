@@ -169,9 +169,9 @@ public class ColumnService {
 
         if (blockMemberList.isEmpty()) {
             if (type == 1) { // 인기순
-                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y", pageable);
+                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDesc(gptColumn, "Y", pageable);
             } else if (type == 2) { // 최신순
-                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByTotalLikeDescCreatedTimeDesc(gptColumn, "Y", pageable);
+                commentsList = commentsRepository.findByGptColumnAndUseYnOrderByCreatedTimeDesc(gptColumn, "Y", pageable);
             } else {
                 return ResponseEntity.ok(ApiResponseWrapper.fail("type을 확인해주세요", type));
             }
