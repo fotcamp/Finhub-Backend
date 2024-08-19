@@ -22,24 +22,22 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // Admin 애플리케이션을 위한 CORS 설정
-        registry.addMapping("/api/v1/admin/**")
-                .allowedOrigins(prodAdminOrigin, prodMainOrigin, prodApiOrigin, devAdminOrigin, devMainOrigin, devApiOrigin, localOne, localTwo, localThree, localFour)  // Admin 프론트엔드 애플리케이션의 도메인
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+        String[] allowedOrigins = {
+                prodAdminOrigin, prodMainOrigin, prodApiOrigin,
+                devAdminOrigin, devMainOrigin, devApiOrigin,
+                localOne, localTwo, localThree, localFour
+        };
 
-        // Main 애플리케이션을 위한 CORS 설정
-        registry.addMapping("/api/v1/main/**")
-                .allowedOrigins(prodAdminOrigin, prodMainOrigin, prodApiOrigin, devAdminOrigin, devMainOrigin, devApiOrigin, localOne, localTwo, localThree, localFour)  // Main 프론트엔드 애플리케이션의 도메인
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+        applyCorsConfig(registry, "/api/v1/admin/**", allowedOrigins, "GET", "POST", "PUT", "DELETE", "PATCH");
+        applyCorsConfig(registry, "/api/v1/main/**", allowedOrigins, "GET", "POST", "PUT", "DELETE", "PATCH");
+        applyCorsConfig(registry, "/api/v1/member/**", allowedOrigins, "GET", "POST", "PUT", "DELETE", "PATCH");
+        applyCorsConfig(registry, "/api/v1/auth/**", allowedOrigins, "GET", "POST", "PUT");
+    }
 
-        // Auth 애플리케이션을 위한 CORS 설정
-        registry.addMapping("/api/v1/auth/**")
-                .allowedOrigins(prodAdminOrigin, prodMainOrigin, prodApiOrigin, devAdminOrigin, devMainOrigin, devApiOrigin, localOne, localTwo, localThree, localFour)  // Main 프론트엔드 애플리케이션의 도메인
-                .allowedMethods("GET", "POST", "PUT")
+    private void applyCorsConfig(CorsRegistry registry, String pathPattern, String[] allowedOrigins, String... allowedMethods) {
+        registry.addMapping(pathPattern)
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods(allowedMethods)
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
