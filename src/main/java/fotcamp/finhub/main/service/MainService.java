@@ -3,13 +3,13 @@ package fotcamp.finhub.main.service;
 
 import fotcamp.finhub.admin.dto.request.CreateFcmMessageRequestDto;
 import fotcamp.finhub.admin.repository.*;
-import fotcamp.finhub.admin.service.EmailService;
 import fotcamp.finhub.admin.service.FcmService;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.service.AwsS3Service;
 import fotcamp.finhub.common.service.SlackWebhookService;
+import fotcamp.finhub.main.dto.response.PushInfoResponseDto;
 import fotcamp.finhub.main.dto.process.*;
 import fotcamp.finhub.main.dto.process.secondTab.*;
 import fotcamp.finhub.main.dto.process.thirdTab.SearchColumnResultListProcessDto;
@@ -77,6 +77,7 @@ public class MainService {
     private final CommentsLikeRepository commentsLikeRepository;
     private final PostsLikeRepository postsLikeRepository;
     private final FeedbackRepository feedbackRepository;
+    private final AgreementRepository agreementRepository;
 
     private final FcmService fcmService;
     private final SlackWebhookService slackService;
@@ -180,6 +181,10 @@ public class MainService {
         List<CommentsReport> reportedList = commentsReportRepository.findByReportedMember(existingMember);
         commentsReportRepository.deleteAll(reporterList);
         commentsReportRepository.deleteAll(reportedList);
+
+        // 동의 항목 목록 삭제
+        MemberAgreement memberAgreement = agreementRepository.findByMember(existingMember);
+        agreementRepository.delete(memberAgreement);
 
         memberRepository.delete(existingMember);
         return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -542,15 +547,6 @@ public class MainService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new BannerListResponseDto(bannerListProcessDtos)));
     }
 
-    public ResponseEntity<ApiResponseWrapper> push(CustomUserDetails userDetails, PushYNRequestDto dto) {
-        Long memberId = userDetails.getMemberIdasLong();
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-
-        member.updatePushYN(dto.isYn());
-        memberRepository.save(member);
-        return ResponseEntity.ok(ApiResponseWrapper.success());
-    }
-
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponseWrapper> announcement(Long cursorId, int size) {
         if (cursorId == null || cursorId == 0) {
@@ -659,7 +655,7 @@ public class MainService {
             // 액세스토큰 기준 멤버 지명해서 푸시 날려야함 ( 비로그인 유저 푸시 X)
             Long memberId = userDetails.getMemberIdasLong();
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-            if (!member.isPushYn()) {
+            if (!member.getMemberAgreement().isPushYn()) {
                 return ResponseEntity.ok(ApiResponseWrapper.success());
             }
             CreateFcmMessageRequestDto pushProcessDto = CreateFcmMessageRequestDto.builder()
@@ -689,6 +685,20 @@ public class MainService {
                 .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
         member.removeFcmToken();
         return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> postPush(CustomUserDetails userDetails, PushYNRequestDto dto) {
+        Long memberId = userDetails.getMemberIdasLong();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        member.getMemberAgreement().updatePushYnState(dto.isPushYn());
+        agreementRepository.save(member.getMemberAgreement());
+        return ResponseEntity.ok(ApiResponseWrapper.success());
+    }
+
+    public ResponseEntity<ApiResponseWrapper> getPush(CustomUserDetails userDetails){
+        Member member = memberRepository.findById(userDetails.getMemberIdasLong())
+                .orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        return ResponseEntity.ok(ApiResponseWrapper.success(new PushInfoResponseDto(member.getMemberAgreement().isPushYn())));
     }
 
 }

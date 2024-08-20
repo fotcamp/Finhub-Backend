@@ -11,7 +11,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
-import fotcamp.finhub.common.domain.Agreement;
+import fotcamp.finhub.common.domain.MemberAgreement;
 import fotcamp.finhub.common.domain.Member;
 import fotcamp.finhub.common.domain.RefreshToken;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -29,7 +29,7 @@ import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.dto.response.login.MemberInfoResponseDto;
 import fotcamp.finhub.main.dto.response.login.UpdateAccessTokenResponseDto;
 import fotcamp.finhub.main.repository.MemberRepository;
-import fotcamp.finhub.main.repository.SignUpAgreementRepository;
+import fotcamp.finhub.main.repository.AgreementRepository;
 import fotcamp.finhub.main.repository.TokenRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -74,7 +74,7 @@ public class AuthService2 {
     private final AwsS3Service awsS3Service;
     private final OAuth2Util oAuth2Util;
 
-    private final SignUpAgreementRepository signUpAgreementRepository;
+    private final AgreementRepository agreementRepository;
     private final MemberRepository memberRepository;
     private final TokenRepository tokenRepository;
 
@@ -159,7 +159,7 @@ public class AuthService2 {
                 .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
-                .pushYN(member.isPushYn())
+                .pushYN(member.getMemberAgreement().isPushYn())
                 .isMember(isMember.get())
                 .build();
     }
@@ -376,7 +376,7 @@ public class AuthService2 {
                 .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
-                .pushYN(member.isPushYn())
+                .pushYN(member.getMemberAgreement().isPushYn())
                 .build();
         return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
@@ -393,15 +393,15 @@ public class AuthService2 {
                 .avatarUrl(member.getUserAvatar() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserAvatar().getAvatar_img_path()) : null)
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
-                .pushYN(member.isPushYn())
+                .pushYN(member.getMemberAgreement().isPushYn())
                 .build();
         return ResponseEntity.ok(ApiResponseWrapper.success(new MemberInfoResponseDto(userInfoProcessDto)));
     }
 
     public ResponseEntity<ApiResponseWrapper> signUpAgree(SignUpAgreeRequest signUpAgreeRequest, CustomUserDetails userDetails){
         Long memberId = userDetails.getMemberIdasLong();
-        memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        signUpAgreementRepository.save(new Agreement(memberId, signUpAgreeRequest.privacy_policy(), signUpAgreeRequest.terms_of_service()));
+        Member member = memberRepository.findMemberWithAgreement(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
+        member.getMemberAgreement().agreeServiceTerms(signUpAgreeRequest.privacy_policy(), signUpAgreeRequest.terms_of_service());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

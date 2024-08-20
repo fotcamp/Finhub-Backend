@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PushYNRequestDto {
 
-    private boolean yn;
+    private boolean pushYn;
 
     @JsonProperty("yn")
-    public boolean isYn() {
-        return yn;
+    public boolean isPushYn() {
+        return pushYn;
     }
 
-    public PushYNRequestDto(boolean yn) {
-        this.yn = yn;
+    public PushYNRequestDto(boolean pushYn) {
+        this.pushYn = pushYn;
     }
 }

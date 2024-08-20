@@ -30,6 +30,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final DateTimePath<java.time.LocalDateTime> fcmTokenCreatedAt = createDateTime("fcmTokenCreatedAt", java.time.LocalDateTime.class);
 
+    public final QMemberAgreement memberAgreement;
+
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
     public final ListPath<MemberNotification, QMemberNotification> memberNotificationList = this.<MemberNotification, QMemberNotification>createList("memberNotificationList", MemberNotification.class, QMemberNotification.class, PathInits.DIRECT2);
@@ -43,8 +45,6 @@ public class QMember extends EntityPathBase<Member> {
     public final StringPath nickname = createString("nickname");
 
     public final StringPath provider = createString("provider");
-
-    public final BooleanPath pushYn = createBoolean("pushYn");
 
     public final ListPath<MemberQuiz, QMemberQuiz> quizList = this.<MemberQuiz, QMemberQuiz>createList("quizList", MemberQuiz.class, QMemberQuiz.class, PathInits.DIRECT2);
 
@@ -77,6 +77,7 @@ public class QMember extends EntityPathBase<Member> {
     public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.calendarEmoticon = inits.isInitialized("calendarEmoticon") ? new QCalendarEmoticon(forProperty("calendarEmoticon")) : null;
+        this.memberAgreement = inits.isInitialized("memberAgreement") ? new QMemberAgreement(forProperty("memberAgreement"), inits.get("memberAgreement")) : null;
         this.refreshToken = inits.isInitialized("refreshToken") ? new QRefreshToken(forProperty("refreshToken"), inits.get("refreshToken")) : null;
         this.userAvatar = inits.isInitialized("userAvatar") ? new QUserAvatar(forProperty("userAvatar")) : null;
         this.userType = inits.isInitialized("userType") ? new QUserType(forProperty("userType")) : null;

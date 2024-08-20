@@ -11,6 +11,7 @@ import fotcamp.finhub.admin.repository.NotificationRepository;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.MemberNotification;
 import fotcamp.finhub.common.domain.Notification;
+import fotcamp.finhub.main.repository.AgreementRepository;
 import fotcamp.finhub.main.repository.MemberNotificationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.*;
@@ -45,6 +46,7 @@ public class FcmService {
     private final ObjectMapper objectMapper;
     private final NotificationRepository notificationRepository;
     private final MemberNotificationRepository memberNotificationRepository;
+    private final AgreementRepository agreementRepository;
 
     public ResponseEntity<ApiResponseWrapper> sendFcmNotifications(CreateFcmMessageRequestDto dto) throws JsonProcessingException {
         String accessToken = getAccessToken(); // 서버 유효한지 검증
@@ -109,7 +111,7 @@ public class FcmService {
 
     private List<String> sendNotificationsToAllMembers(
             String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification,Notification newNotification) throws FcmException, JsonProcessingException {
-        List<Member> activeMembers = memberRepository.findByPushYn(true);
+        List<Member> activeMembers = agreementRepository.findMembersByPushYn(true);
         List<String> failList = new ArrayList<>();
         List<MemberNotification> notificationsToSave = new ArrayList<>();
         for (Member member : activeMembers) {
@@ -130,7 +132,7 @@ public class FcmService {
 
     private List<String> sendNotificationsToMembers(List<String> memberList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification,Notification newNotification) throws FcmException, JsonProcessingException{
         // 멤버리스트 순회하면서 푸시허용한 멤버에게만 fcm 전송
-        List<Member> activeMembers = memberRepository.findByPushYnAndEmails(memberList);
+        List<Member> activeMembers = agreementRepository.findMembersByPushYnTrueAndEmails(memberList);
         List<String> failList = new ArrayList<>();
         List<MemberNotification> notificationsToSave = new ArrayList<>();
         for(Member m : activeMembers){
