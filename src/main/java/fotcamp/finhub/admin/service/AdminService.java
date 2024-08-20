@@ -106,7 +106,7 @@ public class AdminService {
             Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
 
             if (manager.getPassword().equals(loginRequestDto.password())) {
-                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
+                TokenDto allTokens = jwtUtil.createAllTokens(manager.getManagerUuid(), manager.getRole().toString(), "admin");
                 // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
                 Optional<ManagerRefreshToken> refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
                 if (refreshToken.isPresent()) {
@@ -1171,16 +1171,16 @@ public class AdminService {
 
         if(jwtUtil.validateTokenServiceLayer(accessToken)){
             // 액세스토큰 유효할 때
-            Long mangerId = jwtUtil.getUserId(accessToken);
-            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+            String uuid = jwtUtil.getUuid(accessToken);
+            Manager manager = managerRepository.findByManagerUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MANAGER ID가 존재하지 않습니다."));
             AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
             return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
         }
         if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
-            Long mangerId = jwtUtil.getUserId(refreshToken);
-            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+            String uuid = jwtUtil.getUuid(refreshToken);
+            Manager manager = managerRepository.findByManagerUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
             AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
             return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
@@ -1189,7 +1189,7 @@ public class AdminService {
     }
 
     public AdminAutoLoginResponseDto updatingLoginResponse(Manager manager){
-        TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
+        TokenDto allTokens = jwtUtil.createAllTokens(manager.getManagerUuid(), manager.getRole().toString(), "admin");
         Optional<ManagerRefreshToken> existingRefreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트

@@ -56,6 +56,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -82,16 +83,20 @@ public class AuthService2 {
         KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken);
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
+        String uuid = kakaoUserInfo.getUuid(); // 카카오 고유식별자 값
         String provider = kakaoConfig.getClient_name();
-        AtomicBoolean isMember = new AtomicBoolean(true); // AtomicBoolean을 사용하여 isNewMember를 람다 내부에서 수정할 수 있도록 설정 ( 기존 유저가 자주 조회할 것으로 예상하여 디폴트는 true)
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        AtomicBoolean isMember = new AtomicBoolean(true); // AtomicBoolean을 사용하여 isMember를 람다 내부에서 수정할 수 있도록 설정 ( 기존 유저가 자주 조회할 것으로 예상하여 디폴트는 true)
+        Member member = memberRepository.findByMemberUuid(uuid)
                 .orElseGet(() -> {
                     isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider));
+                    return memberRepository.save(new Member(email, name, provider, uuid)); // email, name은 null이어도 무관
                 });
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), member.getProvider());
+        if(!Objects.equals(member.getMemberUuid(), uuid)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
+            member.updateMemberUuid(uuid);
+        }
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), member.getProvider());
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
-        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보
+        // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보, 기존회원유무
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -118,6 +123,8 @@ public class AuthService2 {
                 return kakaoConfig.getRedirect_uri_beLocal();
             case "beprod":
                 return kakaoConfig.getRedirect_uri_beProd();
+            case "bedev" :
+                return kakaoConfig.getRedirect_uri_beDev();
             default:
                 return kakaoConfig.getRedirect_uri_feLocal();
         }
@@ -142,7 +149,7 @@ public class AuthService2 {
         String id = jsonNode.get("id").asText(); // 카카오 고유식별자
         String nickname = jsonNode.get("properties").get("nickname").asText();
         String email = jsonNode.get("kakao_account").get("email").asText();
-        return new KakaoUserInfoProcessDto(nickname, email);
+        return new KakaoUserInfoProcessDto(nickname, email, id);
     }
 
     private UserInfoProcessDto createUserInfoProcessDto(Member member, AtomicBoolean isMember) {
@@ -165,12 +172,15 @@ public class AuthService2 {
         String sub = (String) userInfo.get("sub");
         String provider = googleConfig.getClient_name();
         AtomicBoolean isMember = new AtomicBoolean(true);
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByMemberUuid(sub)
                 .orElseGet(() -> {
                     isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider));
+                    return memberRepository.save(new Member(email, name, provider, sub));
                 });
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), provider);
+        if(!Objects.equals(member.getMemberUuid(), sub)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
+            member.updateMemberUuid(sub);
+        }
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
@@ -200,6 +210,8 @@ public class AuthService2 {
                 return googleConfig.getRedirect_uri_beLocal();
             case "beprod":
                 return googleConfig.getRedirect_uri_beProd();
+            case "bedev":
+                return googleConfig.getRedirect_uri_beDev();
             default:
                 return googleConfig.getRedirect_uri_feLocal();
         }
@@ -217,14 +229,16 @@ public class AuthService2 {
         String sub = claims.getSubject();
         String provider = appleConfig.getClient_name();
         AtomicBoolean isMember = new AtomicBoolean(true);
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByMemberUuid(sub)
                 .orElseGet(() -> {
                     isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider));
+                    return memberRepository.save(new Member(email, name, provider, sub));
                 });
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), provider);
+        if(!Objects.equals(member.getMemberUuid(), sub)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
+            member.updateMemberUuid(sub);
+        }
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
-        System.out.println(isMember + "*******************************");
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
         LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -307,10 +321,10 @@ public class AuthService2 {
     public ResponseEntity<ApiResponseWrapper> validRefreshToken(HttpServletRequest request){
         String refreshToken = request.getHeader("refreshToken");
         if(refreshToken!= null && jwtUtil.validateToken(refreshToken)){
-            Long memberId = jwtUtil.getUserId(refreshToken);
+            String uuid = jwtUtil.getUuid(refreshToken);
             String  roleType = jwtUtil.getRoleType(refreshToken);
             String provider = jwtUtil.getProvider(refreshToken);
-            String newAccessToken = jwtUtil.createToken(memberId, roleType,"Access", provider);
+            String newAccessToken = jwtUtil.createToken(uuid, roleType,"Access", provider);
             UpdateAccessTokenResponseDto updateAccessTokenResponseDto = new UpdateAccessTokenResponseDto(newAccessToken);
             return ResponseEntity.ok(ApiResponseWrapper.success(updateAccessTokenResponseDto));
         }
@@ -326,16 +340,16 @@ public class AuthService2 {
 
         if(jwtUtil.validateTokenServiceLayer(accessToken)){
             // 액세스토큰 유효할 때
-            Long memberId = jwtUtil.getUserId(accessToken);
-            Member member = memberRepository.findById(memberId).orElseThrow(
+            String uuid = jwtUtil.getUuid(accessToken);
+            Member member = memberRepository.findByMemberUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
         }
         if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
-            Long memberId = jwtUtil.getUserId(refreshToken);
-            Member member = memberRepository.findById(memberId).orElseThrow(
+            String uuid = jwtUtil.getUuid(refreshToken);
+            Member member = memberRepository.findByMemberUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
             LoginResponseDto loginResponseDto = updatingLoginResponse(member);
             return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
@@ -344,7 +358,7 @@ public class AuthService2 {
     }
 
     public LoginResponseDto updatingLoginResponse(Member member){
-        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberId(), member.getRole().toString(), member.getProvider());
+        TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), member.getProvider());
         Optional<RefreshToken> existingRefreshToken = tokenRepository.findByMember(member);
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
