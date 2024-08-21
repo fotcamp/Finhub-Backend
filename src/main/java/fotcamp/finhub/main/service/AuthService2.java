@@ -335,9 +335,12 @@ public class AuthService2 {
 
     // 자동로그인
     public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
-        String accessToken = request.getHeader("Authorization");
+        String accessTokenHeader = request.getHeader("Authorization");
         String refreshToken = request.getHeader("refreshToken");
-
+        String accessToken = null;
+        if (accessTokenHeader != null && accessTokenHeader.startsWith("Bearer ")) {
+            accessToken = accessTokenHeader.substring(7); // "Bearer " 이후의 JWT만 추출
+        }
         if(jwtUtil.validateTokenServiceLayer(accessToken)){
             // 액세스토큰 유효할 때
             String uuid = jwtUtil.getUuid(accessToken);
