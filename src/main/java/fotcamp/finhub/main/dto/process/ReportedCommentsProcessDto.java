@@ -21,7 +21,7 @@ public class ReportedCommentsProcessDto {
         this.commentId = commentsReport.getReportedComment().getId();
         this.comment = commentsReport.getReportedComment().getContent();
         this.reason = commentsReport.getReportReasons().getReason();
-        this.useYn = commentsReport.getReportedComment().getUseYn();
+        this.useYn = commentsReport.getUseYn();
         this.reportedNickname = commentsReport.getReportedMember().getNickname();
         this.reporterNickname = commentsReport.getReporterMember().getNickname();
     }
