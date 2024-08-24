@@ -21,13 +21,11 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final ManagerRepository managerRepository;
 
-
     @Override
     public CustomUserDetails loadUserByUsername(String uuid) throws UsernameNotFoundException{
         Member member = memberRepository.findByMemberUuid(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저가 없습니다."));
         CustomUserInfo dto = modelMapper.map(member, CustomUserInfo.class);
-        System.out.println(dto.getUuid()+"******************************8");
         return new CustomUserDetails(dto);
     }
 

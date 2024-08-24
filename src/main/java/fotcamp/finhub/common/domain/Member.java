@@ -32,7 +32,10 @@ public class Member {
     private String name; // 소셜 로그인시, 저장될 이름 (apple 로그인 - null 저장)
 
     private String nickname; // 앱 내에서 사용될 이름 (유저가 설정)
-    private boolean pushYn;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.PERSIST)
+    private MemberAgreement memberAgreement; // 동의 현황
+
     private String fcmToken;
     private LocalDateTime fcmTokenCreatedAt;
     private String provider; // OAuth 가입 방법 ( google , kakao, apple )
@@ -75,6 +78,7 @@ public class Member {
         this.provider = provider;
         this.role = RoleType.ROLE_USER;
         this.memberUuid = memberUuid;
+        this.memberAgreement = new MemberAgreement(this);
     }
 
     public void updateFcmToken(String fcmToken){
@@ -84,12 +88,11 @@ public class Member {
     }
 
     @Builder
-    public Member(UserType userType, String email, String name, String nickname, boolean pushYn, String fcmToken, RoleType role, UserAvatar userAvatar, List<MemberNotification> memberNotificationList, List<MemberScrap> memberScrapList, List<RecentSearch> recentSearchList) {
+    public Member(UserType userType, String email, String name, String nickname, String fcmToken, UserAvatar userAvatar, List<MemberNotification> memberNotificationList, List<MemberScrap> memberScrapList, List<RecentSearch> recentSearchList) {
         this.userType = userType;
         this.email = email;
         this.name = name;
         this.nickname = nickname;
-        this.pushYn = pushYn;
         this.fcmToken = fcmToken;
         this.role = RoleType.ROLE_USER;
         this.userAvatar = userAvatar;
@@ -122,9 +125,6 @@ public class Member {
         quizList.add(memberQuiz);
     }
 
-    public void updatePushYN(boolean isYN){
-        this.pushYn = isYN;
-    }
 
     public void updateCalendarEmoticon(CalendarEmoticon calendarEmoticon) {
         this.calendarEmoticon = calendarEmoticon;
