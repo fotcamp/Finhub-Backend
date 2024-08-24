@@ -1,7 +1,6 @@
 package fotcamp.finhub.main.controller;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.dto.request.SaveFcmTokenRequestDto;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
@@ -252,12 +251,12 @@ public class MainController {
 
     // 알람 허용 및 해제
     @PatchMapping("/menu/push")
-    @Operation(summary = "메뉴 - 알람 - 푸시 허용여부", description = "푸시알림")
-    public ResponseEntity<ApiResponseWrapper> push(
+    @Operation(summary = "메뉴 - 알람 - 앱 푸시 허용여부", description = "푸시알림")
+    public ResponseEntity<ApiResponseWrapper> postPush(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody PushYNRequestDto dto
     ){
-        return mainService.push(userDetails, dto);
+        return mainService.postPush(userDetails, dto);
     }
 
     // 공지사항
@@ -336,5 +335,12 @@ public class MainController {
         return mainService.deleteFcmToken(userDetails);
     }
 
+    @GetMapping("/menu/push")
+    @Operation(summary = "메뉴 - 알람 - 앱 푸시 정보 조회 ", description = "앱 알림 정보 조회")
+    public ResponseEntity<ApiResponseWrapper> getPush(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        return mainService.getPush(userDetails);
+    }
 }
 
