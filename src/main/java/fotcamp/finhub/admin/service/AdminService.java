@@ -10,6 +10,7 @@ import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.dto.response.*;
 import fotcamp.finhub.admin.repository.*;
 import fotcamp.finhub.admin.service.gpt.GptService;
+import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
@@ -1219,22 +1220,26 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(detail));
     }
 
-    // 신고된 댓글 보기
-    public ResponseEntity<ApiResponseWrapper> getReportedComment(Pageable pageable, String useYN) {
+    /**
+     * 신고된 댓글내역 조회
+     * */
+    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(Pageable pageable, String useYN) {
         Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN);
         List<ReportedCommentsProcessDto> reportedCommentsProcessDtoList = commentsReports.getContent().stream().map(ReportedCommentsProcessDto::new).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsReports);
         ReportedCommentsResponseDto allTopicRequestResponseDto = new ReportedCommentsResponseDto(reportedCommentsProcessDtoList, PageInfoProcessDto);
 
-        return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
+        return ResponseEntity.ok(ApiCommonResponse.success(allTopicRequestResponseDto));
     }
 
-    // 신고된 댓글 처리
+    /**
+     * 신고된 댓글 처리
+     * */
     public ResponseEntity<ApiResponseWrapper> postReportedComment(ReportCommentRequestDto dto) {
         Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
         CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
-        comment.modifyUseYn(); // 무조건 n으로
-        commentsReport.report();
+        comment.disabled();
+        commentsReport.processReport();
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 

@@ -46,15 +46,7 @@ public class Comments extends BaseEntity{
         this.content = content;
     }
 
-    public void modifyUseYn() {
+    public void disabled() {
         this.useYn = "N";
-    }
-
-    public void useYnUpdate() {
-        if ("Y".equals(this.useYn)) {
-            this.useYn = "N";
-        } else if ("N".equals(this.useYn)) {
-            this.useYn = "Y";
-        }
     }
 }
