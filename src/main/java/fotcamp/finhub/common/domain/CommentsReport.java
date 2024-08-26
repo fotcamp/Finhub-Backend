@@ -34,8 +34,11 @@ public class CommentsReport extends BaseEntity{
     public void modifyUseYn() {
         this.useYn = "N";
     }
-
-    public void processReport(){
-        this.useYn = "Y";
+    public void useYnUpdate() {
+        if ("Y".equals(this.useYn)) {
+            this.useYn = "N";
+        } else if ("N".equals(this.useYn)) {
+            this.useYn = "Y";
+        }
     }
 }
