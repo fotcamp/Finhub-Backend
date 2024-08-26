@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.dto.request.*;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.admin.service.FcmService;
-import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.utils.PageableUtil;
 import fotcamp.finhub.main.dto.response.column.ReportCommentRequestDto;
-import fotcamp.finhub.main.dto.response.column.ReportedCommentsResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -489,9 +487,9 @@ public class AdminController {
     @GetMapping("/report/comment")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "신고된 댓글 보기", description = "신고된 댓글 조회 ")
-    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                                                             @RequestParam(value = "size", defaultValue = "10") int size,
-                                                                                             @RequestParam(name = "useYN", required = false) String useYN
+    public ResponseEntity<ApiResponseWrapper> getReportedComment(@RequestParam(value = "page", defaultValue = "1") int page,
+                                                                 @RequestParam(value = "size", defaultValue = "10") int size,
+                                                                 @RequestParam(name = "useYN", required = false) String useYN
     ) {
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
         return adminService.getReportedComment(pageable, useYN);

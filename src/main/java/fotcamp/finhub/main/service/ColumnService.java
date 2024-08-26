@@ -236,7 +236,7 @@ public class ColumnService {
         if ("N".equals(comments.getUseYn())) {
             return ResponseEntity.ok(ApiResponseWrapper.fail("이미 삭제한 댓글입니다."));
         }
-        comments.disabled();
+        comments.modifyUseYn(); // 삭제처리 -> useYN "N"
 
         if (commentsReportRepository.findByReportedComment(comments).isPresent()) { // 이미 신고된 댓글 이였을 경우 싱크 맞추기 위해 N 처리
             CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comments).get();
