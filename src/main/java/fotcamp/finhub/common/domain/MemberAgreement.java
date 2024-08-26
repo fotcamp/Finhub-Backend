@@ -1,6 +1,7 @@
 package fotcamp.finhub.common.domain;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "Agreement")
 public class MemberAgreement extends BaseEntity{ // 최초 회원가입 시간 정보 저장
     @Id
@@ -31,7 +34,7 @@ public class MemberAgreement extends BaseEntity{ // 최초 회원가입 시간 �
     private boolean terms_of_service; // 서비스 이용 약관
 
     // 앱 푸시 허용 해제 컬럼
-    private boolean pushYn;
+    private boolean pushYn = false;
     private LocalDateTime pushUpdateTime;
 
     public MemberAgreement(Member member) {

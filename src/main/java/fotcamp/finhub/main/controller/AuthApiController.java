@@ -29,6 +29,7 @@ import java.text.ParseException;
             "\n\n"+
             "google 인가코드 받아오기 \n\n"+
             "BE local : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=http://localhost:8090/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
+            "BE dev : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://dev-api.fin-hub.co.kr/api/v1/auth/login/oauth2/callback/google&response_type=code&scope=profile email \n\n"+
             "BE main : https://accounts.google.com/o/oauth2/v2/auth?client_id=353339464651-dnul84p5jsljqkg1gfsgsdoqol5ci1ak.apps.googleusercontent.com&redirect_uri=https://main.fin-hub.co.kr/auth/google/callback&response_type=code&scope=profile email\n\n"+
             "\n\n"+
             "apple 인가코드 받아오기 \n\n"+

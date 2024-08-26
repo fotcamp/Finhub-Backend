@@ -82,7 +82,6 @@ public class Member {
     }
 
     public void updateFcmToken(String fcmToken){
-
         this.fcmToken = fcmToken;
         this.fcmTokenCreatedAt = LocalDateTime.now();
     }
