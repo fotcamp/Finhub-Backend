@@ -35,7 +35,7 @@ public class CommentsReport extends BaseEntity{
         this.useYn = "N";
     }
 
-    public void report(){
+    public void processReport(){
         this.useYn = "Y";
     }
 }
