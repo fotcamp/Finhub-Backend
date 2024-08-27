@@ -1234,7 +1234,7 @@ public class AdminService {
         Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
         CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
         comment.modifyUseYn(); // 무조건 n으로
-        commentsReport.modifyUseYn(); // 무조건 n으로
+        commentsReport.report();
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
