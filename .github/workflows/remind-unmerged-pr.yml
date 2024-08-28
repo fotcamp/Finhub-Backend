@@ -1,0 +1,72 @@
+name: Remind Unmerged PRs
+
+on:
+  schedule:
+    # 매일 한국 시간(KST) 오전 9시 (UTC 기준 0시)
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  Remind:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: List open PRs
+        id: list_prs
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const unmergedPRs = pullRequests.filter(pr => !pr.merged_at);
+            const prList = unmergedPRs.map(pr => `- <${pr.html_url}|${pr.title}> by ${pr.user.login}`).join('\n');
+
+            core.setOutput('count', unmergedPRs.length.toString());
+            core.setOutput('prList', prList.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n'));
+
+      - name: Send Slack notification (with PRs)
+        if: steps.list_prs.outputs.count != '0'
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "PR Reminder: There are ${{ steps.list_prs.outputs.count }} open PRs that have not been merged.",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ github.repository }}* 리포지토리의 총 ${{ steps.list_prs.outputs.count }}개의 머지 리퀘스트가 관심을 기다리고 있어요:\n\n${{ steps.list_prs.outputs.prList }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PR_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Send Slack notification (no PRs)
+        if: steps.list_prs.outputs.count == '0'
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "No open PRs in the repository!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ github.repository }}*에 남아있는 PR이 없어서 Finhub 비서는 행복해요 😄"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PR_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

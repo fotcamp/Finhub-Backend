@@ -12,6 +12,5 @@ public class KakaoUserInfoProcessDto {
 
     private String name;
     private String email;
-
-
+    private String uuid;
 }

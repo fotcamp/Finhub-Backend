@@ -12,12 +12,10 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
+    Optional<Member> findByMemberUuid(String uuid);
 
-    Optional<Member> findByEmailAndProvider(String email, String provider);
     List<Member> findByCalendarEmoticon(CalendarEmoticon calendarEmoticon);
     boolean existsByNickname(String nickname);
-
-    List<Member> findByPushYn(boolean pushYn);
 
     @Query("SELECT COUNT(m) FROM Member m WHERE m.userType = :usertype")
     long countMemberUsingUsertype(@Param("usertype") UserType userType);
@@ -31,6 +29,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m WHERE m.userAvatar = :userAvatar")
     List<Member> findMemberListUsingUserAvatar(@Param("userAvatar") UserAvatar userAvatar);
 
-    @Query("SELECT m FROM Member m WHERE m.pushYn = true AND m.email IN :emails")
-    List<Member> findByPushYnAndEmails(@Param("emails") List<String> emails);
+    @Query("SELECT m FROM Member m LEFT JOIN FETCH m.memberAgreement WHERE m.memberId = :memberId")
+    Optional<Member> findMemberWithAgreement(@Param("memberId") Long memberId);
+
+
 }

@@ -30,5 +30,7 @@ public class KakaoConfig {
     private String redirect_uri_beLocal;
     @Value("${custom-redirect-uri.kakao.beprod}")
     private String redirect_uri_beProd;
+    @Value("${custom-redirect-uri.kakao.bedev}")
+    private String redirect_uri_beDev;
 
 }

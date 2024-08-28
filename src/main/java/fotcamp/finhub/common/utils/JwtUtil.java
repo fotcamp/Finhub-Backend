@@ -39,23 +39,23 @@ public class JwtUtil {
 
     /**
      * Access Token 생성
-     * @param memberId
+     * @param uuid, roleType, provider
      * @return TokenDto
      */
-    public TokenDto createAllTokens(Long memberId, String roleType, String provider){
-        return new TokenDto(createToken(memberId, roleType, "Access", provider), createToken(memberId,roleType, "Refresh", provider));
+    public TokenDto createAllTokens(String uuid, String roleType, String provider){
+        return new TokenDto(createToken(uuid, roleType, "Access", provider), createToken(uuid,roleType, "Refresh", provider));
     }
 
     /**
      * JWT 생성
-     * @param memberId, type
+     * @param uuid, roleType, type, provider
      * @return JWT String
      */
-    public String createToken(Long memberId, String roleType, String type, String provider){
+    public String createToken(String uuid, String roleType, String type, String provider){
         long expireTime = type.equals("Access") ? accessTokenExpTime : refreshTokenExpTime;
 
         Claims claims = Jwts.claims();
-        claims.put("memberId", memberId);
+        claims.put("uuid", uuid);
         claims.put("provider", provider);
         claims.put("role", roleType);
         ZonedDateTime now = ZonedDateTime.now();
@@ -70,12 +70,12 @@ public class JwtUtil {
     }
 
     /**
-     * 토큰에서 User ID 추출
+     * 토큰에서 UUID 추출
      * @param token
-     * @return User ID
+     * @return UUID
      * */
-    public Long getUserId(String token){
-        return parseClaims(token).get("memberId", Long.class);
+    public String getUuid(String token){ // 제공사 uuid값으로 전환, memberId는 위험하다고 판단
+        return parseClaims(token).get("uuid", String.class);
     }
 
     /**

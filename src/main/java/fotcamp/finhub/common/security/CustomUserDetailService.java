@@ -21,17 +21,16 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final ManagerRepository managerRepository;
 
-
     @Override
-    public CustomUserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException{
-        Member member = memberRepository.findById(Long.parseLong(memberId))
+    public CustomUserDetails loadUserByUsername(String uuid) throws UsernameNotFoundException{
+        Member member = memberRepository.findByMemberUuid(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저가 없습니다."));
         CustomUserInfo dto = modelMapper.map(member, CustomUserInfo.class);
         return new CustomUserDetails(dto);
     }
 
-    public CustomUserDetails loadAdminByRole(String adminId) throws UsernameNotFoundException{
-        Manager manager = managerRepository.findById(Long.parseLong(adminId)).orElseThrow(
+    public CustomUserDetails loadAdminByRole(String uuid) throws UsernameNotFoundException{
+        Manager manager = managerRepository.findByManagerUuid(uuid).orElseThrow(
                 () -> new UsernameNotFoundException("해당하는 관리자가 없습니다."));
         CustomUserInfo dto = modelMapper.map(manager, CustomUserInfo.class);
         return new CustomUserDetails(dto);

@@ -106,7 +106,7 @@ public class AdminService {
             Manager manager = managerRepository.findByEmail(loginRequestDto.email()).orElseThrow(EntityNotFoundException::new);
 
             if (manager.getPassword().equals(loginRequestDto.password())) {
-                TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
+                TokenDto allTokens = jwtUtil.createAllTokens(manager.getManagerUuid(), manager.getRole().toString(), "admin");
                 // 이미 존재하는 이메일인 경우 해당 레코드를 업데이트하고, 아닌 경우 새로운 레코드 추가
                 Optional<ManagerRefreshToken> refreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
                 if (refreshToken.isPresent()) {
@@ -1166,21 +1166,24 @@ public class AdminService {
     }
 
     public ResponseEntity<ApiResponseWrapper> adminAutoLogin(HttpServletRequest request){
-        String accessToken = request.getHeader("Authorization");
+        String accessTokenHeader = request.getHeader("Authorization");
         String refreshToken = request.getHeader("refreshToken");
-
+        String accessToken = null;
+        if (accessTokenHeader != null && accessTokenHeader.startsWith("Bearer ")) {
+            accessToken = accessTokenHeader.substring(7); // "Bearer " 이후의 JWT만 추출
+        }
         if(jwtUtil.validateTokenServiceLayer(accessToken)){
             // 액세스토큰 유효할 때
-            Long mangerId = jwtUtil.getUserId(accessToken);
-            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+            String uuid = jwtUtil.getUuid(accessToken);
+            Manager manager = managerRepository.findByManagerUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MANAGER ID가 존재하지 않습니다."));
             AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
             return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
         }
         if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
-            Long mangerId = jwtUtil.getUserId(refreshToken);
-            Manager manager = managerRepository.findById(mangerId).orElseThrow(
+            String uuid = jwtUtil.getUuid(refreshToken);
+            Manager manager = managerRepository.findByManagerUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
             AdminAutoLoginResponseDto adminAutoLoginResponseDto = updatingLoginResponse(manager);
             return ResponseEntity.ok(ApiResponseWrapper.success(adminAutoLoginResponseDto));
@@ -1189,7 +1192,7 @@ public class AdminService {
     }
 
     public AdminAutoLoginResponseDto updatingLoginResponse(Manager manager){
-        TokenDto allTokens = jwtUtil.createAllTokens(manager.getMemberId(), manager.getRole().toString(), "admin");
+        TokenDto allTokens = jwtUtil.createAllTokens(manager.getManagerUuid(), manager.getRole().toString(), "admin");
         Optional<ManagerRefreshToken> existingRefreshToken = managerRefreshRepository.findByEmail(manager.getEmail());
         if (existingRefreshToken.isPresent()) {
             // 기존 리프레시 토큰 정보가 있는 경우, 새 리프레시 토큰으로 업데이트
@@ -1255,13 +1258,27 @@ public class AdminService {
 
     public ResponseEntity<ApiResponseWrapper> vocList(int page, int size, String reply){
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdTime"));
-        Page<Feedback> feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
+        Page<Feedback> feedbackList;
+        if(reply != null){
+            feedbackList = feedbackRepository.findFeedbacksByReply(reply, pageable);
+        }
+        else{
+            feedbackList = feedbackRepository.findAll(pageable);
+        }
         List<VocListProcessDto> vocDetailProcessDtoList = feedbackList.stream().map(feedback -> VocListProcessDto.builder()
                 .feedbackId(feedback.getId())
                 .email(feedback.getEmail())
                 .context(feedback.getFeedback())
-                .reply(feedback.getReply()).build()).toList();
-        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList)));
+                .reply(feedback.getReply())
+                .createdTime(feedback.getCreatedTime()).build()).toList();
+
+        VocListPageInfoProcessDto pageInfo = VocListPageInfoProcessDto.builder()
+                .currentPage(page)
+                .totalPages(feedbackList.getTotalPages())
+                .pageSize(size)
+                .totalElements(feedbackList.getTotalElements())
+                .build();
+        return ResponseEntity.ok(ApiResponseWrapper.success(new VocListResponseDto(vocDetailProcessDtoList, pageInfo)));
     }
 
     public ResponseEntity<ApiResponseWrapper> vocDetail(Long id){
@@ -1276,6 +1293,7 @@ public class AdminService {
                 .fileUrl2(checkIfNullFileUrl(feedback.getFileUrl2()))
                 .fileUrl3(checkIfNullFileUrl(feedback.getFileUrl3()))
                 .fileUrl4(checkIfNullFileUrl(feedback.getFileUrl4()))
+                .adminResponse(feedback.getAdminResponse())
                 .reply(feedback.getReply())
                 .build();
         return ResponseEntity.ok(ApiResponseWrapper.success(new VocDetailResponseDto(vocDetailProcessDto)));
@@ -1290,11 +1308,11 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> sendReply(ReplyRequestDto dto) {
         Feedback feedback = feedbackRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 VOC"));
         try {
+            feedback.updateFeedback("T", dto.text());
             emailService.sendReplyEmail(feedback.getEmail(), feedback.getFeedback(), dto.text());
         } catch (MessagingException exception){
             return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("메일 전송 실패"));
         }
-        feedback.updateFeedback("T");
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 }

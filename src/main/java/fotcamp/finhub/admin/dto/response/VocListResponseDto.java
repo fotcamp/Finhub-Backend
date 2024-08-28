@@ -1,8 +1,9 @@
 package fotcamp.finhub.admin.dto.response;
 
+import fotcamp.finhub.admin.dto.process.VocListPageInfoProcessDto;
 import fotcamp.finhub.admin.dto.process.VocListProcessDto;
 
 import java.util.List;
 
-public record VocListResponseDto(List<VocListProcessDto> vocList) {
+public record VocListResponseDto(List<VocListProcessDto> vocList, VocListPageInfoProcessDto pageInfo) {
 }
