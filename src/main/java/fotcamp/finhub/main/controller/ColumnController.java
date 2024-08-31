@@ -1,6 +1,7 @@
 package fotcamp.finhub.main.controller;
 
 import com.google.protobuf.Api;
+import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.common.utils.PageableUtil;
@@ -103,7 +104,7 @@ public class ColumnController {
     @PostMapping("/comment/actions")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")
-    public ResponseEntity<ApiResponseWrapper> commentReport(
+    public ResponseEntity<ApiCommonResponse<Void>> commentReport(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody CommentReportRequestDto dto
     ){

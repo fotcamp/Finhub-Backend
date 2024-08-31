@@ -1,11 +1,8 @@
 package fotcamp.finhub.main.dto.process;
 
 import fotcamp.finhub.common.domain.CommentsReport;
-import fotcamp.finhub.common.domain.TopicRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Schema(description = "댓글신고정보 DTO")
@@ -40,7 +37,7 @@ public class ReportedCommentsProcessDto {
         this.comment = commentsReport.getReportedComment().getContent();
         this.reason = commentsReport.getReportReasons().getReason();
         this.useYn = commentsReport.getReportedComment().getUseYn();
-        this.isProcessed = commentsReport.getUseYn();
+        this.isProcessed = commentsReport.getIsProcessed();
         this.reportedNickname = commentsReport.getReportedMember().getNickname();
         this.reporterNickname = commentsReport.getReporterMember().getNickname();
     }
