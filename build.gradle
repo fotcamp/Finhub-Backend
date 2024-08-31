@@ -80,6 +80,10 @@ dependencies {
 
 	// slack bot
 	implementation 'com.slack.api:slack-api-client:1.40.3'
+
+	// flyway
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
 }
 
 def querydslSrcDir = 'src/main/generated'
