@@ -13,7 +13,7 @@ import java.util.List;
 public class CreateFcmMessageRequestDto {
 
     private Long type; // 0 ~ 4번
-    private List<String> target; // 이메일 리스트, 혹은 빈 리스트
+    private List<String> target; // uuid 리스트, 혹은 빈 리스트
     private String title;
     private String content;
     private String view;

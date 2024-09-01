@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -137,7 +136,7 @@ public class FcmService {
 
     private List<String> sendNotificationsToMembers(List<String> memberList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification, Notification newNotification) throws FcmException, JsonProcessingException {
         // 멤버리스트 순회하면서 푸시허용한 멤버에게만 fcm 전송
-        List<Member> activeMembers = agreementRepository.findMembersByPushYnTrueAndEmails(memberList);
+        List<Member> activeMembers = agreementRepository.findMembersByPushYnTrueAndUuids(memberList);
         List<String> failList = new ArrayList<>();
         List<MemberNotification> notificationsToSave = new ArrayList<>();
         for (Member m : activeMembers) {
@@ -157,7 +156,7 @@ public class FcmService {
     }
 
     private List<String> sendNotificationsToManagers(List<String> managerList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification) throws FcmException, JsonProcessingException {
-        final List<Manager> activeManagers = managerRepository.findByPushYnAndEmails(managerList);
+        final List<Manager> activeManagers = managerRepository.findByPushYnAndUuids(managerList);
         List<String> failList = new ArrayList<>();
         for (Manager m : activeManagers) {
             if (m.getFcmToken() != null) {
