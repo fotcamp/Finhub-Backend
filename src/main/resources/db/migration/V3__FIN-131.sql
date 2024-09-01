@@ -1,0 +1,1 @@
+ALTER TABLE comments_report ADD COLUMN approval_status VARCHAR(20);

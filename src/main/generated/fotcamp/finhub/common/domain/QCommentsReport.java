@@ -24,10 +24,14 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
+    public final EnumPath<ApprovalStatus> approvalStatus = createEnum("approvalStatus", ApprovalStatus.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final StringPath isProcessed = createString("isProcessed");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
@@ -39,8 +43,6 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
     public final QMember reporterMember;
 
     public final QReportReasons reportReasons;
-
-    public final StringPath useYn = createString("useYn");
 
     public QCommentsReport(String variable) {
         this(CommentsReport.class, forVariable(variable), INITS);

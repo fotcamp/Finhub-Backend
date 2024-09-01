@@ -491,10 +491,11 @@ public class AdminController {
     @Operation(summary = "신고된 댓글 보기", description = "신고된 댓글 조회 ")
     public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(@RequestParam(value = "page", defaultValue = "1") int page,
                                                                                              @RequestParam(value = "size", defaultValue = "10") int size,
-                                                                                             @RequestParam(name = "useYN", required = false) String useYN
+                                                                                             @RequestParam(name = "useYN", required = false) String useYN,
+                                                                                             @RequestParam(name = "isProcessed", required = false) String isProcessed
     ) {
         Pageable pageable = PageableUtil.createPageableWithDefaultSort(page, size, "id");
-        return adminService.getReportedComment(pageable, useYN);
+        return adminService.getReportedComment(pageable, useYN, isProcessed);
     }
 
     @PostMapping("/report/comment")

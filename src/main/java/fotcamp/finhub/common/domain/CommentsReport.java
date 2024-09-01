@@ -29,13 +29,19 @@ public class CommentsReport extends BaseEntity{
     @JoinColumn(name = "report_reason_id")
     private ReportReasons reportReasons;
 
-    private String useYn; // 댓글 현재 사용여부 -> Y면 댓글 사용중 (신고처리 안한 것)
+    @Column(name = "is_processed")
+    private String isProcessed;
 
-    public void modifyUseYn() {
-        this.useYn = "N";
+    @Column(name = "approval_status")
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus;
+
+    public void cancelReport() {
+        this.isProcessed = "N";
     }
 
-    public void processReport(){
-        this.useYn = "Y";
+    public void processReport(ApprovalStatus approvalStatus){
+        this.approvalStatus = approvalStatus;
+        this.isProcessed = "Y";
     }
 }

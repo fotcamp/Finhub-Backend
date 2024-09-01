@@ -2,6 +2,7 @@ package fotcamp.finhub.main.service;
 
 import fotcamp.finhub.admin.dto.process.TopicIdTitleDto;
 import fotcamp.finhub.admin.repository.GptColumnRepository;
+import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.*;
 import fotcamp.finhub.common.dto.process.PageInfoProcessDto;
@@ -240,7 +241,7 @@ public class ColumnService {
 
         if (commentsReportRepository.findByReportedComment(comments).isPresent()) { // 이미 신고된 댓글 이였을 경우 싱크 맞추기 위해 N 처리
             CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comments).get();
-            commentsReport.modifyUseYn();
+            commentsReport.cancelReport();
         }
         commentsRepository.save(comments);
         return ResponseEntity.ok(ApiResponseWrapper.success());
@@ -257,10 +258,12 @@ public class ColumnService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new ReportReasonAnswerDto(reasonList)));
     }
 
-    // 댓글 신고하기
-    public ResponseEntity<ApiResponseWrapper> commentReport(CustomUserDetails userDetails, CommentReportRequestDto dto) {
+    /**
+     * 댓글 신고하기
+     * */
+    public ResponseEntity<ApiCommonResponse<Void>> commentReport(CustomUserDetails userDetails, CommentReportRequestDto dto) {
         if (userDetails == null) {
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("로그인이 필요한 기능입니다."));
+            return ResponseEntity.badRequest().body(ApiCommonResponse.fail("로그인이 필요한 기능입니다."));
         }
         Long memberId = userDetails.getMemberIdasLong();
         Member reporterMember = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
@@ -268,17 +271,18 @@ public class ColumnService {
         Member reportedMember = reportedComment.getMember();
         ReportReasons reportReason = reportReasonsRepository.findById(dto.reportId()).orElseThrow(() -> new EntityNotFoundException("신고사유ID가 존재하지 않습니다."));
         if (commentsReportRepository.findByReportedCommentAndReporterMember(reportedComment, reporterMember).isPresent()) {
-            return ResponseEntity.badRequest().body(ApiResponseWrapper.fail("이미 신고한 댓글입니다."));
+            return ResponseEntity.badRequest().body(ApiCommonResponse.fail("이미 신고한 댓글입니다."));
         }
         CommentsReport commentsReport = CommentsReport.builder()
                 .reportedComment(reportedComment)
                 .reporterMember(reporterMember)
                 .reportedMember(reportedMember)
                 .reportReasons(reportReason)
-                .useYn("Y")
+                .approvalStatus(ApprovalStatus.PENDING)
+                .isProcessed("N")
                 .build();
         commentsReportRepository.save(commentsReport);
-        return ResponseEntity.ok(ApiResponseWrapper.success());
+        return ResponseEntity.ok(ApiCommonResponse.success());
     }
 
     // 사용자 차단하기
