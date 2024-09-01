@@ -278,6 +278,7 @@ public class ColumnService {
                 .reporterMember(reporterMember)
                 .reportedMember(reportedMember)
                 .reportReasons(reportReason)
+                .approvalStatus(ApprovalStatus.PENDING)
                 .isProcessed("N")
                 .build();
         commentsReportRepository.save(commentsReport);

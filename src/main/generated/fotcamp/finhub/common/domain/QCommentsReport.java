@@ -24,6 +24,8 @@ public class QCommentsReport extends EntityPathBase<CommentsReport> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
+    public final EnumPath<ApprovalStatus> approvalStatus = createEnum("approvalStatus", ApprovalStatus.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdTime = _super.createdTime;
 

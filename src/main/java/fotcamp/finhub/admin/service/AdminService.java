@@ -1223,8 +1223,8 @@ public class AdminService {
     /**
      * 신고된 댓글내역 조회
      * */
-    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(Pageable pageable, String useYN) {
-        Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN);
+    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(Pageable pageable, String useYN, String isProcessed) {
+        Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN, isProcessed);
         List<ReportedCommentsProcessDto> reportedCommentsProcessDtoList = commentsReports.getContent().stream().map(ReportedCommentsProcessDto::new).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsReports);
         ReportedCommentsResponseDto allTopicRequestResponseDto = new ReportedCommentsResponseDto(reportedCommentsProcessDtoList, PageInfoProcessDto);
@@ -1239,7 +1239,7 @@ public class AdminService {
         Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
         CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
         comment.disabled();
-        commentsReport.processReport();
+        commentsReport.processReport(dto.approvalStatus());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 

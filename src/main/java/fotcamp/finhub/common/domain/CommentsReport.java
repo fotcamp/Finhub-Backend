@@ -32,11 +32,16 @@ public class CommentsReport extends BaseEntity{
     @Column(name = "is_processed")
     private String isProcessed;
 
+    @Column(name = "approval_status")
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus;
+
     public void cancelReport() {
         this.isProcessed = "N";
     }
 
-    public void processReport(){
+    public void processReport(ApprovalStatus approvalStatus){
+        this.approvalStatus = approvalStatus;
         this.isProcessed = "Y";
     }
 }
