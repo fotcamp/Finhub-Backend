@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-     - name: Generate Application.yaml File
+      - name: Generate Application.yaml File
         shell: bash
         run: |
           mkdir -p ./src/main/resources
@@ -24,6 +24,14 @@ jobs:
             echo "Unsupported target branch"
             exit 1
           fi
+
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "finhub-firebase-adminsdk.json"
+          json: ${{ secrets.FCM_SETTING }}
+          dir: "./src/main/resources/"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
