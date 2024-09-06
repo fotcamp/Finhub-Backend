@@ -1,0 +1,37 @@
+name: CI Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+     - name: Generate Application.yaml File
+        shell: bash
+        run: |
+          mkdir -p ./src/main/resources
+          if [[ "${{ github.base_ref }}" == "develop" ]]; then
+            echo "${{ secrets.APPLICATION_DEV }}" > ./src/main/resources/application.yaml
+          elif [[ "${{ github.base_ref }}" == "main" ]]; then
+            echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yaml
+          else
+            echo "Unsupported target branch"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
+        with:
+          arguments: clean build -x test
