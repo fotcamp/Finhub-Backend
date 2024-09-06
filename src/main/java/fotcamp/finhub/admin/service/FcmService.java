@@ -4,10 +4,13 @@ package fotcamp.finhub.admin.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fotcamp.finhub.admin.domain.Manager;
+import fotcamp.finhub.admin.dto.process.FcmMemberInfoProcessDto;
 import fotcamp.finhub.admin.dto.request.CreateFcmMessageRequestDto;
+import fotcamp.finhub.admin.dto.response.FcmMemberInfoListResponseDto;
 import fotcamp.finhub.admin.dto.response.FcmResponseDto;
 import fotcamp.finhub.admin.repository.ManagerRepository;
 import fotcamp.finhub.admin.repository.NotificationRepository;
+import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.domain.MemberNotification;
 import fotcamp.finhub.common.domain.Notification;
@@ -33,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -62,18 +66,18 @@ public class FcmService {
 
         List<String> failList = new ArrayList<>();
 
-        try{ // 0 : 멤버 이메일 리스트 , 1 : 관리자 이메일 리스트, 2 : 푸시 허용한 멤버 전체, 3 : 푸시 설정 무관 관리자 전체, 4 : 멤버+관리자전체
+        try { // 0 : 멤버 이메일 리스트 , 1 : 관리자 이메일 리스트, 2 : 푸시 허용한 멤버 전체, 3 : 푸시 설정 무관 관리자 전체, 4 : 멤버+관리자전체
             if (dto.getType() == 0) {
                 checkAvailableTargetList(dto.getTarget());
                 failList.addAll(sendNotificationsToMembers(dto.getTarget(), accessToken, apns, dataContent, notification, dbNotification));
             } else if (dto.getType() == 1) {
                 checkAvailableTargetList(dto.getTarget());
                 failList.addAll(sendNotificationsToManagers(dto.getTarget(), accessToken, apns, dataContent, notification));
-            } else if (dto.getType() == 2){
+            } else if (dto.getType() == 2) {
                 failList.addAll(sendNotificationsToAllMembers(accessToken, apns, dataContent, notification, dbNotification));
-            } else if (dto.getType() == 3){
+            } else if (dto.getType() == 3) {
                 failList.addAll(sendNotificationsToAllManagers(accessToken, apns, dataContent, notification));
-            } else if (dto.getType() == 4){
+            } else if (dto.getType() == 4) {
                 failList.addAll(sendNotificationsToAllManagers(accessToken, apns, dataContent, notification));
                 failList.addAll(sendNotificationsToAllMembers(accessToken, apns, dataContent, notification, dbNotification));
             } else {
@@ -86,8 +90,8 @@ public class FcmService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new FcmResponseDto(failList)));
     }
 
-    private void checkAvailableTargetList(List<String> targetList){
-        if(targetList.isEmpty()){
+    private void checkAvailableTargetList(List<String> targetList) {
+        if (targetList.isEmpty()) {
             throw new FcmException("Target 필드가 비어있습니다.");
         }
     }
@@ -99,9 +103,9 @@ public class FcmService {
         for (Manager manager : allManagers) {
             if (manager.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(manager.getFcmToken(), apns, dataContent, notification);
-                try{
+                try {
                     sendFcmMessage(accessToken, message);
-                }catch (FcmException e){
+                } catch (FcmException e) {
                     failList.add(manager.getName());
                 }
             }
@@ -110,16 +114,16 @@ public class FcmService {
     }
 
     private List<String> sendNotificationsToAllMembers(
-            String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification,Notification newNotification) throws FcmException, JsonProcessingException {
+            String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification, Notification newNotification) throws FcmException, JsonProcessingException {
         List<Member> activeMembers = agreementRepository.findMembersByPushYn(true);
         List<String> failList = new ArrayList<>();
         List<MemberNotification> notificationsToSave = new ArrayList<>();
         for (Member member : activeMembers) {
             if (member.getFcmToken() != null) {
-                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns, dataContent, notification );
-                try{
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(member.getFcmToken(), apns, dataContent, notification);
+                try {
                     sendFcmMessage(accessToken, message);
-                }catch (FcmException e){
+                } catch (FcmException e) {
                     failList.add(member.getName());
                 }
             }
@@ -130,17 +134,17 @@ public class FcmService {
         return failList;
     }
 
-    private List<String> sendNotificationsToMembers(List<String> memberList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification,Notification newNotification) throws FcmException, JsonProcessingException{
+    private List<String> sendNotificationsToMembers(List<String> memberList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification, Notification newNotification) throws FcmException, JsonProcessingException {
         // 멤버리스트 순회하면서 푸시허용한 멤버에게만 fcm 전송
-        List<Member> activeMembers = agreementRepository.findMembersByPushYnTrueAndEmails(memberList);
+        List<Member> activeMembers = agreementRepository.findMembersByPushYnTrueAndUuids(memberList);
         List<String> failList = new ArrayList<>();
         List<MemberNotification> notificationsToSave = new ArrayList<>();
-        for(Member m : activeMembers){
+        for (Member m : activeMembers) {
             if (m.getFcmToken() != null) {
-                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(m.getFcmToken(), apns, dataContent, notification );
-                try{
+                FcmMessageProcessDto.FcmMessage message = buildFcmMessage(m.getFcmToken(), apns, dataContent, notification);
+                try {
                     sendFcmMessage(accessToken, message);
-                }catch (FcmException e){
+                } catch (FcmException e) {
                     failList.add(m.getName());
                 }
             }
@@ -151,11 +155,11 @@ public class FcmService {
         return failList;
     }
 
-    private List<String> sendNotificationsToManagers(List<String> managerList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification)  throws FcmException, JsonProcessingException{
-        final List<Manager> activeManagers = managerRepository.findByPushYnAndEmails(managerList);
+    private List<String> sendNotificationsToManagers(List<String> managerList, String accessToken, FcmMessageProcessDto.Apns apns, FcmMessageProcessDto.DataContent dataContent, FcmMessageProcessDto.Notification notification) throws FcmException, JsonProcessingException {
+        final List<Manager> activeManagers = managerRepository.findByPushYnAndUuids(managerList);
         List<String> failList = new ArrayList<>();
-        for(Manager m : activeManagers){
-            if(m.getFcmToken() != null) {
+        for (Manager m : activeManagers) {
+            if (m.getFcmToken() != null) {
                 FcmMessageProcessDto.FcmMessage message = buildFcmMessage(m.getFcmToken(), apns, dataContent, notification);
                 try {
                     sendFcmMessage(accessToken, message);
@@ -174,7 +178,7 @@ public class FcmService {
         String jsonMessage = objectMapper.writeValueAsString(Map.of("message", message));
         HttpEntity<String> entity = new HttpEntity<>(jsonMessage, headers);
 
-        String fcmUrl = "https://fcm.googleapis.com/v1/projects/"+fcmConfig.getProjectId()+"/messages:send";
+        String fcmUrl = "https://fcm.googleapis.com/v1/projects/" + fcmConfig.getProjectId() + "/messages:send";
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -189,7 +193,7 @@ public class FcmService {
         }
     }
 
-    private String getAccessToken(){
+    private String getAccessToken() {
         try {
             final GoogleCredentials googleCredentials = GoogleCredentials
                     .fromStream(new ClassPathResource(fcmConfig.getFirebaseConfigPath()).getInputStream())
@@ -222,7 +226,7 @@ public class FcmService {
                 .build();
     }
 
-    private FcmMessageProcessDto.Notification buidNotification(CreateFcmMessageRequestDto dto){
+    private FcmMessageProcessDto.Notification buidNotification(CreateFcmMessageRequestDto dto) {
         return FcmMessageProcessDto.Notification.builder()
                 .title(dto.getTitle())
                 .body(dto.getContent())
@@ -246,5 +250,32 @@ public class FcmService {
         return FcmMessageProcessDto.Apns.builder()
                 .payload(payload)
                 .build();
+    }
+
+    public ResponseEntity<ApiCommonResponse<FcmMemberInfoListResponseDto>> getFcmMemberInfo(int type, String method) {
+        List<Member> memberList = null;
+        switch (type){
+            case 1:
+                memberList = memberRepository.findByEmail(method);
+                break;
+            case 2:
+                memberList = memberRepository.findByName(method);
+                break;
+            case 3:
+                memberList = memberRepository.findByUuid(method);
+                break;
+            default:
+                throw new FcmException("type 다시 확인해주세요.");
+        }
+
+        List<FcmMemberInfoProcessDto> memberInfoProcessDto =
+                memberList.stream()
+                        .map(member -> FcmMemberInfoProcessDto.builder()
+                                .id(member.getMemberId())
+                                .name(member.getName())
+                                .uuid(member.getMemberUuid())
+                                .provider(member.getProvider())
+                                .pushYn(member.getMemberAgreement().isPushYn()).build()).collect(Collectors.toList()); // 조회 대상 개수가 적어 n+1 문제 발생시, 성능에 영향 없을 것으로 예상
+        return ResponseEntity.ok(ApiCommonResponse.success(new FcmMemberInfoListResponseDto(memberInfoProcessDto)));
     }
 }

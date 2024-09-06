@@ -2,6 +2,7 @@ package fotcamp.finhub.admin.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fotcamp.finhub.admin.dto.request.*;
+import fotcamp.finhub.admin.dto.response.FcmMemberInfoListResponseDto;
 import fotcamp.finhub.admin.service.AdminService;
 import fotcamp.finhub.admin.service.FcmService;
 import fotcamp.finhub.common.api.ApiCommonResponse;
@@ -460,6 +461,7 @@ public class AdminController {
             ) throws JsonProcessingException {
         return fcmService.sendFcmNotifications(dto);
     }
+
     @GetMapping("/announce")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
     @Operation(summary = "공지사항 조회", description = "admin 누구나 공지사항 조회 가능")
@@ -535,4 +537,15 @@ public class AdminController {
     public ResponseEntity<ApiResponseWrapper> sendReply(@RequestBody ReplyRequestDto dto){
         return adminService.sendReply(dto);
     }
+
+    @GetMapping("/send-noti")
+    @PreAuthorize("hasRole('SUPER') or hasRole('BE')")
+    @Operation(summary = "알림메시지 전송대상 조회 API ", description = "type 1 : 이메일, type 2 : 이름, type 3 : uuid")
+    public ResponseEntity<ApiCommonResponse<FcmMemberInfoListResponseDto>> getFcmMemberInfo(
+            @RequestParam(value = "type") int type,
+            @RequestParam(value = "method") String method
+    ){
+        return fcmService.getFcmMemberInfo(type, method);
+    }
+
 }

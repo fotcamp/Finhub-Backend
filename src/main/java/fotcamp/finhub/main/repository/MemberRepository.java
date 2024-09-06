@@ -14,6 +14,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByMemberUuid(String uuid);
 
+    List<Member> findByEmail(String email);
+    List<Member> findByName(String name);
+    @Query("SELECT m FROM Member m WHERE m.memberUuid = :uuid")
+    List<Member> findByUuid(@Param("uuid") String uuid);
+
     List<Member> findByCalendarEmoticon(CalendarEmoticon calendarEmoticon);
     boolean existsByNickname(String nickname);
 

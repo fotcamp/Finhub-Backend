@@ -14,6 +14,6 @@ public interface ManagerRepository extends JpaRepository<Manager, Long> {
     Optional<Manager> findByEmail(String email);
     Optional<Manager> findByManagerUuid(String uuid);
 
-    @Query("SELECT m FROM Manager m WHERE m.email IN :emails")
-    List<Manager> findByPushYnAndEmails(@Param("emails") List<String> emails);
+    @Query("SELECT m FROM Manager m WHERE m.managerUuid IN :uuids")
+    List<Manager> findByPushYnAndUuids(@Param("uuids") List<String> uuids);
 }
