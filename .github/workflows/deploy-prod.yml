@@ -10,6 +10,7 @@ env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   SERVICE_NAME: api
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
