@@ -30,8 +30,10 @@ public class MemberAgreement extends BaseEntity{ // 최초 회원가입 시간 �
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private boolean privacy_policy; // 개인정보 처리 방침
-    private boolean terms_of_service; // 서비스 이용 약관
+    @Column(name = "privacy_policy")
+    private boolean privacyPolicy; // 개인정보 처리 방침
+    @Column(name = "terms_of_service")
+    private boolean termsOfService; // 서비스 이용 약관
 
     // 앱 푸시 허용 해제 컬럼
     private boolean pushYn = false;
@@ -48,7 +50,7 @@ public class MemberAgreement extends BaseEntity{ // 최초 회원가입 시간 �
     }
 
     public void agreeServiceTerms(boolean privacy_policy, boolean terms_of_service){
-        this.privacy_policy = privacy_policy;
-        this.terms_of_service = terms_of_service;
+        this.privacyPolicy = privacy_policy;
+        this.termsOfService = terms_of_service;
     }
 }

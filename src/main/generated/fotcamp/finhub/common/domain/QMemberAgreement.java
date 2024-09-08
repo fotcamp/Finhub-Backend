@@ -34,13 +34,13 @@ public class QMemberAgreement extends EntityPathBase<MemberAgreement> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedTime = _super.modifiedTime;
 
-    public final BooleanPath privacy_policy = createBoolean("privacy_policy");
+    public final BooleanPath privacyPolicy = createBoolean("privacyPolicy");
 
     public final DateTimePath<java.time.LocalDateTime> pushUpdateTime = createDateTime("pushUpdateTime", java.time.LocalDateTime.class);
 
     public final BooleanPath pushYn = createBoolean("pushYn");
 
-    public final BooleanPath terms_of_service = createBoolean("terms_of_service");
+    public final BooleanPath termsOfService = createBoolean("termsOfService");
 
     public QMemberAgreement(String variable) {
         this(MemberAgreement.class, forVariable(variable), INITS);
