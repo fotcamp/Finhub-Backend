@@ -9,11 +9,11 @@ RUN chmod +x gradlew && ./gradlew clean build --no-daemon -x test
 FROM openjdk:17-alpine
 WORKDIR /app
 
-# Update repository index and install tzdata
-RUN apk update && apk add --no-cache tzdata
-
-# Set timezone to Asia/Seoul
 ENV TZ=Asia/Seoul
+
+RUN apk update && apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
 
 COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
