@@ -14,6 +14,8 @@ public interface AgreementRepository extends JpaRepository<MemberAgreement, Long
 
     MemberAgreement findByMember(Member member);
 
+    boolean existsByMemberAndPrivacyPolicyTrueAndTermsOfServiceTrue(Member member);
+
     @Query("SELECT ma.member FROM MemberAgreement ma WHERE ma.pushYn = :pushYn")
     List<Member> findMembersByPushYn(@Param("pushYn") boolean pushYn);
 

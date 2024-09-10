@@ -85,14 +85,14 @@ public class AuthService2 {
         String name = kakaoUserInfo.getName();
         String uuid = kakaoUserInfo.getUuid(); // 카카오 고유식별자 값
         String provider = kakaoConfig.getClient_name();
-        AtomicBoolean isMember = new AtomicBoolean(true); // AtomicBoolean을 사용하여 isMember를 람다 내부에서 수정할 수 있도록 설정 ( 기존 유저가 자주 조회할 것으로 예상하여 디폴트는 true)
+        boolean isMember = true; // 기존 유저가 자주 조회할 것으로 예상하여 디폴트는 true
         Member member = memberRepository.findByMemberUuid(uuid)
-                .orElseGet(() -> {
-                    isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider, uuid)); // email, name은 null이어도 무관
-                });
+                .orElseGet(() -> memberRepository.save(new Member(email, name, provider, uuid))); // email, name은 null이어도 무관
         if(!Objects.equals(member.getMemberUuid(), uuid)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
             member.updateMemberUuid(uuid);
+        }
+        if (!agreementRepository.existsByMemberAndPrivacyPolicyTrueAndTermsOfServiceTrue(member)){ // 멤버 생성은 되어도 약관 동의가 안되면 false 리턴
+            isMember = false; // 신규회원
         }
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), member.getProvider());
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
@@ -152,7 +152,7 @@ public class AuthService2 {
         return new KakaoUserInfoProcessDto(nickname, email, id);
     }
 
-    private UserInfoProcessDto createUserInfoProcessDto(Member member, AtomicBoolean isMember) {
+    private UserInfoProcessDto createUserInfoProcessDto(Member member, boolean isMember) {
         return UserInfoProcessDto.builder()
                 .nickname(member.getNickname())
                 .email(member.getEmail())
@@ -160,7 +160,7 @@ public class AuthService2 {
                 .userType(member.getUserType() != null ? member.getUserType().getName() : null)
                 .userTypeUrl(member.getUserType() != null ? awsS3Service.combineWithCloudFrontBaseUrl(member.getUserType().getAvatarImgPath()) : null)
                 .pushYN(member.getMemberAgreement().isPushYn())
-                .isMember(isMember.get())
+                .isMember(isMember)
                 .build();
     }
 
@@ -171,14 +171,14 @@ public class AuthService2 {
         String name = (String) userInfo.get("name");
         String sub = (String) userInfo.get("sub");
         String provider = googleConfig.getClient_name();
-        AtomicBoolean isMember = new AtomicBoolean(true);
+        boolean isMember = true;
         Member member = memberRepository.findByMemberUuid(sub)
-                .orElseGet(() -> {
-                    isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider, sub));
-                });
+                .orElseGet(() -> memberRepository.save(new Member(email, name, provider, sub)));
         if(!Objects.equals(member.getMemberUuid(), sub)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
             member.updateMemberUuid(sub);
+        }
+        if(!agreementRepository.existsByMemberAndPrivacyPolicyTrueAndTermsOfServiceTrue(member)){
+            isMember = false;
         }
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
@@ -228,14 +228,14 @@ public class AuthService2 {
         String name = claims.getStringClaim("name");
         String sub = claims.getSubject();
         String provider = appleConfig.getClient_name();
-        AtomicBoolean isMember = new AtomicBoolean(true);
+        boolean isMember = true;
         Member member = memberRepository.findByMemberUuid(sub)
-                .orElseGet(() -> {
-                    isMember.set(false); // 신규회원
-                    return memberRepository.save(new Member(email, name, provider, sub));
-                });
+                .orElseGet(() -> memberRepository.save(new Member(email, name, provider, sub)));
         if(!Objects.equals(member.getMemberUuid(), sub)){ // 제공사 고유식별자 값이 존재하지 않았거나 수정된 경우, 최신 uuid 업데이트
             member.updateMemberUuid(sub);
+        }
+        if(!agreementRepository.existsByMemberAndPrivacyPolicyTrueAndTermsOfServiceTrue(member)){
+            isMember = false;
         }
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
