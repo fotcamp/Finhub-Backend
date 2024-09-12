@@ -17,7 +17,9 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Objects;
 
+import static fotcamp.finhub.common.domain.QComments.comments;
 import static fotcamp.finhub.common.domain.QCommentsReport.commentsReport;
+import static fotcamp.finhub.common.domain.QGptColumn.gptColumn;
 
 @RequiredArgsConstructor
 public class CommentsReportRepositoryImpl implements CommentsReportRepositoryCustom{
@@ -25,12 +27,17 @@ public class CommentsReportRepositoryImpl implements CommentsReportRepositoryCus
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<CommentsReport> searchAllTCommentsReportFilterList(Pageable pageable, String useYn, String isProcessed) {
+    public Page<CommentsReport> searchAllTCommentsReportFilterList(Pageable pageable, String useYn, String isProcessed, Long columnId) {
         List<CommentsReport> commentsReports = queryFactory
                 .selectFrom(commentsReport)
+                .join(comments)
+                .on(commentsReport.reportedComment.id.eq(comments.id))
+                .join(gptColumn)
+                .on(comments.gptColumn.id.eq(gptColumn.id))
                 .where(Expressions.asBoolean(true).isTrue()
                         .and(useYNEq(useYn))
-                        .and(isProcessedEq(isProcessed)))
+                        .and(isProcessedEq(isProcessed))
+                        .and(gptColumn.id.eq(columnId)))
                 .orderBy(getOrderSpecifiers(pageable.getSort()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
