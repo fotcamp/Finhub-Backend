@@ -1223,8 +1223,8 @@ public class AdminService {
     /**
      * 신고된 댓글내역 조회
      * */
-    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(Pageable pageable, String useYN, String isProcessed) {
-        Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN, isProcessed);
+    public ResponseEntity<ApiCommonResponse<ReportedCommentsResponseDto>> getReportedComment(Pageable pageable, String useYN, String isProcessed, Long columnId) {
+        Page<CommentsReport> commentsReports = commentsReportRepositoryCustom.searchAllTCommentsReportFilterList(pageable, useYN, isProcessed, columnId);
         List<ReportedCommentsProcessDto> reportedCommentsProcessDtoList = commentsReports.getContent().stream().map(ReportedCommentsProcessDto::new).toList();
         PageInfoProcessDto PageInfoProcessDto = commonService.setPageInfo(commentsReports);
         ReportedCommentsResponseDto allTopicRequestResponseDto = new ReportedCommentsResponseDto(reportedCommentsProcessDtoList, PageInfoProcessDto);
