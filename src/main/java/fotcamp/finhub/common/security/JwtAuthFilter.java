@@ -33,7 +33,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || requestURI.contains("/swagger-ui/")
                 || requestURI.contains("/v3/api-docs")
                 || requestURI.contains("/swagger-resources")
-                || requestURI.equals("/swagger-ui.html"))
+                || requestURI.equals("/swagger-ui.html")
+                || requestURI.equals("/api/v1/sentry"))
         {
             chain.doFilter(request,response);
             return;
