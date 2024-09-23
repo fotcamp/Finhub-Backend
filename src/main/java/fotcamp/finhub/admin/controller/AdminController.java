@@ -296,7 +296,7 @@ public class AdminController {
 
     @GetMapping(value = "/no-word")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "없는 단어 요청 확인하기", description = "없는 단어 요청 확인하기")
+    @Operation(summary = "없는 토픽 요청 확인하기", description = "없는 토픽 요청 확인하기")
     public ResponseEntity<ApiResponseWrapper> getNoWordList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -308,7 +308,7 @@ public class AdminController {
 
     @PostMapping(value = "/no-word")
     @PreAuthorize("hasRole('SUPER') or hasRole('BE') or hasRole('FE')")
-    @Operation(summary = "없는 단어 요청 확인 시 체크하기", description = "없는 단어 요청 확인 시 체크하기")
+    @Operation(summary = "없는 토픽 요청 확인 시 체크하기", description = "없는 토픽 요청 확인 시 체크하기")
     public ResponseEntity<ApiResponseWrapper> checkNoWord(@RequestBody CheckNoWordRequestDto checkNoWordRequestDto) {
         return adminService.checkNoWord(checkNoWordRequestDto);
     }

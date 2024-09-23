@@ -32,9 +32,8 @@ public class MainController {
     private final MainService mainService;
     private final SlackWebhookService slackService;
 
-    // 단어 검색
     @GetMapping("/search/topic/{method}")
-    @Operation(summary = "세 번째 탭 단어 검색", description = "제목만, 내용만, 제목+내용")
+    @Operation(summary = "세 번째 탭 토픽 검색", description = "제목만, 내용만, 제목+내용")
     public ResponseEntity<ApiResponseWrapper> searchTopic(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "method") String method,
@@ -47,9 +46,8 @@ public class MainController {
         return ResponseEntity.ok(ApiResponseWrapper.success(searchTopicResult));
     }
 
-    // 컬럼 검색
     @GetMapping("/search/column/{method}")
-    @Operation(summary = "세 번째 탭 컬럼 검색", description = "제목만, 내용만, 제목+내용")
+    @Operation(summary = "세 번째 탭 GPT 칼럼 검색", description = "제목만, 내용만, 제목+내용")
     public ResponseEntity<ApiResponseWrapper> searchColumn(
             @PathVariable(name = "method") String method,
             @RequestParam(name = "keyword") String keyword,
@@ -146,9 +144,8 @@ public class MainController {
         return mainService.deleteRecentKeyword(userDetails, dto);
     }
 
-    // 없는단어 요청하기
     @PostMapping("/search/keyword")
-    @Operation(summary = "없는 단어 요청하기", description = "없는 단어 요청하기")
+    @Operation(summary = "없는 토픽 요청하기", description = "없는 토픽 요청하기")
     public ResponseEntity<ApiResponseWrapper> requestKeyword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody KeywordRequestDto dto){
@@ -234,7 +231,7 @@ public class MainController {
 
     @PostMapping("/menu/setting/resign")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "설정 - 회원탈퇴", description = "회원 탈퇴 - 직업, 아바타, 캘린더 이모티콘, 퀴즈목록, 토픽스크랩, 최근검색기록, 리프레시토큰, 댓글 기록, 댓글 좋아요 기록, 컬럼 스크랩, 사용자 차단 목록 ")
+    @Operation(summary = "설정 - 회원탈퇴", description = "회원 탈퇴 - 직업, 아바타, 캘린더 이모티콘, 퀴즈목록, 토픽스크랩, 최근검색기록, 리프레시토큰, 댓글 기록, 댓글 좋아요 기록, GPT 칼럼 스크랩, 사용자 차단 목록 ")
     public ResponseEntity<ApiResponseWrapper> resignMembership(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody QuitRequestDto dto

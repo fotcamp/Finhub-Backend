@@ -31,10 +31,10 @@ import java.util.Optional;
 @Slf4j
 @Transactional
 public class ColumnService {
-    private final PostsLikeRepository postsLikeRepository; // 게시글 좋아요 레포지토리
-    private final CommentsRepository commentsRepository; // 댓글 레포지토리
-    private final CommentsLikeRepository commentsLikeRepository; // 댓글 좋아요 레포지토리
-    private final GptColumnRepository gptColumnRepository; // 컬럼 레포지토리
+    private final PostsLikeRepository postsLikeRepository;
+    private final CommentsRepository commentsRepository;
+    private final CommentsLikeRepository commentsLikeRepository;
+    private final GptColumnRepository gptColumnRepository;
     private final PostsScrapRepository postsScrapRepository;
     private final MemberRepository memberRepository;
     private final CommonService commonService;
@@ -43,13 +43,13 @@ public class ColumnService {
     private final CommentsReportRepository commentsReportRepository;
     private final BlockRepository blockRepository;
 
-    // column 리스트 조회
+    /**
+     * GPT 칼럼 리스트 조회
+     * */
     public ResponseEntity<ApiResponseWrapper> getColumnList(Pageable pageable) {
         Page<GptColumn> gptColumns = gptColumnRepository.findByUseYN("Y", pageable);
         List<ColumnListDto> columnListDto = gptColumns.getContent().stream().map(gptColumn -> {
-            List<TopicIdTitleDto> topicList = gptColumn.getTopicGptColumnList().stream().map(topicGptColumn -> {
-                return new TopicIdTitleDto(topicGptColumn);
-            }).toList();
+            List<TopicIdTitleDto> topicList = gptColumn.getTopicGptColumnList().stream().map(TopicIdTitleDto::new).toList();
             return new ColumnListDto(gptColumn.getId(), gptColumn.getTitle(), gptColumn.getCreatedTime().toLocalDate(),
                     awsS3Service.combineWithCloudFrontBaseUrl(gptColumn.getBackgroundUrl()), topicList);
         }).toList();
@@ -58,7 +58,9 @@ public class ColumnService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new ColumnListAnswerDto(columnListDto, pageInfoProcessDto)));
     }
 
-    // 컬럼 상세 조회
+    /**
+     * GPT 칼럼 상세 조회
+     * */
     public ResponseEntity<ApiResponseWrapper> getColumnDetail(CustomUserDetails userDetails, Long id) {
         GptColumn gptColumn = gptColumnRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
         boolean isScrapped = false;
@@ -95,7 +97,7 @@ public class ColumnService {
         }
         Long memberId = userDetails.getMemberIdasLong();
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("회원ID가 존재하지 않습니다."));
-        if (dto.getType() == 1) { // 컬럼 좋아요
+        if (dto.getType() == 1) { // GPT 칼럼 좋아요
             GptColumn gptColumn = gptColumnRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("GPT COLUMN이 존재하지 않습니다."));
             Optional<PostsLike> firstByGptColumnAndMember = postsLikeRepository.findFirstByGptColumnAndMember(gptColumn, member);
             firstByGptColumnAndMember.ifPresentOrElse(
@@ -151,7 +153,9 @@ public class ColumnService {
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 
-    // 컬럼 댓글 조회
+    /**
+     * GPT 칼럼 댓글 조회
+     * */
     public ResponseEntity<ApiResponseWrapper> getColumnComment(CustomUserDetails userDetails, Long id, Long type, Pageable pageable) {
         String loginCheck;
         Long memberId;
