@@ -102,7 +102,7 @@ public class AuthService2 {
         return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
     }
 
-    private String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
+    public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
         String redirectUri = getKakaoRedirectUri(origin);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -130,7 +130,7 @@ public class AuthService2 {
         }
     }
 
-    private KakaoUserInfoProcessDto getKakaoUserInfo(String accessToken) throws JsonProcessingException  {
+    public KakaoUserInfoProcessDto getKakaoUserInfo(String accessToken) throws JsonProcessingException  {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
