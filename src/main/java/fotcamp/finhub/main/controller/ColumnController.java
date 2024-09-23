@@ -28,7 +28,7 @@ public class ColumnController {
     private final ColumnService columnService;
 
     @GetMapping
-    @Operation(summary = "컬럼 목록 조회", description = "컬럼 목록 조회")
+    @Operation(summary = "GPT 칼럼 목록 조회", description = "GPT 칼럼 목록 조회")
     public ResponseEntity<ApiResponseWrapper> getColumnList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -38,7 +38,7 @@ public class ColumnController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "컬럼 상세 조회", description = "컬럼 상세 조회")
+    @Operation(summary = "GPT 칼럼 상세 조회", description = "GPT 칼럼 상세 조회")
     public ResponseEntity<ApiResponseWrapper> getColumnDetail(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "id") Long id
@@ -48,7 +48,7 @@ public class ColumnController {
 
     @PostMapping("/like")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "컬럼 및 댓글 좋아요(1: 컬럼, 2: 댓글)", description = "컬럼 및 댓글 좋아요")
+    @Operation(summary = "GPT 칼럼 및 댓글 좋아요(1: GPT 칼럼, 2: 댓글)", description = "GPT 칼럼 및 댓글 좋아요")
     public ResponseEntity<ApiResponseWrapper> like(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody ScrapRequestDto dto){
@@ -57,7 +57,7 @@ public class ColumnController {
 
     @PostMapping("/comment")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "컬럼 댓글 작성", description = "컬럼 댓글 작성")
+    @Operation(summary = "GPT 칼럼 댓글 작성", description = "GPT 칼럼 댓글 작성")
     public ResponseEntity<ApiResponseWrapper> comment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody CommentRequestDto dto){
@@ -65,7 +65,7 @@ public class ColumnController {
     }
 
     @GetMapping("/comment/{id}/{type}")
-    @Operation(summary = "컬럼 댓글 조회", description = "컬럼 댓글 조회")
+    @Operation(summary = "GPT 칼럼 댓글 조회", description = "GPT 칼럼 댓글 조회")
     public ResponseEntity<ApiResponseWrapper> getColumnComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(name = "id", required = true) Long id,
@@ -79,7 +79,7 @@ public class ColumnController {
 
     @PutMapping("/comment/actions")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "컬럼 댓글 수정", description = "컬럼 댓글 수정")
+    @Operation(summary = "GPT 칼럼 댓글 수정", description = "GPT 칼럼 댓글 수정")
     public ResponseEntity<ApiResponseWrapper> commentPut(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody CommentRequestDto dto){
@@ -88,7 +88,7 @@ public class ColumnController {
 
     @DeleteMapping("/comment/actions")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "컬럼 댓글 삭제", description = "컬럼 댓글 삭제")
+    @Operation(summary = "GPT 칼럼 댓글 삭제", description = "GPT 칼럼 댓글 삭제")
     public ResponseEntity<ApiResponseWrapper> commentDelete(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody CommentDeleteRequestDto dto){
@@ -96,14 +96,14 @@ public class ColumnController {
     }
 
     @GetMapping("/comment/actions")
-    @Operation(summary = "컬럼 댓글 신고 이유 조회", description = "컬럼 댓글 신고 이유 조회")
+    @Operation(summary = "GPT 칼럼 댓글 신고 이유 조회", description = "GPT 칼럼 댓글 신고 이유 조회")
     public ResponseEntity<ApiResponseWrapper> commentReasons(){
         return columnService.commentReasons();
     }
 
     @PostMapping("/comment/actions")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "컬럼 댓글 신고", description = "컬럼 댓글 신고")
+    @Operation(summary = "GPT 칼럼 댓글 신고", description = "GPT 칼럼 댓글 신고")
     public ResponseEntity<ApiCommonResponse<Void>> commentReport(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody CommentReportRequestDto dto

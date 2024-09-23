@@ -135,7 +135,7 @@ public class AdminDeleteService {
         if (!topicGptColumnList.isEmpty()){
             topicGptColumnRepository.deleteByGptColumn(gptColumn);
         }
-        // 컬럼 연관 댓글조회
+        // GPT 칼럼 연관 댓글조회
         List<Comments> commentsList = commentsRepository.findByGptColumn(gptColumn);
         // 댓글 좋아요 목록 삭제
         for(Comments comments : commentsList){
