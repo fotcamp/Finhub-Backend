@@ -10,11 +10,10 @@ FROM openjdk:17-alpine
 WORKDIR /app
 
 ENV TZ=Asia/Seoul
+
 RUN apk update && apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone
-
-RUN mkdir -p /app/logs
 
 COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
