@@ -1244,7 +1244,9 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> postReportedComment(ReportCommentRequestDto dto) {
         Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
         CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
-        comment.disabled();
+        if(ApprovalStatus.APPROVED.name().equals(dto.approvalStatus().name())){
+            comment.disabled();
+        }
         commentsReport.processReport(dto.approvalStatus());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
