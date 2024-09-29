@@ -670,7 +670,7 @@ public class MainService {
                     .build();
             fcmService.sendFcmNotifications(pushProcessDto);
         }
-        slackService.sendMsg(dto.getEmail(), dto.getText(), newVoc.getId());
+        slackService.sendVocMsg(dto.getEmail(), dto.getText(), newVoc.getId());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }
 

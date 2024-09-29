@@ -1,7 +1,6 @@
 package fotcamp.finhub.common.service;
 
 import com.slack.api.Slack;
-import com.slack.api.webhook.Payload;
 import com.slack.api.webhook.WebhookResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,14 +13,17 @@ import java.io.IOException;
 @Service
 public class SlackWebhookService {
 
-    @Value("${slack.webhook-url}")
-    private String webhookUrl;
+    @Value("${slack.voc.webhook-url}")
+    private String voc_webhookUrl;
 
     @Value("${slack.landing-domain}")
     private String domain;
 
+    @Value("${slack.error-log.webhook-url}")
+    private String errorLog_webhookUrl;
+
     @Async
-    public void sendMsg(String email, String text, Long id) {
+    public void sendVocMsg(String email, String text, Long id) {
         Slack slack = Slack.getInstance();
         StringBuilder sb = new StringBuilder();
         String detailUrl = String.format("%s/services/feedback/%d", domain, id);
@@ -59,7 +61,52 @@ public class SlackWebhookService {
                 .append("}");
         String message = sb.toString();
         try {
-            WebhookResponse response = slack.send(webhookUrl, message);
+            WebhookResponse response = slack.send(voc_webhookUrl, message);
+        } catch (IOException e) {
+            log.error("slack 메시지 발송 중 문제가 발생했습니다.", e.toString());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Async
+    public void sentErrorLogMessage(String title, String webUrl, String userAgent){
+        Slack slack = Slack.getInstance();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n")
+                .append("  \"blocks\": [\n")
+                .append("    {\n")
+                .append("      \"type\": \"section\",\n")
+                .append("      \"text\": {\n")
+                .append("        \"type\": \"mrkdwn\",\n")
+                .append("        \"text\": \"*핀허브 Sentry 에러를 수신했습니다.*\"\n")
+                .append("      }\n")
+                .append("    },\n")
+                .append("    {\n")
+                .append("      \"type\": \"section\",\n")
+                .append("      \"fields\": [\n")
+                .append("        {\n")
+                .append("          \"type\": \"mrkdwn\",\n")
+                .append("          \"text\": \"*Error Title:*\\n").append(title).append("\"\n")
+                .append("        },\n")
+                .append("        {\n")
+                .append("          \"type\": \"mrkdwn\",\n")
+                .append("          \"text\": \"*User-Agent:*\\n").append(userAgent).append("\"\n")
+                .append("        }\n")
+                .append("      ]\n")
+                .append("    },\n")
+                .append("    {\n")
+                .append("      \"type\": \"section\",\n")
+                .append("      \"text\": {\n")
+                .append("        \"type\": \"mrkdwn\",\n")
+                .append("        \"text\": \"*Sentry Issue Url:* <").append(webUrl).append("|여기를 클릭하세요>\"\n")
+                .append("      }\n")
+                .append("    }\n")
+                .append("  ]\n")
+                .append("}");
+
+        String message = sb.toString();
+        try {
+            WebhookResponse response = slack.send(errorLog_webhookUrl, message);
         } catch (IOException e) {
             log.error("slack 메시지 발송 중 문제가 발생했습니다.", e.toString());
             throw new RuntimeException(e);
