@@ -71,7 +71,7 @@ public class AdminDeleteController {
 
     @DeleteMapping("/column")
     @PreAuthorize("hasRole('SUPER')")
-    @Operation(summary = "컬럼 삭제 ", description = "컬럼 삭제")
+    @Operation(summary = "GPT 칼럼 삭제 ", description = "GPT 칼럼 삭제")
     public ResponseEntity<ApiResponseWrapper> deleteColumn(
             @Valid @RequestBody DeleteColumnRequestDto dto
     ){

@@ -450,7 +450,7 @@ public class AdminService {
             GptPrompt gptPrompt = gptPromptRepository.findFirstByOrderByIdDesc().orElseThrow(() -> new EntityNotFoundException("프롬프트가 존재하지 않음"));
             String prompt = gptPrompt.getPrompt();
 
-            // 프롬프트 약속 단어 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
+            // 프롬프트 약속 토픽 치환 (TO-BE : 약속 더 만들어야 할 것 같음)
             String resultPrompt = prompt.replaceAll(promiseCategory, categoryName)
                                         .replaceAll(promiseTopic, topicTitle)
                                         .replaceAll(promiseUsertype, usertypeName);
@@ -792,7 +792,9 @@ public class AdminService {
         }
     }
 
-     // 없는 단어 요청 한 것 확인하기
+    /**
+     * 없는 토픽 요청 한 것 확인하기
+     * */
     public ResponseEntity<ApiResponseWrapper> getNoWordList(Pageable pageable, String resolvedYN) {
         Page<TopicRequest> topicRequests = topicRequestRepositoryCustom.searchAllTopicRequestFilterList(pageable, resolvedYN);
         List<AllTopicRequestProcessDto> allTopicRequestProcessDtoList = topicRequests.getContent().stream().map(AllTopicRequestProcessDto::new).toList();
@@ -802,9 +804,11 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(allTopicRequestResponseDto));
     }
 
-    // 없는 단어 요청 시 체크하기
+    /**
+     * 없는 토픽 요청 시 체크하기
+     * */
     public ResponseEntity<ApiResponseWrapper> checkNoWord(CheckNoWordRequestDto checkNoWordRequestDto) {
-        TopicRequest topicRequest = topicRequestRepository.findById(checkNoWordRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 요청 단어"));
+        TopicRequest topicRequest = topicRequestRepository.findById(checkNoWordRequestDto.id()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 요청 토픽"));
 
         // resolvedAt이 null이면 현재 시간 설정, 그렇지 않으면 null로 설정
         if (topicRequest.getResolvedAt() == null) {
@@ -911,7 +915,7 @@ public class AdminService {
 
     }
 
-    // GPT 컬럼 내용 생성
+    // GPT 칼럼 내용 생성
     public ResponseEntity<ApiResponseWrapper> createGptColumnContent(CreateGptColumnRequestDto createGptColumnRequestDto) {
         String prompt = createGptColumnRequestDto.subject() + "에 대해서 한 페이지 정도 분량의 저널을 작성해줘. \n" +
                 "너가 가진 금융지식을 이용해서 분석적으로 작성해줘. \n" +
@@ -928,7 +932,7 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(new GptResponseDto(gptAnswer)));
     }
 
-    // GPT 컬럼 요약 생성
+    // GPT 칼럼 요약 생성
     public ResponseEntity<ApiResponseWrapper> createGptColumnSummary(CreateGptColumnRequestDto createGptColumnRequestDto) {
         String prompt = createGptColumnRequestDto.subject() + "을 한 문장으로 요약해줘. \n" +
                 "아래 답변 형식을 꼭 지켜서 답변해줘. \n" +
@@ -951,7 +955,7 @@ public class AdminService {
         }
     }
 
-    // GPT 컬럼 저장
+    // GPT 칼럼 저장
     public ResponseEntity<ApiResponseWrapper> createGptColumn(SaveGptColumnRequestDto saveGptColumnRequestDto, CustomUserDetails userDetails) {
         try {
             List<Long> topicList = saveGptColumnRequestDto.topicList();
@@ -990,7 +994,7 @@ public class AdminService {
     }
 
 
-    // GPT 컬럼 전체 조회
+    // GPT 칼럼 전체 조회
     public ResponseEntity<ApiResponseWrapper> getGptColumn() {
         List<GptColumn> gptColumns = gptColumnRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         List<GetGptColumnProcessDto> resultList = gptColumns.stream().map(gptColumn ->
@@ -1009,7 +1013,7 @@ public class AdminService {
     }
 
     /**
-     * GPT 컬럼의 상세 내용(댓글, 댓글신고여부)을 조회한다.
+     * GPT 칼럼의 상세 내용(댓글, 댓글신고여부)을 조회한다.
      * @Return DetailGptColumnResponseDto
      * */
     public ResponseEntity<ApiResponseWrapper> getDetailGptColumn(Long id) {
@@ -1034,7 +1038,9 @@ public class AdminService {
         return ResponseEntity.ok(ApiResponseWrapper.success(detailGptColumnResponseDto));
     }
 
-    // GPT COLUMN 수정
+    /**
+     * GPT 칼럼 수정
+     * */
     public ResponseEntity<ApiResponseWrapper> modifyGptColumn(ModifyGptColumnRequestDto modifyGptColumnRequestDto, CustomUserDetails userDetails) {
         try {
             GptColumn gptColumn = gptColumnRepository.findById(modifyGptColumnRequestDto.getId()).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 gpt column"));
@@ -1238,7 +1244,9 @@ public class AdminService {
     public ResponseEntity<ApiResponseWrapper> postReportedComment(ReportCommentRequestDto dto) {
         Comments comment = commentsRepository.findById(dto.id()).orElseThrow(() -> new EntityNotFoundException("신고된 comments ID가 없습니다."));
         CommentsReport commentsReport = commentsReportRepository.findByReportedComment(comment).orElseThrow(() -> new EntityNotFoundException("신고된 commentsReport ID가 없습니다."));
-        comment.disabled();
+        if(ApprovalStatus.APPROVED.name().equals(dto.approvalStatus().name())){
+            comment.disabled();
+        }
         commentsReport.processReport(dto.approvalStatus());
         return ResponseEntity.ok(ApiResponseWrapper.success());
     }

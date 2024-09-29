@@ -162,15 +162,12 @@ public class MainService {
         // 댓글 삭제
         commentsRepository.deleteAll(commentAll);
 
-        // 컬럼 스크랩 삭제
         List<PostsScrap> postScrapAll = postsScrapRepository.findByMember(existingMember);
         postsScrapRepository.deleteAll(postScrapAll);
 
-        // 컬럼 좋아요 삭제
         List<PostsLike> postsLikeList = postsLikeRepository.findByMember(existingMember);
         postsLikeRepository.deleteAll(postsLikeList);
 
-        // 차단 목록 삭제
         List<Block> blockListAll = blockRepository.findByMember(existingMember);
         List<Block> blockMemberListAll = blockRepository.findByBlockMember(existingMember);
         blockRepository.deleteAll(blockListAll);
@@ -251,7 +248,9 @@ public class MainService {
         }
     }
 
-    // 컬럼 검색
+    /**
+     * GPT 칼럼 검색
+     * */
     public ResponseEntity<ApiResponseWrapper> searchColumn(String method, String keyword, Pageable pageable) {
         Page<GptColumn> pageResult = null;
         switch (method) {
@@ -350,7 +349,7 @@ public class MainService {
             requester = member.getEmail();
         }
         if (topicRequestRepository.existsByTerm(dto.getKeyword())) {
-            return ResponseEntity.ok(ApiResponseWrapper.success("이미 요청처리 된 단어입니다."));
+            return ResponseEntity.ok(ApiResponseWrapper.success("이미 요청처리 된 토픽입니다."));
         }
         TopicRequest topicRequest = TopicRequest.builder()
                 .term(dto.getKeyword())

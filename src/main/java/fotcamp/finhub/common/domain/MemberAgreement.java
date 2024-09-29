@@ -35,7 +35,6 @@ public class MemberAgreement extends BaseEntity{ // 최초 회원가입 시간 �
     @Column(name = "terms_of_service")
     private boolean termsOfService; // 서비스 이용 약관
 
-    // 앱 푸시 허용 해제 컬럼
     private boolean pushYn = false;
     private LocalDateTime pushUpdateTime;
 
