@@ -28,13 +28,4 @@ public class OAuth2Util {
         ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, request, Map.class);
         return (String) response.getBody().get("id_token");
     }
-
-    public Map getUserInfo(String userInfoUrl, String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        HttpEntity<String> request = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, Map.class);
-        return response.getBody();
-    }
 }
