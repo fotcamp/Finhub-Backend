@@ -3,14 +3,17 @@ package fotcamp.finhub.main.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
+import fotcamp.finhub.common.api.ApiCommonResponse;
 import fotcamp.finhub.common.api.ApiResponseWrapper;
 import fotcamp.finhub.common.security.CustomUserDetails;
 import fotcamp.finhub.main.dto.request.SignUpAgreeRequest;
+import fotcamp.finhub.main.dto.response.login.LoginResponseDto;
 import fotcamp.finhub.main.service.AuthService2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -53,26 +56,31 @@ public class AuthApiController {
      */
     @GetMapping("/login/oauth2/callback/kakao")
     @Operation(summary = " 카카오 로그인", description = "카카오서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
-    public ResponseEntity<ApiResponseWrapper> kakaoLogin(@RequestParam(name = "code") String code,
+    public ResponseEntity<ApiCommonResponse<LoginResponseDto>> kakaoLogin(@RequestParam(name = "code") String code,
                                                          @RequestParam(name = "origin") String origin) throws JsonProcessingException {
-
-        // 카카오서버로 인가코드와 관련 정보를 전송해서 카카오가 발행하는 액세스토큰이 정상적으로 수신되면,
-        // 자체 jwt 발행하여 서비스 권한부여
-        return authService2.loginKakao(code, origin);
+        LoginResponseDto loginResponseDto = authService2.loginKakao(code, origin);
+        return ResponseEntity.ok(ApiCommonResponse.success(loginResponseDto));
     }
 
     @GetMapping("/login/oauth2/callback/google")
     @Operation(summary = " 구글 로그인", description = "구글 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
-    public ResponseEntity<ApiResponseWrapper> googleLogin( @RequestParam(name = "code")String code,
+    public ResponseEntity<ApiCommonResponse<LoginResponseDto>> googleLogin( @RequestParam(name = "code")String code,
                                                            @RequestParam(name = "origin") String origin) throws JsonProcessingException {
-        return authService2.loginGoogle(code, origin);
+        LoginResponseDto loginResponseDto = authService2.loginGoogle(code, origin);
+        return ResponseEntity.ok(ApiCommonResponse.success(loginResponseDto));
     }
 
     @GetMapping("/login/oauth2/callback/apple")
     @Operation(summary = " 애플 로그인", description = "애플 서버로부터 받은 액세스토큰 넣어서 진행하는 로그인절차")
-    public ResponseEntity<ApiResponseWrapper> appleLogin(@RequestParam(name = "code") String code,
+    public ResponseEntity<ApiCommonResponse<LoginResponseDto>> appleLogin(@RequestParam(name = "code") String code,
                                                          @RequestParam(name = "origin") String origin) throws IOException, ParseException, JOSEException {
-        return authService2.loginApple(code, origin);
+        LoginResponseDto loginResponseDto;
+        try {
+            loginResponseDto = authService2.loginApple(code, origin);
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiCommonResponse.fail("애플로그인 정보 오류 발생."));
+        }
+        return ResponseEntity.ok(ApiCommonResponse.success(loginResponseDto));
     }
 
     @GetMapping("/updateAccessToken") //헤더에 bearer 토큰 담지 말고 전송!
@@ -85,8 +93,14 @@ public class AuthApiController {
     // 자동로그인
     @GetMapping("/autoLogin")
     @Operation(summary = "자동로그인", description = "자동로그인")
-    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
-        return authService2.autoLogin(request);
+    public ResponseEntity<ApiCommonResponse<LoginResponseDto>> autoLogin(HttpServletRequest request){
+        LoginResponseDto loginResponseDto;
+        try {
+            loginResponseDto = authService2.autoLogin(request);
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiCommonResponse.fail("로그인이 필요합니다"));
+        }
+        return ResponseEntity.ok(ApiCommonResponse.success(loginResponseDto));
     }
 
     // 단순 정보 제공용

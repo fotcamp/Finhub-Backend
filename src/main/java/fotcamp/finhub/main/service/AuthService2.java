@@ -65,22 +65,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService2 {
-
     private final JwtUtil jwtUtil;
 
+    private final AwsS3Service awsS3Service;
+    private final OAuth2Util oAuth2Util;
+    private final AuthProviderClient authProviderClient;
     private final KakaoConfig kakaoConfig;
     private final GoogleConfig googleConfig;
     private final AppleJwtConfig appleConfig;
-    private final AwsS3Service awsS3Service;
-    private final OAuth2Util oAuth2Util;
 
     private final AgreementRepository agreementRepository;
     private final MemberRepository memberRepository;
     private final TokenRepository tokenRepository;
 
-    public ResponseEntity<ApiResponseWrapper> loginKakao(String code, String origin) throws JsonProcessingException {
-        String kakaoAccessToken = getKakaoAccessToken(code, origin);
-        KakaoUserInfoProcessDto kakaoUserInfo = getKakaoUserInfo(kakaoAccessToken);
+    public LoginResponseDto loginKakao(String code, String origin) throws JsonProcessingException {
+        String kakaoAccessToken = authProviderClient.getKakaoAccessToken(code, origin);
+        KakaoUserInfoProcessDto kakaoUserInfo = authProviderClient.getKakaoUserInfo(kakaoAccessToken);
         String email = kakaoUserInfo.getEmail();
         String name = kakaoUserInfo.getName();
         String uuid = kakaoUserInfo.getUuid(); // 카카오 고유식별자 값
@@ -98,58 +98,7 @@ public class AuthService2 {
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         // 응답 데이터 생성: 닉네임, 이메일, 유저아바타 이미지, 직업명, 직업아바타이미지, 푸시알림 정보, 기존회원유무
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
-        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
-        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
-    }
-
-    public String getKakaoAccessToken(String code, String origin) throws JsonProcessingException {
-        String redirectUri = getKakaoRedirectUri(origin);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        Map<String, String> body = new HashMap<>();
-        body.put("grant_type", kakaoConfig.getGrant_type());
-        body.put("client_id", kakaoConfig.getClientId());
-        body.put("redirect_uri", redirectUri);
-        body.put("code", code);
-        body.put("client_secret", kakaoConfig.getClient_secretId());
-        return oAuth2Util.getAccessToken(kakaoConfig.getAccessTokenRequestUrl(), headers, body);
-    }
-
-    private String getKakaoRedirectUri(String origin) {
-        switch (origin) {
-            case "production":
-                return kakaoConfig.getRedirect_uri_feProd();
-            case "belocal":
-                return kakaoConfig.getRedirect_uri_beLocal();
-            case "beprod":
-                return kakaoConfig.getRedirect_uri_beProd();
-            case "bedev" :
-                return kakaoConfig.getRedirect_uri_beDev();
-            default:
-                return kakaoConfig.getRedirect_uri_feLocal();
-        }
-    }
-
-    public KakaoUserInfoProcessDto getKakaoUserInfo(String accessToken) throws JsonProcessingException  {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        HttpEntity<String> request = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(
-                kakaoConfig.getUser_info_uri(),
-                HttpMethod.POST,
-                request,
-                String.class
-        );
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(response.getBody());
-        String id = jsonNode.get("id").asText(); // 카카오 고유식별자
-        String nickname = jsonNode.get("properties").get("nickname").asText();
-        String email = jsonNode.get("kakao_account").get("email").asText();
-        return new KakaoUserInfoProcessDto(nickname, email, id);
+        return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
 
     private UserInfoProcessDto createUserInfoProcessDto(Member member, boolean isMember) {
@@ -164,9 +113,9 @@ public class AuthService2 {
                 .build();
     }
 
-    public ResponseEntity<ApiResponseWrapper> loginGoogle(String code, String origin) throws JsonProcessingException {
-        String googleAccessToken = getGoogleAccessToken(code, origin);
-        Map<String, Object> userInfo = oAuth2Util.getUserInfo(googleConfig.getUser_info_uri(), googleAccessToken);
+    public LoginResponseDto loginGoogle(String code, String origin) throws JsonProcessingException {
+        String googleAccessToken = authProviderClient.getGoogleAccessToken(code, origin);
+        Map<String, Object> userInfo = authProviderClient.getUserInfo(googleAccessToken);
         String email = (String) userInfo.get("email");
         String name = (String) userInfo.get("name");
         String sub = (String) userInfo.get("sub");
@@ -183,44 +132,13 @@ public class AuthService2 {
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
-        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
-        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+        return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
 
-    private String getGoogleAccessToken(String code, String origin) throws JsonProcessingException {
-        String decode = URLDecoder.decode(code, StandardCharsets.UTF_8);
-        HttpHeaders headers = new HttpHeaders();
-        String redirectUri = getGoogleRedirectUri(origin);
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        Map<String, String> body = new HashMap<>();
-        body.put("client_id", googleConfig.getClientId());
-        body.put("client_secret", googleConfig.getClient_secretId());
-        body.put("code", decode);
-        body.put("grant_type", googleConfig.getGrant_type());
-        body.put("redirect_uri", redirectUri);
-        return oAuth2Util.getAccessToken(googleConfig.getAccessTokenRequestUrl(), headers, body);
-    }
-
-    private String getGoogleRedirectUri(String origin) {
-        switch (origin) {
-            case "production":
-                return googleConfig.getRedirect_uri_feProd();
-            case "belocal":
-                return googleConfig.getRedirect_uri_beLocal();
-            case "beprod":
-                return googleConfig.getRedirect_uri_beProd();
-            case "bedev":
-                return googleConfig.getRedirect_uri_beDev();
-            default:
-                return googleConfig.getRedirect_uri_feLocal();
-        }
-    }
-
-    public ResponseEntity<ApiResponseWrapper> loginApple(String code, String origin) throws ParseException, IOException, JOSEException {
-        String identityToken = getAppleIdentityToken(code, origin);
+    public LoginResponseDto loginApple(String code, String origin) throws ParseException, IOException, JOSEException {
+        String identityToken = authProviderClient.getAppleIdentityToken(code, origin);
         if (!validateAppleIdToken(identityToken)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseWrapper.fail("애플로그인 정보 오류 발생."));
+            throw new RuntimeException();
         }
         SignedJWT signedJWT = SignedJWT.parse(identityToken);
         JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
@@ -240,59 +158,7 @@ public class AuthService2 {
         TokenDto allTokens = jwtUtil.createAllTokens(member.getMemberUuid(), member.getRole().toString(), provider);
         saveOrUpdateRefreshToken(member, allTokens.getRefreshToken());
         UserInfoProcessDto userInfoProcessDto = createUserInfoProcessDto(member, isMember);
-        LoginResponseDto loginResponseDto = new LoginResponseDto(allTokens, userInfoProcessDto);
-        return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
-    }
-
-    private String getAppleIdentityToken(String code, String origin){
-        String redirectUri = getAppleRedirectUri(origin);
-        String clientSecret = createClientSecret();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
-        Map<String, String> bodyMap = new HashMap<>();
-        bodyMap.put("grant_type", appleConfig.getGrant_type());
-        bodyMap.put("code", code);
-        bodyMap.put("redirect_uri", redirectUri);
-        bodyMap.put("client_id", appleConfig.getClientId());
-        bodyMap.put("client_secret", clientSecret);
-        return oAuth2Util.getIdentityToken(appleConfig.getIdentityTokenRequestUri(), headers, bodyMap);
-    }
-
-    private String getAppleRedirectUri(String origin) {
-        switch (origin) {
-            case "production":
-                return appleConfig.getRedirect_uri_feProd();
-            default:
-                return appleConfig.getRedirect_uri_beProd();
-        }
-    }
-
-    private String createClientSecret(){
-        PrivateKey privateKey = getPrivateKey();
-        long nowMillis  = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
-        final String jwt = Jwts.builder()
-                .setHeaderParam("kid", appleConfig.getKeyId())
-                .setIssuer(appleConfig.getTeamId())
-                .setIssuedAt(now)
-                .setExpiration(new Date(nowMillis + 86400000))// 1일
-                .setAudience("https://appleid.apple.com")
-                .setSubject(appleConfig.getClientId())
-                .signWith(privateKey, SignatureAlgorithm.ES256)
-                .compact();
-        return jwt;
-    }
-
-    private PrivateKey getPrivateKey() {
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-        try {
-            byte[] privateKeyBytes = Base64.getDecoder().decode(appleConfig.getPrivate_key());
-
-            PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(privateKeyBytes);
-            return converter.getPrivateKey(privateKeyInfo);
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting private key from String", e);
-        }
+        return new LoginResponseDto(allTokens, userInfoProcessDto);
     }
 
     private boolean validateAppleIdToken(String idToken) throws ParseException, IOException, JOSEException {
@@ -333,8 +199,10 @@ public class AuthService2 {
         }
     }
 
-    // 자동로그인
-    public ResponseEntity<ApiResponseWrapper> autoLogin(HttpServletRequest request){
+    /**
+     * 자동로그인
+     * */
+    public LoginResponseDto autoLogin(HttpServletRequest request){
         String accessTokenHeader = request.getHeader("Authorization");
         String refreshToken = request.getHeader("refreshToken");
         String accessToken = null;
@@ -346,18 +214,16 @@ public class AuthService2 {
             String uuid = jwtUtil.getUuid(accessToken);
             Member member = memberRepository.findByMemberUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-            LoginResponseDto loginResponseDto = updatingLoginResponse(member);
-            return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+            return updatingLoginResponse(member);
         }
         if (jwtUtil.validateTokenServiceLayer(refreshToken)) {
             // 액세스토큰 유효x, 리프레시토큰 유효할 때
             String uuid = jwtUtil.getUuid(refreshToken);
             Member member = memberRepository.findByMemberUuid(uuid).orElseThrow(
                     () -> new EntityNotFoundException("MEMBER ID가 존재하지 않습니다."));
-            LoginResponseDto loginResponseDto = updatingLoginResponse(member);
-            return ResponseEntity.ok(ApiResponseWrapper.success(loginResponseDto));
+            return updatingLoginResponse(member);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseWrapper.fail("로그인이 필요합니다"));
+        throw new RuntimeException("로그인이 필요합니다");
     }
 
     public LoginResponseDto updatingLoginResponse(Member member){

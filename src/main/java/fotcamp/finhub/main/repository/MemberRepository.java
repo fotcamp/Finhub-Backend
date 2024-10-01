@@ -37,5 +37,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m LEFT JOIN FETCH m.memberAgreement WHERE m.memberId = :memberId")
     Optional<Member> findMemberWithAgreement(@Param("memberId") Long memberId);
 
-
+    void deleteByMemberUuid(String uuid);
 }

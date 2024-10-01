@@ -1,0 +1,61 @@
+security:
+  oauth2:
+    client:
+      registration:
+        kakao:
+          client-id: kakao-client
+          client-secret: kakao-secret
+          authorization-grant-type: kakao-code
+          redirect-uri: "http://localhost:8090"
+          client-name: Kakao
+          client-authentication-method: POST
+          scope:
+            - profile_nickname
+            - account_email
+        google:
+          client-id: google-client
+          client-secret: google-secret
+          authorization-grant-type: google-code
+          redirect-uri: "http://localhost:8090"
+          client-name : Google
+          scope: #동의 항목
+            - email
+            - profile
+            - openid
+        apple:
+          client-id: apple-client
+          client-secret: apple-secret
+          authorization-grant-type: apple-code
+          redirect-uri: "http://localhost:8090"
+          client-name: Apple
+          team-id: apple-team
+          key:
+            id: apple-id
+            private-key: apple-private-key
+          scope: #동의 항목
+            - email
+            - profile
+            - openid
+
+      provider:
+        kakao:
+          authorization-uri: http://localhost:8090
+          token-uri: http://localhost:8090
+          user-info-uri: http://localhost:8090
+          user-name-attribute: id
+        google:
+          authorization-uri: http://localhost:8090
+          token-uri: http://localhost:8090
+          user-info-uri: http://localhost:8090
+          user-name-attribute: sub
+        apple:
+          authorizationUri: http://localhost:8090
+          token-uri: http://localhost:8090
+          public-key-url: http://localhost:8090
+          user-name-attribute: sub
+
+jwt:
+  key: test-key
+  accessTokenExpirationTime: 9999
+  #accessTokenExpirationTime: 20
+  refreshTokenExpirationTime: 999999

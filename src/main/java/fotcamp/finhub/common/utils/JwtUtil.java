@@ -135,7 +135,6 @@ public class JwtUtil {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-//            log.info("Token validation error", e);
             return false;
         }
     }
