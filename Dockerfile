@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN chmod +x gradlew && ./gradlew clean build --no-daemon -x test
+RUN chmod +x gradlew && ./gradlew clean build --no-daemon
 
 FROM openjdk:17-alpine
 WORKDIR /app
